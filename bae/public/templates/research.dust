@@ -1,0 +1,58 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav" /}
+{/top}
+{<title}调查研究{/title}
+
+{<script}
+    <script type="text/javascript" src="components/ng-grid.min.js"></script>
+    <script type="text/javascript" src="components/moment.min.js"></script>
+    <script type="text/javascript" src="js/gridTemplates.js"></script>
+{/script}
+<link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+<link rel="stylesheet" href="components/ng-tags-input/ng-tags-input.min.css"/>
+
+{<body}
+    <div id="researchDiv" ng-app="ResearchApp" ng-controller="ResearchCtrl">
+
+        <script type="text/ng-template" id="modal.html">
+            <div class="modal-header row" style="margin-left: 0px;margin-right: 0px;">
+                <h3 class="col-md-4">{{ title }}</h3>
+            </div>
+            <div class="modal-body">
+                <div ng-view></div>
+            </div>
+            <div class="modal-footer">
+                <span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>
+                <button class="btn btn-default" ng-click="pre()" ng-disabled="buttonDisabled" ng-show="showPre" ng-hide="!showPre">上一步</button>
+                <button class="btn btn-primary" ng-click="next()" ng-disabled="buttonDisabled">{{ getLabel() }}</button>
+                <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
+            </div>
+        </script>
+
+        <div class="row">
+            <div class="btn-group" style="float: left;margin-left: 15px;">
+                <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'all'">所有</button>
+                <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'not_started'">未开始</button>
+                <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'started'">进行中</button>
+                <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'ended'">已结束</button>
+            </div>
+            <div style="float: left;width: 300px;margin-left: 20px;">
+                <div class="input-group">
+                    <input type="text" class="form-control" ng-model="searchText" placeholder="请输入研究名称进行检索">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+              </span>
+                </div>
+            </div>
+                <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
+        </div>
+
+        <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="researchGrid" ></div>
+
+    </div>
+    <script src="../components/angular-route/angular-route.min.js"></script>
+    <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="js/research.js"></script>
+{/body}
