@@ -1,0 +1,68 @@
+{
+    "domain": "localhost",
+    "mongo": {
+        "host":"localhost",
+        "database":"research"
+    },
+// "host": "localhost",
+//
+    "port": 8000,
+    "sms":{
+        "uid":"1001@500905130001",
+        "password":"1236F39A94C8FB5A3CE3549DD7413088",
+        "sendURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi",
+        "checkURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi?action=getBalance&ac=1001@500905130001&authkey=1236F39A94C8FB5A3CE3549DD7413088"
+    },
+//
+    "i18n": {
+         "fallback": "zh-CN",
+         "contentPath": "path:./locales"
+    },
+    "email" : {
+        "service": "QQex",
+        "auth": {
+            "user": "support@iiiui.com",
+            "pass": "Afdsds12"
+        }
+//    service: "QQ",
+//    auth: {
+//        user: '329392019@qq.com',
+//        pass: 'afds12354'
+//    }
+    },
+//
+// "routes": {
+//     "routePath": "path:./controllers"
+// },
+//
+  "view engines": {
+//      "js": {
+//         "module": "adaro",
+//         "settings": {
+//             "helpers": null,
+//             "stream": false
+//         }
+//      },
+//
+     "dust": {
+         "module": "adaro",
+         "settings": {
+             "helpers": null,
+             "stream": false
+         }
+     }
+}
+// "express": {
+//     "x-powered-by": false,
+//     "trust proxy": false,
+//     "jsonp callback name": null,
+//     "json replacer": null,
+//     "json spaces": 0,
+//     "case sensitive routing": false,
+//     "strict routing": false,
+//     "view cache": true,
+//     "view engine": "js",
+//     "views": "path:./.build/templates"
+// }
+
+}
