@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"  color="0xffffff"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		 creationComplete="inited(event)"
+		 >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Cubic;
+			import com.pamakids.components.controls.SoundPlayer;
+			import com.pamakids.events.ODataEvent;
+			import com.pamakids.utils.DateUtil;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.events.FlexEvent;
+			
+			import models.SongVO;
+			
+			import views.components.SoundVisualizer;
+			
+			[Bindable]
+			public var volume:int = 80;
+			
+			private var downX:Number;
+			private var player1:SoundPlayer;
+			
+			protected function thumb_mouseDownHandler(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				thumb.startDrag(false, new Rectangle(0,thumb.y,track.width,0));
+				stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+				downX = event.stageX;
+			}
+			
+			protected function mouseUpHandler(event:MouseEvent):void
+			{
+				thumb.stopDrag();
+				stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+			
+			protected function mouseMoveHandler(event:MouseEvent):void
+			{
+				volume = thumb.x*100/track.width
+				player.volume = volume/100;
+			}
+			
+			protected function volumeGroup_mouseDownHandler(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				var v:int = volumeGroup.globalToLocal(new Point(event.stageX, 0)).x;
+				toVolume(v);
+			}
+			
+			private function toVolume(v:int):void
+			{
+				TweenLite.to(this, 0.3, {volume:v, ease:Cubic.easeOut});
+				player.volume = v/100;
+			}
+			
+			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
+			
+			private var player:SoundPlayer;
+			private var soundVisualizer:SoundVisualizer;
+			
+			protected function inited(event:FlexEvent):void
+			{
+//				var t:Timer = new Timer(1000);
+//				t.start();
+//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
+//					updateTime();
+//				});
+//				updateTime();
+				
+				initPlayer();
+				panelGroup.y = info.y+info.height-3;
+				panelGroup.height = height-57-48;
+				panelGroup.x = 2;
+				panelGroup.width = width-4;
+			}
+			
+			private function getPlayer():SoundPlayer
+			{
+				var p:SoundPlayer = new SoundPlayer(1000);
+				p.autoPlay = true;
+				return p;
+			}
+			
+			private function updateTime():void
+			{
+				var n:Date = new Date();
+				time = n.getHours()+' : '+n.getMinutes()+' : '+n.getSeconds();
+			}
+			
+			[Bindable]
+			private var time:String;
+			
+			private var brodcasting:Boolean;
+			
+			protected function playingHandler(event:DataEvent):void
+			{
+				if(brodcasting)
+					return;
+				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
+				var tt:int = Math.ceil(player.soundLength/1000);
+				time = '正在播放：'+song1.name + ' '+DateUtil.formateTime(tt-pt) +' 后将播放：'+song2.name;
+			}
+			
+			protected function player1PlayedHandler(event:Event):void
+			{
+				play(song2);
+			}
+			
+			private var song1:SongVO;
+			private var song2:SongVO;
+			
+			private var player2:SoundPlayer;
+			
+			private function initPlayer():void
+			{
+				player1 = getPlayer();
+				player2 = getPlayer();
+				player = player1;
+				player1.volume = volume/100;
+				player1.addEventListener("playing", playingHandler);
+				player1.addEventListener("playComplete", player1PlayedHandler);
+				soundVisualizer = new SoundVisualizer(width, height);
+				soundVisualizer.y = -18;
+				sv.addChild(soundVisualizer);
+				
+				var vo:SongVO = new SongVO();
+				vo.url = '/assets/temp/1.mp3';
+				vo.cover = '/assets/temp/1.jpg';
+				vo.name = '你听我说';
+				
+				song2 = new SongVO();
+				song2.url = '/assets/temp/2.mp3';
+				song2.cover = '/assets/temp/2.jpg';
+				song2.name = 'Just One Last Dance';
+				
+				song1 = song2;
+				song2 = vo;
+				play(song1);
+			}
+			
+			private function play(vo:SongVO):void
+			{
+				player.url = vo.url;
+				setTimeout(function():void{
+					soundVisualizer.setCover(vo.cover);
+				}, 1000);
+			}
+			
+			protected function randomPlay_changeHandler(event:Event):void
+			{
+				trace(randomPlay.selected);
+			}
+			
+			private var songPanel:ListPanel;
+			
+			protected function songList_changeHandler(event:Event):void
+			{
+				var wait:Number = 0;
+				if(panel && panel != songPanel){
+					hide(panel);
+					wait = 0.5;
+				}
+				TweenLite.delayedCall(wait, function():void{
+					if(!songPanel){
+						songPanel = new ListPanel();
+						songPanel.width = panelGroup.width;
+						songPanel.height = panelGroup.height;
+						panelGroup.addElement(songPanel);
+						panelButton[songPanel] = songList;
+					}
+					
+					songList.selected ? show(songPanel) : hide(songPanel);
+				});
+			}
+			
+			private var panel:Group;
+			private var broPanel:BroPanel;
+			private var panelButton:Dictionary = new Dictionary();
+			
+			protected function broList_changeHandler(event:Event):void
+			{
+				var wait:Number = 0;
+				if(panel && panel != broPanel){
+					hide(panel);
+					wait = 0.5;
+				}
+				TweenLite.delayedCall(wait, function():void{
+					if(!broPanel)
+					{
+						broPanel = new BroPanel();
+						broPanel.width = panelGroup.width;
+						broPanel.height = panelGroup.height;
+						broPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
+						panelGroup.addElement(broPanel);
+						panelButton[broPanel] = broList;
+					}
+					
+					broList.selected ? show(broPanel) : hide(broPanel);
+				});
+			}
+			
+			private function show(p:Group):void
+			{
+				p.x = panelGroup.width;
+				TweenLite.to(p, 0.5, {x:0, ease:Cubic.easeOut});
+				soundVisualizer.graphics.clear()
+				panel = p;
+			}
+			
+			private function hide(p:Group):void
+			{
+				panelButton[p].selected = false;
+				TweenLite.to(p, 0.5, {x:panelGroup.width, ease:Cubic.easeOut});
+				panel = null;
+			}
+			
+			private var insertPanel:InsertPanel;
+			
+			protected function insertSong_changeHandler(event:Event):void
+			{
+				var wait:Number = 0;
+				if(panel && panel != insertPanel){
+					hide(panel);
+					wait = 0.5;
+				}
+				TweenLite.delayedCall(wait, function():void{
+					if(!insertPanel)
+					{
+						insertPanel = new InsertPanel();
+						insertPanel.width = panelGroup.width;
+						insertPanel.height = panelGroup.height;
+						insertPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
+						panelGroup.addElement(insertPanel);
+						panelButton[insertPanel] = insertSong;
+					}
+					
+					insertSong.selected ? show(insertPanel) : hide(insertPanel);
+				});
+			}
+			
+			protected function playBroHandler(event:ODataEvent):void
+			{
+				if(brodcasting)
+					return;
+				brodcasting = true;
+				var bro:Object = event.data;
+				var url:String = File.applicationStorageDirectory.resolvePath(bro.url).url;
+				time = '开始广播：'+bro.label;
+				if(bro.repeat){
+					time += ' '+bro.repeat +' 次';
+				}else{
+					time += ' 1 次';
+				}
+				if(bro.interval){
+					time += ' 每次间隔 '+bro.repeat+ ' 秒';
+				}
+				player1.muted = true;
+				setTimeout(function():void{
+					if(bro.repeat){
+						player2.repeat = true;
+						player2.repeatTimes = bro.repeat-1;
+						player2.repeatInterval = bro.interval;
+						player2.addEventListener("playRepeatComplete", function(e:Event):void{
+							player1.muted = false;
+							brodcasting = false;
+						});
+					}else{
+						player2.repeat = false;
+						player2.addEventListener("playComplete", function(e:Event):void{
+							player1.muted = false;
+							brodcasting = false;
+						});
+					}
+					player2.url = url;
+				}, 800)
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:UIComponent id="sv" mouseChildren="false" y="{info.y}" mouseEnabled="false"/>
+	
+	<s:Group id="panelGroup" clipAndEnableScrolling="true">
+	</s:Group>
+	
+	<s:Group height="57" width="100%">
+		<s:Group id="info" y="{topBG.height}" width="100%">
+			<s:BitmapImage x="1" source="@Embed('/assets/trasBG.png')"/>
+			<s:Label text="{time}" color="0xd9dee3" fontSize="14" left="20" verticalCenter="0"/>
+			<s:HGroup right="20" verticalCenter="0" verticalAlign="middle">
+				<s:ToggleButton id="randomPlay" change="randomPlay_changeHandler(event)" 
+								mouseDown="event.stopImmediatePropagation()"
+								buttonMode="true"
+								skinClass="skins.RandomButton"
+								toolTip="{randomPlay.selected ? '取消随机播放' : '开启随机播放'}"
+								/>
+				<s:ToggleButton skinClass="skins.InsertButton"
+								buttonMode="true"
+								change="insertSong_changeHandler(event)"
+								id="insertSong"
+								toolTip="{insertSong.selected ? '关闭定时插播' : '定时插播'}"
+								/>
+				<s:ToggleButton skinClass="skins.ListButton"
+								buttonMode="true"
+								change="songList_changeHandler(event)"
+								id="songList"
+								toolTip="{songList.selected ? '关闭播放列表' : '播放列表'}"
+								/>
+				<s:ToggleButton skinClass="skins.BroButton"
+								buttonMode="true"
+								id="broList"
+								change="broList_changeHandler(event)"
+								toolTip="{broList.selected ? '关闭广播' : '手动广播'}"
+								/>
+			</s:HGroup>
+		</s:Group>
+		<s:BitmapImage horizontalCenter="0" source="@Embed('/assets/topBG.png')" id="topBG">
+			<s:filters>
+				<s:DropShadowFilter angle="90" blurX="3" blurY="3" alpha=".1" />
+			</s:filters>
+		</s:BitmapImage>
+		<s:Label text="乐府时代播放器" fontSize="22" color="0xffffff" left="20" verticalCenter="0"/>
+		<s:HGroup verticalAlign="middle" right="20" verticalCenter="0" gap="13">
+			<s:Image buttonMode="true" toolTip="静音" click="toVolume(0)" source="@Embed('/assets/v1.png')"/>
+			<s:Group height="12" id="volumeGroup" width="102" mouseDown="volumeGroup_mouseDownHandler(event)">
+				<s:BitmapImage id="track" source="@Embed('/assets/trackBG.png')" y="-2"/>		
+				<s:BitmapImage source="@Embed('/assets/activeBG.png')"
+							   width="100%"
+							   mask="{m}"
+							   y="-2"
+							   />
+				<s:Group width="{volume*track.width/100}" id="m" height="12">
+					<s:Rect width="100%" height="12">
+						<s:fill>
+							<s:SolidColor color="0"/>
+						</s:fill>
+					</s:Rect>
+				</s:Group>
+				<s:Group width="0" height="0" buttonMode="true" id="thumb"
+						 x="{volume*track.width/100}"
+						 verticalCenter="0"
+						 mouseDown="thumb_mouseDownHandler(event)">
+					<s:BitmapImage source="@Embed('/assets/thumbVbtn.png')" x="-12" y="-16"/>
+				</s:Group>
+			</s:Group>
+			<s:Image buttonMode="true" toolTip="最大音" click="toVolume(100)" source="@Embed('/assets/v2.png')"/>
+		</s:HGroup>
+	</s:Group>
+	
+</s:Group>

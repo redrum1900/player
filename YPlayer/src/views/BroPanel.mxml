@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="group1_creationCompleteHandler(event)" xmlns:layouts="com.pamakids.layouts.*" xmlns:views="views.*"
+		 >
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.manager.SoundManager;
+			import com.pamakids.utils.FileHelper;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.events.FlexEvent;
+			import mx.utils.UIDUtil;
+			
+			import skins.buttons.PrimaryButtonSkin;
+			
+			private const CONFIG:String = 'config/bro.yp';
+			
+			private var bros:Array;
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				bros = FileManager.readFile(CONFIG) as Array;
+				setTimeout(createButtons, 500);
+				buttonsGroup.width = bg.width;
+			}
+			
+			[Bindable]
+			private var fname:String;
+			
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+				var nurl:String = 'bro/'+UIDUtil.createUID()+'.mp3'; 
+				selectedFile.copyTo(File.applicationStorageDirectory.resolvePath(nurl), true);
+				var o:Object = {url:nurl,label:broName.text,repeat:int(repeatTime.text),interval:int(repeatInterval.text)};
+				if(bros){
+					bros.push(o);
+				}else{
+					bros = [o];
+				}
+				FileManager.saveFile(CONFIG, bros);
+				createButtons();
+				currentState = 's1';
+			}
+			
+			protected function choose_clickHandler(event:MouseEvent):void
+			{
+				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择广播声音文件', [new FileFilter('广播声音文件', '*.mp3')]); 
+			}
+			
+			private var selectedFile:File;
+			
+			private function selectedHandler(f:File):void
+			{
+				selectedFile = f;
+				fname = f.name;
+				broName.text = fname.replace('.mp3', '');
+			}
+			
+			private var i:int;
+			
+			private function createButtons():void
+			{
+				if(bros && i < bros.length)
+				{
+					getButton(bros[i]);
+					i++;
+				}
+			}
+			
+			private var dic:Dictionary = new Dictionary();
+			private var createTime:int = 1;
+			
+			private function getButton(o:Object):Button
+			{
+				var b:Button = new Button();
+				dic[b] = o;
+				b.setStyle('skinClass', PrimaryButtonSkin);
+				b.label = o.label;
+				var bm:NativeMenu = new NativeMenu();
+				bm.addEventListener(Event.SELECT, navHandler);
+				var ni:NativeMenuItem = new NativeMenuItem('删除');
+				ni.data = o;
+				bm.addItem(ni);
+				b.contextMenu = bm;
+				b.addEventListener(MouseEvent.CLICK, broHandler);
+				buttonsGroup.addElement(b);
+				b.alpha = 0;
+				b.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:FlexEvent):void{
+					var dt:Number = createTime-0.1;
+					if(dt > 0)
+						TweenLite.to(b, dt , {alpha:1});
+					createButtons();
+				});
+				return b;
+			}
+			
+			protected function broHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new ODataEvent(dic[event.currentTarget]));
+			}
+			
+			protected function navHandler(event:Event):void
+			{
+				var n:NativeMenuItem = event.target as NativeMenuItem;
+				bros.splice(bros.indexOf(n.data), 1);
+				FileManager.saveFile(CONFIG, bros);
+				for(var b:Object in dic){
+					if(dic[b] == n.data){
+						TweenLite.to(b, 0.5, {alpha:0, onComplete:function():void{
+							File.applicationStorageDirectory.resolvePath(n.data.url).deleteFile()
+							b.parent.removeElement(b as Button);
+							i--;
+						}});
+						break;
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="s1"/>
+		<s:State name="s2"/>
+	</s:states>
+	
+	<s:BitmapImage source="@Embed('/assets/panelBG.jpg')"
+				   width="100%" height="100%"
+				   fillMode="repeat"/>
+	<s:VGroup width="100%" height="100%" gap="20" paddingLeft="20" paddingBottom="10" paddingRight="20" paddingTop="20" fontSize="14">
+		<s:Label color="0xffffff" fontSize="14" text="广播内容需手动使用，添加后立即生效，不需要的右键删除" />
+		<s:Scroller id="scroller" mouseDown="event.stopImmediatePropagation()" width="100%" height="100%" skinClass="skins.datagrid.list.ScrollSkin"
+					horizontalScrollPolicy="off">
+			<s:Group id="buttonsGroup" height="100%">
+				<s:layout>
+					<layouts:FlowLayout horizontalGap="10" verticalGap="10"/>
+				</s:layout>
+			</s:Group>
+		</s:Scroller>
+		<s:HGroup id="bg" width="100%" horizontalAlign="right">
+			<s:HGroup verticalAlign="middle" includeIn="s2" width="100%">
+				<s:Button id="choose" click="choose_clickHandler(event)" toolTip="{fname}" skinClass="skins.buttons.PrimaryButtonSkin" label="选择声音文件"/>
+				<s:TextInput color="0x30373e" skinClass="skins.textinput.DefaultTextInputSkin" id="broName" prompt="请输入广播名称" toolTip="广播名称"/>
+				<s:TextInput color="0x30373e" skinClass="skins.textinput.DefaultTextInputSkin" id="repeatTime" toolTip="循环次数" width="50" restrict="0-9" maxChars="2"/>
+				<s:TextInput color="0x30373e" skinClass="skins.textinput.DefaultTextInputSkin" id="repeatInterval" toolTip="间隔时间(秒)" width="50" restrict="0-9" maxChars="2"/>
+				<s:Spacer width="100%"/>
+				<!--<s:Button id="audition" enabled="{fname}" click="try_clickHandler(event)" skinClass="skins.buttons.PrimaryButtonSkin" label="试听"/>-->
+				<s:Button id="confirm" enabled="{fname}" click="confirm_clickHandler(event)" skinClass="skins.buttons.PrimaryButtonSkin" label="确认"/>
+				<s:Button id="cancel" click="currentState='s1';SoundManager.instance.clearAll();" skinClass="skins.buttons.WarningButtonSkin" label="取消"/>
+			</s:HGroup>
+			<s:Button id="toAdd" color="0x30373e" click="currentState='s2';fname=''" skinClass="skins.buttons.DefaultButtonSkin" label="新增" includeIn="s1"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

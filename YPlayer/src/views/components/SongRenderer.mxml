@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				mouseEnabled="false" mouseChildren="false"
+				autoDrawBackground="false" >
+	
+	<fx:Script>
+		<![CDATA[
+			import models.SongVO;
+			
+			[Bindable]
+			private var l:String;
+			
+			[Bindable]
+			private var c:uint = 0xffffff;
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				fillData();
+			}
+			
+			private function fillData():void
+			{
+				if(data){
+					if(data is SongVO){
+						l = data.playTime+' '+data.name;
+						c = 0xffffff;
+					}else{
+						c = 0xE19440;
+						l = data.playTime + ' 将插播 '+data.name + '  单次插播时长：'+data.time+' 重复次数：'+data.repeat+' 间隔时间：'+data.interval+'秒'
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Label text="{l}" fontSize="14" color="{c}"/>
+	
+</s:ItemRenderer>
