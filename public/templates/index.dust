@@ -1,0 +1,61 @@
+{>"layouts/master" /}
+{<title}欢迎使用联想研究调查系统{/title}
+
+{<script}
+    <script type="text/javascript">
+
+    $(document).ready(function () {
+        if ($.cookie('rememberme')) {
+            $("#rememberme").attr("checked", true);
+            $("#username").val($.cookie("username"));
+            $("#password").val($.cookie("password"));
+        }
+    });
+
+    function login(){
+            if($("#rememberme").is(":checked")){
+            $.cookie('rememberme', true, {expires:30});
+    $.cookie('username', $("#username").val(), {expires:30});
+    $.cookie('password', $("#password").val(), {expires:30});
+}else{
+    $.removeCookie('rememberme');
+    $.removeCookie('username');
+    $.removeCookie('password');
+}
+};
+</script>
+{/script}
+
+{<body}
+
+<div class="login-container">
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">系统登录</h3>
+        </div>
+        <div class="panel-body">
+            <form class="form-vertical" role="form" method="post" action="/login">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" class="form-control" id="username" name="username" autofocus>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <label class="checkbox">记住登录
+                    <input id="rememberme" type="checkbox">
+                    <a href="/forget" style="padding-left: 175px;">忘记密码</a>
+                </label>
+                <br>
+                <button type="submit" class="btn btn-success" name="action" value="login" onclick="login()">登录</button>
+                <button type="submit" class="btn btn-default" name="action" value="apply"
+                        style="position:relative; left:200px">申请
+                </button>
+                <input type="hidden" name="_csrf" value="{_csrf}"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+{/body}
