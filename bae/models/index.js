@@ -8,9 +8,12 @@
 
   require('./manager');
 
+  require('./dict');
+
   module.exports = {
     SMS: Mongoose.model("SMS"),
-    Manager: Mongoose.model("Manager")
+    Manager: Mongoose.model("Manager"),
+    Dict: Mongoose.model('Dict')
   };
 
 }).call(this);

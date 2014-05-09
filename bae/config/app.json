@@ -2,7 +2,7 @@
     "domain": "localhost",
     "mongo": {
         "host":"localhost",
-        "database":"research"
+        "database":"yuefu"
     },
 // "host": "localhost",
 //
