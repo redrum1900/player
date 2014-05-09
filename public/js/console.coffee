@@ -1,7 +1,7 @@
 cs = angular.module 'ConsoleApp', ['nvd3ChartDirectives']
 cs.controller 'ConsoleCtrl', ($scope, $http)->
 
-  $scope.data = ["key":"提交报告数","values": [
+  $scope.data = ["key":"数据报表","values": [
     [ 1, 0] ,
     [ 2, 10] ,
     [ 3, 120] ,

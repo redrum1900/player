@@ -7,7 +7,7 @@ var kraken = require('kraken-js'),
     mail = require('./lib/email'),
     passport = require('passport'),
     auth = require('./lib/auth'),
-    User = require('./models').Manager,
+    Manager = require('./models').Manager,
     flash = require('connect-flash'),
     api_auth = require('./lib/middleware/api_auth'),
     sms = require('./lib/sms'),
@@ -30,14 +30,14 @@ app.configure = function configure(nconf, next) {
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
 
-//    var u1 = new User({
-//        username: 'admin7',
-//        password: '666666',
-//        email:'mani95lisa@gmail.com',
-//        role: 1
-//    });
-//    u1.save();
-//
+    var u1 = new Manager({
+        username: 'admin',
+        password: '666666',
+        email:'mani95lisa@gmail.com',
+        role: 0
+    });
+    u1.save();
+
     passport.use(auth.localStrategy());
 
     passport.serializeUser(function (user, done) {
@@ -45,7 +45,7 @@ app.configure = function configure(nconf, next) {
     });
 
     passport.deserializeUser(function (id, done) {
-        User.findOne({_id: id}, function (err, user) {
+        Manager.findOne({_id: id}, function (err, user) {
             done(null, user);
         });
     });
