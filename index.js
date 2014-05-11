@@ -1,5 +1,6 @@
 'use strict';
 
+global.debug = process.env.USER == 'mani'
 
 var kraken = require('kraken-js'),
     mongo = require('./lib/database/mongo'),
@@ -28,6 +29,7 @@ app.configure = function configure(nconf, next) {
 
     // Async method run on startup.
     mongo.config(nconf.get('mongo'));
+    redis.config(nconf.get('redis'));
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
     log4js.configure(nconf.get('log4js'));
