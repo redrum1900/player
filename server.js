@@ -13,7 +13,7 @@ http.createServer(function(req, res) {
 	log4js.addAppender(log4js.appenders['baev3-log'](options));
 
 	var logger = log4js.getLogger('node-log-sdk');
-	logger.trace('baev3-log trace log11');
+	logger.trace('baev3-log trace log112');
 	logger.debug('baev3-log Debug log1');
 	logger.info('baev3-log Info log1');
 	logger.warn('baev3-log Warn log1');
