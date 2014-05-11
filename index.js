@@ -1,11 +1,17 @@
 'use strict';
 
 global.debug = process.env.USER == 'mani'
+global.reply = function(err, result, res){
+    if(err){
+        res.json({status: false, result: err});
+    }else{
+        res.json({status: true, result: result});
+    }
+}
 
 var kraken = require('kraken-js'),
     mongo = require('./lib/database/mongo'),
     redis = require('./lib/database/redis'),
-    log4js = require('log4js'),
     mail = require('./lib/email'),
     passport = require('passport'),
     auth = require('./lib/auth'),
@@ -17,12 +23,11 @@ var kraken = require('kraken-js'),
 
 require('./lib/helper-formatDate');
 
-global.reply = function(err, result, res){
-    if(err){
-        res.json({status: false, result: err});
-    }else{
-        res.json({status: true, result: result});
-    }
+var log4js = require('log4js');
+log4js.loadAppender('baev3-log');
+var options = {
+    'user': '9RGMgDe0USUb1ODDnQgRBhN2',
+    'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
 }
 
 app.configure = function configure(nconf, next) {
@@ -33,14 +38,10 @@ app.configure = function configure(nconf, next) {
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
     if(process.env.USER != 'mani'){
-        var options = {
-            'user': '9RGMgDe0USUb1ODDnQgRBhN2',
-            'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
-        }
-        log4js.loadAppender('baev3-log');
         log4js.addAppender(log4js.appenders['baev3-log'](options));
+        
         var logger = log4js.getLogger('node-log-sdk');
-        logger.trace('Startup Trace');
+        logger.trace('Startup Trace1');
         logger.debug('Startup Debug log');
         logger.info('Startup Info log');
         logger.warn('Startup Warn log');
