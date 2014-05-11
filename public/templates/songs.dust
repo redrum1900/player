@@ -1,0 +1,46 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav" /}
+{/top}
+{<title}用户管理{/title}
+
+{<script}
+    <script type="text/javascript" src="components/ng-grid.min.js"></script>
+    <script type="text/javascript" src="components/moment.min.js"></script>
+    <script type="text/javascript" src="js/gridTemplates.js"></script>
+{/script}
+<link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+{<body}
+    <div id="songMDiv" ng-app="SongMApp" ng-controller="SongMCtrl">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" ng-model="searchText"
+                     placeholder="请输入歌曲名称进行检索">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+              </span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <tags-input ng-model="s_tags"
+                        placeholder="标签筛选"
+                        min-length="1">
+                <auto-complete source="loadTags($query)"
+                               min-length="1"
+                        ></auto-complete>
+            </tags-input>
+        </div>
+        <div class="col-md-2 col-md-offset-6">
+            <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
+        </div>
+    </div>
+
+    <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
+
+    </div>
+    <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="js/songs.js"></script>
+{/body}

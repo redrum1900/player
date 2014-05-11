@@ -1,0 +1,47 @@
+{>"layouts/master" /}
+{<top}
+{>"layouts/nav" /}
+{/top}
+{<script}
+<script type="text/javascript" src="components/ng-grid.min.js"></script>
+<script type="text/javascript" src="js/gridTemplates.js"></script>
+{/script}
+
+<link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+{<body}
+	<div class="panel panel-default">
+		<div class="panel-heading">我的基本信息</div>
+		<div class="panel-body">
+			<h5>用户名：{user.username}</h5>
+			<h5>邮箱：{user.email}</h5>
+			<p>登录次数：{user.signed_in_times}</p>
+			<p>创建时间：{@formatDate date="{user.created_at}" format="YYYY MMMM Do H:mm:ss"/}</p>
+		</div>
+	</div>
+	{@eq key=user.role value=0}
+		
+        <div id="MMDiv" ng-app="MM" ng-controller="MMCtrl" >
+            <tabset>
+                <tab heading="系统管理员申请列表">
+                    <div style="height: 300px;border: 1px solid rgb(212,212,212);" ng-grid="appliesGrid" ></div>
+                </tab>
+                <tab heading="系统管理员列表">
+                    <div style="height: 300px;border: 1px solid rgb(212,212,212);" ng-grid="managersGrid" ></div>
+                </tab>
+            </tabset>
+            <script type="text/ng-template" id="modal.html">
+                <div class="modal-header">
+                    <h3>{{ title }}</h3>
+                </div>
+                <div class="modal-body">
+                    {{ content }}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-click="ok()">知道了</button>
+                </div>
+            </script>
+        </div>
+        <script type="text/javascript" src="components/ui-bootstrap-tpls.min.js"></script>
+        <script type="text/javascript" src="js/profile.js"></script>
+	{/eq}
+{/body}

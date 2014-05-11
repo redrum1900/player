@@ -1,0 +1,17 @@
+<div class="row" style="padding-bottom: 10px">
+    <div class="col-md-8">
+        <div class="input-group">
+            <input type="text" class="form-control" ng-model="searchText" placeholder="用户名">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+          </span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <label class="checkbox" tooltip="仅显示选中的">显示{{ choosedUsers.length }}用户
+            <input ng-model="onlyShowChoosed" type="checkbox" ng-change="showChoosed()">
+        </label>
+    </div>
+
+</div>
+<div style="height: 300px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
