@@ -15,7 +15,6 @@ module.exports =
     this.client = client
     client.on 'error', (err)->
       logger.error err
-    logger.trace 'Init Redis'+host
     if !debug
       client.auth conf.username+'-'+conf.password+'-'+conf.db
   setUser:(user,next)->
