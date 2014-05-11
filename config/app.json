@@ -10,7 +10,7 @@
     },
 // "host": "localhost",
 //
-    "port": 8000,
+    "port": 18080,
     "sms":{
         "uid":"1001@500883280002",
         "password":"51C1A651495061424DA83EBAE14BBD80",
