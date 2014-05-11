@@ -30,7 +30,7 @@ exports.localStrategy = function () {
             if(err)
                 logger.error(err)
             else if(reason != null)
-                logger.warn(username, password, reason);
+                logger.warn('Login Failed:'+username+'-'+password+'-'+reason);
             if(!user){
                 return done(err, false, {message:reason});
             }
