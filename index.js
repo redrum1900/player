@@ -32,7 +32,7 @@ app.configure = function configure(nconf, next) {
     redis.config(nconf.get('redis'));
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
-    log4js.configure(nconf.get('log4js'));
+//    log4js.configure(nconf.get('log4js'));
     if(process.env.USER != 'mani'){
         var options = {
             'user': '9RGMgDe0USUb1ODDnQgRBhN2',
@@ -41,7 +41,6 @@ app.configure = function configure(nconf, next) {
         log4js.loadAppender('baev3-log');
         log4js.addAppender(log4js.appenders['baev3-log'](options));
         var logger = log4js.getLogger('node-log-sdk');
-        logger.setLevel('TRACE');
         logger.trace('Startup Trace');
         logger.debug('Startup Debug log');
         logger.info('Startup Info log');
