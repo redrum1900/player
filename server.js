@@ -6,14 +6,14 @@ log4js.loadAppender('baev3-log');
 var options = {
     'user': '9RGMgDe0USUb1ODDnQgRBhN2',
     'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
-} 
+}
 
 http.createServer(function(req, res) {
 
 	log4js.addAppender(log4js.appenders['baev3-log'](options));
 
-	var logger = log4js.getLogger('node-log-sdk');
-	logger.trace('baev3-log trace log112');
+	var logger = log4js.getLogger('Test');
+	logger.trace('baev3-log trace log11');
 	logger.debug('baev3-log Debug log1');
 	logger.info('baev3-log Info log1');
 	logger.warn('baev3-log Warn log1');
