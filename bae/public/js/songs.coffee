@@ -1,4 +1,4 @@
-songs = angular.module 'SongMApp', ['ngGrid', 'ui.bootstrap']
+songs = angular.module 'SongMApp', ['ngGrid', 'ngTagsInput', 'ui.bootstrap']
 songs.controller 'SongMCtrl', ($scope, $http, $modal) ->
 
   listUri = '/song/list'
@@ -46,12 +46,9 @@ songs.controller 'SongMCtrl', ($scope, $http, $modal) ->
     enableHighlighting:true
     rowHeight:40
     columnDefs:[
-      {field: "songname", displayName:"客户名称", cellTemplate: textCellTemplate}
-      {field: "code", displayName:"客户密码", cellTemplate: textCellTemplate}
-      {field: "parent.username", displayName:"总部", cellTemplate: textCellTemplate}
-      {field: "man", displayName:"联系人", cellTemplate: textCellTemplate}
-      {field: "mobile", displayName:"手机号", width:115, cellTemplate: textCellTemplate}
-      {field: "email", displayName:"邮箱", cellTemplate: textCellTemplate}
+      {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
+      {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
+      {field: "id3", displayName:"歌曲信息", cellTemplate: textCellTemplate}
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
       {field: "updator.username", width:88, displayName:"更新者", cellTemplate: textCellTemplate}
@@ -70,6 +67,22 @@ songs.controller 'SongMCtrl', ($scope, $http, $modal) ->
     $scope.data = {}
     $scope.open()
     return
+
+  $scope.tags = []
+  getDict $http, 'SongTags', (result) ->
+    if result and result.list and result.list.length
+      result.list.forEach (tag) ->
+        console.log tag
+        if typeof tag == 'string'
+          $scope.tags.push text:tag
+        else
+          $scope.tags.push tag
+
+  $scope.loadTags = (query) ->
+    deffered = $q.defer()
+    deffered.resolve $filter('filter') $scope.tags, query
+    return deffered.promise
+
 
   $scope.open = ->
     modalInstance = $modal.open(

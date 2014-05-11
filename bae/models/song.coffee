@@ -3,16 +3,15 @@ Schema = Mongoose.Schema
 
 SongSchema = new Schema
   name:type:String,index:true,required:true
+  cover:String,
   url:String
   tags:type:[String],index:true
   id3:Schema.Types.Mixed
+  disabled:type:Boolean,default:false
   creator:type:Schema.Types.ObjectId,ref:"Manager"
   updator:type:Schema.Types.ObjectId,ref:"Manager"
 
-
 Timestamps = require('mongoose-times')
 SongSchema.plugin Timestamps, created:"created_at", lastUpdated:"updated_at"
-
-#SongSchema.index 'tags', 1
 
 Mongoose.model 'Song', SongSchema

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "log.js",
+  "sourceRoot": "",
+  "sources": [
+    "log.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;AAAA,MAAA,MAAA;;AAAA,EAAA,MAAA,GAAS,OAAA,CAAQ,QAAR,CAAT,CAAA;;AAAA,EAEA,OAAO,CAAC,MAAR,GAAiB,SAAC,OAAD,GAAA;AACf,WAAO,MAAM,CAAC,aAAP,CAAqB,MAAM,CAAC,SAAP,CAAiB,SAAjB,CAArB,EAAkD,OAAlD,CAAP,CADe;EAAA,CAFjB,CAAA;AAAA"
+}
