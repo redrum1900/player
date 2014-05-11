@@ -5,6 +5,9 @@
             "500": "errors/500",
             "503": "errors/503"
         },
+        "logger":{
+            "enabled":false
+        },
         "appsec": {
             "csrf":false
 //            {

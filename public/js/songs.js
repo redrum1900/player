@@ -2,7 +2,7 @@
 (function() {
   var ModalInstanceCtrl, songs;
 
-  songs = angular.module('SongMApp', ['ngGrid', 'ui.bootstrap']);
+  songs = angular.module('SongMApp', ['ngGrid', 'ngTagsInput', 'ui.bootstrap']);
 
   songs.controller('SongMCtrl', function($scope, $http, $modal) {
     var listUri, updateStatusUri;
@@ -65,29 +65,16 @@
       rowHeight: 40,
       columnDefs: [
         {
-          field: "songname",
-          displayName: "客户名称",
+          field: "name",
+          displayName: "名称",
           cellTemplate: textCellTemplate
         }, {
-          field: "code",
-          displayName: "客户密码",
+          field: "tags",
+          displayName: "标签",
           cellTemplate: textCellTemplate
         }, {
-          field: "parent.username",
-          displayName: "总部",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "man",
-          displayName: "联系人",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "mobile",
-          displayName: "手机号",
-          width: 115,
-          cellTemplate: textCellTemplate
-        }, {
-          field: "email",
-          displayName: "邮箱",
+          field: "id3",
+          displayName: "歌曲信息",
           cellTemplate: textCellTemplate
         }, {
           field: "creator.username",
@@ -124,6 +111,27 @@
     $scope.add = function() {
       $scope.data = {};
       $scope.open();
+    };
+    $scope.tags = [];
+    getDict($http, 'SongTags', function(result) {
+      if (result && result.list && result.list.length) {
+        return result.list.forEach(function(tag) {
+          console.log(tag);
+          if (typeof tag === 'string') {
+            return $scope.tags.push({
+              text: tag
+            });
+          } else {
+            return $scope.tags.push(tag);
+          }
+        });
+      }
+    });
+    $scope.loadTags = function(query) {
+      var deffered;
+      deffered = $q.defer();
+      deffered.resolve($filter('filter')($scope.tags, query));
+      return deffered.promise;
     };
     $scope.open = function() {
       var modalInstance;

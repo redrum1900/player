@@ -1,12 +1,16 @@
 {
     "domain": "localhost",
-    "mongo": {
-        "host":"localhost",
-        "database":"yuefu"
+    "mongo": "mongodb://KktW3LP8Bhlvteqkyo6f6zCX:SBsaOp4CsLa8mq3ddHb6LFLgT2eMVYbI@mongo.duapp.com:8908/eaywlsIDCfUqRjZqpolL",
+    "redis":{
+        "host":"redis.duapp.com",
+        "port":80,
+        "db":"VMCAsbQCiHwjrksolUbw",
+        "username":"KktW3LP8Bhlvteqkyo6f6zCX",
+        "password":"SBsaOp4CsLa8mq3ddHb6LFLgT2eMVYbI"
     },
 // "host": "localhost",
 //
-    "port": 8000,
+    "port": 18080,
     "sms":{
         "uid":"1001@500883280002",
         "password":"51C1A651495061424DA83EBAE14BBD80",
@@ -26,7 +30,7 @@
         }
 //    service: "QQ",
 //    auth: {
-//        user: '329392019@qq.com',
+//        user: "329392019@qq.com',
 //        pass: 'afds12354'
 //    }
     },

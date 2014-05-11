@@ -14,69 +14,17 @@
             <progressbar class="progress-striped active" value="100" type="success">处理中</progressbar>
         </div>
         <div class="row">
-            <h4 class="col-md-4">问题涉及的用户属性</h4>
+            <h4 class="col-md-4">歌曲标签</h4>
             <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
-                这里录入的是属性值，录入中文即可，<a tooltip="gender(性别)career_style(职业类型)nationality(国籍)income(年收入)">已有属性</a>则录入相应的英文
+                通过便签可以很方便的对歌曲进行分类并很快的检索到
             </h5>
         </div>
-        <tags-input ng-model="QUserPros.list"
+        <tags-input ng-model="SongTags.list"
                     ng-disabled="handling"
                     placeholder="新增"
                     min-length="1"
-                    on-tag-removed="tagRemoved('QUserPros')"
-                    on-tag-added="tagAdded('QUserPros')"
-                ></tags-input>
-        <div class="row">
-            <h4 class="col-md-4">用户来源</h4>
-            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
-                表示用户是通过什么渠道来的，比如通过App注册或者通过线下报名
-            </h5>
-        </div>
-        <tags-input ng-model="UserFrom.list"
-                    ng-disabled="handling"
-                    placeholder="新增"
-                    min-length="1"
-                    on-tag-removed="tagRemoved('UserFrom')"
-                    on-tag-added="tagAdded('UserFrom')"
-                ></tags-input>
-        <div class="row">
-            <h4 class="col-md-4">用户额外属性</h4>
-            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
-                用以新建用户时选择使用，每新建一个属性即可自动新建一组数据
-            </h5>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <tags-input ng-model="UserExtraPro.list"
-                            ng-disabled="handling"
-                            placeholder="新增属性名称"
-                            min-length="1"
-                            on-tag-removed="tagRemoved('UserExtraPro')"
-                            on-tag-added="tagAdded('UserExtraPro')"
-                        ></tags-input>
-            </div>
-            <div class="col-md-4" ng-repeat="pro in UserExtraPro.list">
-                <tags-input ng-model="Pros[pro.text]"
-                            ng-disabled="handling"
-                            placeholder="新增 {{ pro.text }}"
-                            min-length="1"
-                            on-tag-removed="proRemoved(pro.text)"
-                            on-tag-added="proAdded(pro.text)"
-                        ></tags-input>
-            </div>
-        </div>
-        <div class="row">
-            <h4 class="col-md-4">调查研究常用标签</h4>
-            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
-                在新建研究时也可以添加新的标签或者使用已有的标签
-            </h5>
-        </div>
-        <tags-input ng-model="ResearchTags.list"
-                    ng-disabled="handling"
-                    placeholder="新增"
-                    min-length="1"
-                    on-tag-removed="tagRemoved('ResearchTags')"
-                    on-tag-added="tagAdded('ResearchTags')"
+                    on-tag-removed="tagRemoved('SongTags')"
+                    on-tag-added="tagAdded('SongTags')"
                 ></tags-input>
     </div>
 {/body}

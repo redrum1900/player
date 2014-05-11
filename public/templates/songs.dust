@@ -23,14 +23,24 @@
               </span>
             </div>
         </div>
+        <div class="col-md-4">
+            <tags-input ng-model="s_tags"
+                        placeholder="标签筛选"
+                        min-length="1">
+                <auto-complete source="loadTags($query)"
+                               min-length="1"
+                        ></auto-complete>
+            </tags-input>
+        </div>
         <div class="col-md-2 col-md-offset-6">
             <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
         </div>
     </div>
 
-        <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
+    <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
 
     </div>
     <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
     <script src="js/songs.js"></script>
 {/body}

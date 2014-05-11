@@ -12,12 +12,17 @@
       index: true,
       required: true
     },
+    cover: String,
     url: String,
     tags: {
       type: [String],
       index: true
     },
     id3: Schema.Types.Mixed,
+    disabled: {
+      type: Boolean,
+      "default": false
+    },
     creator: {
       type: Schema.Types.ObjectId,
       ref: "Manager"

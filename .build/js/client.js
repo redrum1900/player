@@ -206,7 +206,7 @@
             if (result.status) {
               return $modalInstance.close(result.results);
             } else {
-              $scope.msg = result.error;
+              $scope.msg = result.results;
               return $scope.buttonDisabled = false;
             }
           }).error(function(error) {

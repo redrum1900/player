@@ -44,22 +44,23 @@ setting.controller 'SettingCtrl', ($scope, $http) ->
   $scope.tagRemoved = (key) ->
     $scope.updateTags key, $scope[key], updateResult
 
-  #问题涉及的用户属性
-  $scope.getTags 'QUserPros'
-  #用户来源
-  $scope.getTags 'UserFrom'
-  #用户额外属性
-  $scope.Pros = {}
-  $scope.proRemoved = (key) ->
-    $scope.updateTags key, $scope.Pros[key], updateResult, true
-  $scope.proAdded = (key) ->
-    $scope.updateTags key, $scope.Pros[key], updateResult, true
-  $scope.getTags 'UserExtraPro', (result) ->
-    if result and result.list and result.list.length
-      ((pro) ->
-        $scope.getTags pro, null, 'Pros', 'list'
-      ) pro for pro in result.list
-  #调查研究标签
-  $scope.getTags 'ResearchTags'
+  $scope.getTags 'SongTags'
+#  #问题涉及的用户属性
+#  $scope.getTags 'QUserPros'
+#  #用户来源
+#  $scope.getTags 'UserFrom'
+#  #用户额外属性
+#  $scope.Pros = {}s
+#  $scope.proRemoved = (key) ->
+#    $scope.updateTags key, $scope.Pros[key], updateResult, true
+#  $scope.proAdded = (key) ->
+#    $scope.updateTags key, $scope.Pros[key], updateResult, true
+#  $scope.getTags 'UserExtraPro', (result) ->
+#    if result and result.list and result.list.length
+#      ((pro) ->
+#        $scope.getTags pro, null, 'Pros', 'list'
+#      ) pro for pro in result.list
+#  #调查研究标签
+#  $scope.getTags 'ResearchTags'
 
 angular.bootstrap document.getElementById("settingDiv"), ['SettingApp']
