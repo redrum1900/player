@@ -32,7 +32,6 @@ app.configure = function configure(nconf, next) {
     redis.config(nconf.get('redis'));
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
-//    log4js.configure(nconf.get('log4js'));
     if(process.env.USER != 'mani'){
         var options = {
             'user': '9RGMgDe0USUb1ODDnQgRBhN2',

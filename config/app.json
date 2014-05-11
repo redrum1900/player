@@ -17,21 +17,6 @@
         "sendURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi",
         "checkURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi?action=getBalance&ac=1001@500883280002&authkey=51C1A651495061424DA83EBAE14BBD80"
     },
-    "log4js":{
-        "levels":{
-            "request":"DEBUG"
-        },
-        "appenders":[
-            {
-                "type":"console",
-                "layout":{
-                    "type":"pattern",
-                    "pattern":"[%d] [%p] [%c] %m",
-                    "tokens":{}
-                }
-            }
-        ]
-    },
 //
     "i18n": {
          "fallback": "zh-CN",

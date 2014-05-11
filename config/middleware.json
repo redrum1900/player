@@ -5,11 +5,6 @@
             "500": "errors/500",
             "503": "errors/503"
         },
-        "logger":{
-            "module":"../lib/middleware/log",
-            "format":"[:date] [:status] [:method] [:url] (:response-time ms) [:referrer] [:user-agent]",
-            "level":"auto"
-        },
         "appsec": {
             "csrf":false
 //            {
