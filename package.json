@@ -3,9 +3,9 @@
     "version": "0.1.0",
     "description": "YueFu Media System",
     "author": "Mani",
-    "main": "server.js",
+    "main": "index.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node index.js"
     },
     "dependencies": {
     	"MD5": "^1.2.1",

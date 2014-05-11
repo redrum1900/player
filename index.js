@@ -9,6 +9,16 @@ global.reply = function(err, result, res){
     }
 }
 
+if(!debug){
+    var log4js = require('log4js');
+    log4js.loadAppender('baev3-log');
+    var options = {
+        'user': '9RGMgDe0USUb1ODDnQgRBhN2',
+        'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
+    }
+    log4js.addAppender(log4js.appenders['baev3-log'](options));
+}
+
 var kraken = require('kraken-js'),
     mongo = require('./lib/database/mongo'),
     redis = require('./lib/database/redis'),
@@ -25,26 +35,6 @@ require('./lib/helper-formatDate');
 
 app.configure = function configure(nconf, next) {
 
-    if(!debug){
-        var log4js = require('log4js');
-        log4js.loadAppender('baev3-log');
-        var options = {
-            'user': '9RGMgDe0USUb1ODDnQgRBhN2',
-            'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
-        }
-
-        log4js.addAppender(log4js.appenders['baev3-log'](options));
-
-        var logger = log4js.getLogger('node-log-sdk');
-        logger.trace('baev3-log2 trace log11');
-        logger.debug('baev3-log Debug log1');
-        logger.info('baev3-log Info log1');
-        logger.warn('baev3-log Warn log1');
-        logger.error('baev3-log Error log1');
-        logger.fatal('baev3-log Fatal log1');
-    }
-
-    // Async method run on startup.
     mongo.config(nconf.get('mongo'));
     redis.config(nconf.get('redis'));
     mail.config(nconf.get('email'));
@@ -82,6 +72,8 @@ app.requestStart = function requestStart(server) {
 app.requestBeforeRoute = function requestBeforeRoute(server) {
     // Run before any routes have been added.
 //    server.use(language());
+    var logger = log4js.getLogger('node-log-sdk');
+    logger.trace('baev3-log2 trace log11333');
     server.use(passport.initialize());
     server.use(passport.session());
     server.use(flash());
