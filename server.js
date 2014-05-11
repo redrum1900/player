@@ -11,14 +11,14 @@ var options = {
 http.createServer(function(req, res) {
 
 	log4js.addAppender(log4js.appenders['baev3-log'](options));
-	
+
 	var logger = log4js.getLogger('node-log-sdk');
-	logger.trace('baev3-log trace log');
-	logger.debug('baev3-log Debug log');
-	logger.info('baev3-log Info log');
-	logger.warn('baev3-log Warn log');
-	logger.error('baev3-log Error log');
-	logger.fatal('baev3-log Fatal log');
+	logger.trace('baev3-log trace log11');
+	logger.debug('baev3-log Debug log1');
+	logger.info('baev3-log Info log1');
+	logger.warn('baev3-log Warn log1');
+	logger.error('baev3-log Error log1');
+	logger.fatal('baev3-log Fatal log1');
 
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.write('<h1>Node.js</h1>');
