@@ -11,6 +11,7 @@ var options = {
 http.createServer(function(req, res) {
 
 	log4js.addAppender(log4js.appenders['baev3-log'](options));
+	
 	var logger = log4js.getLogger('node-log-sdk');
 	logger.trace('baev3-log trace log');
 	logger.debug('baev3-log Debug log');
