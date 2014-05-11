@@ -29,7 +29,7 @@ var kraken = require('kraken-js'),
     flash = require('connect-flash'),
     api_auth = require('./lib/middleware/api_auth'),
     sms = require('./lib/sms'),
-    app = {};
+    app = {}; 
 
 require('./lib/helper-formatDate');
 
