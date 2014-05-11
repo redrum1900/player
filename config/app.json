@@ -8,10 +8,10 @@
 //
     "port": 8000,
     "sms":{
-        "uid":"1001@500905130001",
-        "password":"1236F39A94C8FB5A3CE3549DD7413088",
+        "uid":"1001@500883280002",
+        "password":"51C1A651495061424DA83EBAE14BBD80",
         "sendURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi",
-        "checkURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi?action=getBalance&ac=1001@500905130001&authkey=1236F39A94C8FB5A3CE3549DD7413088"
+        "checkURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi?action=getBalance&ac=1001@500883280002&authkey=51C1A651495061424DA83EBAE14BBD80"
     },
 //
     "i18n": {

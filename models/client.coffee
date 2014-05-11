@@ -16,13 +16,14 @@ ClientSchema = new Schema
   lockUntil:Number
   last_login:Date
   signed_in_times:type:Number,default:1
+  code:Number #默认生成的验证码作为客户的密码
   disabled:type:Boolean,default:false
+  parent:type:Schema.Types.ObjectId,ref:'Client'
   creator:type:Schema.Types.ObjectId,ref:"Manager"
   updator:type:Schema.Types.ObjectId,ref:"Manager"
 
 ClientSchema.virtual('isLocked').get ->
   return !!(this.lockUntil && this.lockUntil > Date.now())
-
 
 Timestamps = require('mongoose-times')
 ClientSchema.plugin Timestamps, created:"created_at", lastUpdated:"updated_at"
@@ -34,10 +35,10 @@ ClientSchema.pre 'save', (next)->
   Bcrypt.genSalt SALT_WORK_FACTOR, (err, salt)->
     if err
       return next err
-    Bcrypt.hash user.password, salt,(err, hash)->
+    Bcrypt.hash client.password, salt,(err, hash)->
       if err
         return next err
-      user.password = hash
+      client.password = hash
       next()
 
 ClientSchema.methods.comparePassword = (password, callback)->
@@ -100,4 +101,4 @@ ClientSchema.statics =
             return callback err
           callback '密码错误'
 
-module.exports = ClientSchema
+Mongoose.model 'Client', ClientSchema
