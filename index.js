@@ -33,7 +33,6 @@ app.configure = function configure(nconf, next) {
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
     log4js.configure(nconf.get('log4js'));
-//    var logger = log4js.getLogger('node-log-sdk');
     if(process.env.USER != 'mani'){
         var options = {
             'user': '9RGMgDe0USUb1ODDnQgRBhN2',
@@ -41,20 +40,15 @@ app.configure = function configure(nconf, next) {
         }
         log4js.loadAppender('baev3-log');
         log4js.addAppender(log4js.appenders['baev3-log'](options));
+        var logger = log4js.getLogger('node-log-sdk');
         logger.setLevel('TRACE');
-        logger.trace('baev3-log trace log');
-        logger.debug('baev3-log Debug log');
-        logger.info('baev3-log Info log');
-        logger.warn('baev3-log Warn log');
-        logger.error('baev3-log Error log');
-        logger.fatal('baev3-log Fatal log');
+        logger.trace('Startup Trace');
+        logger.debug('Startup Debug log');
+        logger.info('Startup Info log');
+        logger.warn('Startup Warn log');
+        logger.error('Startup Error log');
+        logger.fatal('Startup Fatal log');
     }
-//    logger.trace('baev3-log trace log');
-//    logger.debug('baev3-log Debug log');
-//    logger.info('baev3-log Info log');
-//    logger.warn('baev3-log Warn log');
-//    logger.error('baev3-log Error log');
-//    logger.fatal('baev3-log Fatal log');
 
     var u1 = new Manager({
         username: 'admin',
