@@ -72,8 +72,6 @@ app.requestStart = function requestStart(server) {
 app.requestBeforeRoute = function requestBeforeRoute(server) {
     // Run before any routes have been added.
 //    server.use(language());
-    var logger = log4js.getLogger('node-log-sdk');
-    logger.trace('baev3-log2 trace log11333');
     server.use(passport.initialize());
     server.use(passport.session());
     server.use(flash());

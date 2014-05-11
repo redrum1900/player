@@ -1,7 +1,7 @@
 Redis = require 'redis'
 LOGIN_EXPIRE_TIME = 60*60
 CODE_EXPIRE_TIME = 60
-logger = require('log4js').getLogger('node-log-sdk')
+logger = require('log4js').getLogger('Redis')
 
 module.exports =
   config: (conf)->
