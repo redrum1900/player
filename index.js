@@ -40,7 +40,7 @@ app.configure = function configure(nconf, next) {
         }
         log4js.loadAppender('baev3-log');
         log4js.addAppender(log4js.appenders['baev3-log'](options));
-        var logger = log4js.getLogger('Startup');
+        var logger = log4js.getLogger('node-log-sdk');
         logger.setLevel('TRACE');
         logger.trace('Startup Trace');
         logger.debug('Startup Debug log');
