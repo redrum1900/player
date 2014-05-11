@@ -52,9 +52,14 @@
       type: Number,
       "default": 1
     },
+    code: Number,
     disabled: {
       type: Boolean,
       "default": false
+    },
+    parent: {
+      type: Schema.Types.ObjectId,
+      ref: 'Client'
     },
     creator: {
       type: Schema.Types.ObjectId,
@@ -87,11 +92,11 @@
       if (err) {
         return next(err);
       }
-      return Bcrypt.hash(user.password, salt, function(err, hash) {
+      return Bcrypt.hash(client.password, salt, function(err, hash) {
         if (err) {
           return next(err);
         }
-        user.password = hash;
+        client.password = hash;
         return next();
       });
     });
@@ -195,7 +200,7 @@
     }
   };
 
-  module.exports = ClientSchema;
+  Mongoose.model('Client', ClientSchema);
 
 }).call(this);
 

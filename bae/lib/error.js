@@ -6,7 +6,7 @@
 
 module.exports = function(err, res){
     if(err){
-        res.json({status: false, error:'出错啦，请稍后再试'});
+        res.json({status: false, results:'系统错误：'+err});
     }
 }
 

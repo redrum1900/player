@@ -10,10 +10,16 @@
 
   require('./dict');
 
+  require('./client');
+
+  require('./song');
+
   module.exports = {
     SMS: Mongoose.model("SMS"),
     Manager: Mongoose.model("Manager"),
-    Dict: Mongoose.model('Dict')
+    Dict: Mongoose.model('Dict'),
+    Client: Mongoose.model('Client'),
+    Song: Mongoose.model('Song')
   };
 
 }).call(this);
