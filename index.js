@@ -23,13 +23,6 @@ var kraken = require('kraken-js'),
 
 require('./lib/helper-formatDate');
 
-var log4js = require('log4js');
-log4js.loadAppender('baev3-log');
-var options = {
-    'user': '9RGMgDe0USUb1ODDnQgRBhN2',
-    'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
-}
-
 app.configure = function configure(nconf, next) {
 
     // Async method run on startup.
@@ -37,16 +30,22 @@ app.configure = function configure(nconf, next) {
     redis.config(nconf.get('redis'));
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
-    if(process.env.USER != 'mani'){
+
+    if(!debug){
+        var log4js = require('log4js');
+        log4js.loadAppender('baev3-log');
+        var options = {
+            'user': '9RGMgDe0USUb1ODDnQgRBhN2',
+            'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
+        }
         log4js.addAppender(log4js.appenders['baev3-log'](options));
-        
         var logger = log4js.getLogger('node-log-sdk');
-        logger.trace('Startup Trace1');
-        logger.debug('Startup Debug log');
-        logger.info('Startup Info log');
-        logger.warn('Startup Warn log');
-        logger.error('Startup Error log');
-        logger.fatal('Startup Fatal log');
+        logger.trace('baev3-log trace log11');
+        logger.debug('baev3-log Debug log1');
+        logger.info('baev3-log Info log1');
+        logger.warn('baev3-log Warn log1');
+        logger.error('baev3-log Error log1');
+        logger.fatal('baev3-log Fatal log1');
     }
 
     var u1 = new Manager({
