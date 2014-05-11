@@ -39,7 +39,7 @@ app.configure = function configure(nconf, next) {
             'passwd': 'xt6e5Qrx93m1ebGHUpxHh7qB4CjnlKti'
         }
         log4js.addAppender(log4js.appenders['baev3-log'](options));
-        var logger = log4js.getLogger('Startup');
+        var logger = log4js.getLogger('node-log-sdk');
         logger.trace('Startup trace log11');
         logger.debug('Startup Debug log1');
         logger.info('Startup Info log1');
