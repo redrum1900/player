@@ -1,0 +1,17 @@
+<div class="row" style="padding-bottom: 10px">
+    <div class="col-md-8">
+        <div class="input-group">
+            <input type="text" class="form-control" ng-model="titleSearch" placeholder="请输入题目标题进行检索">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+          </span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <label class="checkbox">仅显示已选中的{{ choosedQuestions.length }}题
+            <input ng-model="onlyShowChoosed" type="checkbox" ng-change="showChoosed()">
+        </label>
+    </div>
+
+</div>
+<div style="height: 300px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="questionGrid" ></div>

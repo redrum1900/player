@@ -1,0 +1,33 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav" /}
+{/top}
+
+<link rel="stylesheet" href="components/ng-tags-input/ng-tags-input.min.css"/>
+
+{<body}
+    <div id="settingDiv" ng-app="SettingApp" ng-controller="SettingCtrl">
+        <div style="position: absolute;width: 300px;margin: auto;left: 0;right: 0;"
+                ng-show="handling"
+                ng-hide="!handling"
+                >
+            <progressbar class="progress-striped active" value="100" type="success">处理中</progressbar>
+        </div>
+        <div class="row">
+            <h4 class="col-md-4">歌曲标签</h4>
+            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
+                通过便签可以很方便的对歌曲进行分类并很快的检索到
+            </h5>
+        </div>
+        <tags-input ng-model="SongTags.list"
+                    ng-disabled="handling"
+                    placeholder="新增"
+                    min-length="1"
+                    on-tag-removed="tagRemoved('SongTags')"
+                    on-tag-added="tagAdded('SongTags')"
+                ></tags-input>
+    </div>
+{/body}
+<script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+<script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+<script src="js/setting.js"></script>

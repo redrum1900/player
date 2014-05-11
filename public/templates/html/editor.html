@@ -1,0 +1,49 @@
+<div class="row" style="margin-bottom: 20px">
+    <div class="col-md-4">
+    <input placeholder="请输入资讯标题" class="form-control input-medium " ng-model="Info.title">
+    </div>
+    <span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>
+    <div style="float: right; margin-right: 20px">
+        <button class="btn btn-default" ng-if="Info._id" ng-disabled="updating" ng-click="preview()">预览</button>
+        <button class="btn btn-success" ng-disabled="updating" ng-click="save(0)">保存后继续</button>
+        <button class="btn btn-primary" ng-disabled="updating" ng-click="save(1)">保存后返回</button>
+        <button class="btn btn-warning" ng-disabled="updating" ng-click="cancel()">取消</button>
+    </div>
+</div>
+
+<text-angular ta-toolbar="[['justifyLeft', 'justifyCenter', 'justifyRight'], ['undo', 'redo'], ['im', 'insertLink', 'unlink']]"
+              ng-model="Info.htmlContent"
+              class="ta-root focussed"
+              id="ta"
+              ta-text-editor-setup='textAreaSetup'
+        >
+</text-angular>
+
+<script type="text/ng-template" id="modal.html">
+    <div class="modal-header row" style="margin-left: 0px;margin-right: 0px;">
+        <h3 class="col-md-4">插入图片</h3>
+    </div>
+    <div class="modal-body" id="c1">
+        <p>点击选择图片</p>
+        <img id="p1" ng-src="{{ data.url }}" style="width: 100px; height: 100px; cursor: pointer;" tooltip="点击上传图片">
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">插入图片</button>
+        <button class="btn btn-warning" ng-click="cancel()">取消</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="qrcode.html">
+    <div class="modal-header row" style="margin-left: 0px;margin-right: 0px;">
+        <h3 class="col-md-8">用手机扫描二维码进行预览</h3>
+        <a style="
+    float: right;
+    margin-top: 22px;
+" href="{{ url }}" target="_blank">网页浏览</a>
+    </div>
+    <div class="modal-body">
+        <div id="qrcode" style="margin-left: 128px">
+
+        </div>
+    </div>
+</script>

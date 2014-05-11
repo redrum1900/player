@@ -1,0 +1,72 @@
+{
+    "domain": "localhost",
+    "mongo": "mongodb://KktW3LP8Bhlvteqkyo6f6zCX:SBsaOp4CsLa8mq3ddHb6LFLgT2eMVYbI@mongo.duapp.com:8908/eaywlsIDCfUqRjZqpolL",
+    "redis":{
+        "host":"redis.duapp.com",
+        "port":80,
+        "db":"VMCAsbQCiHwjrksolUbw",
+        "username":"KktW3LP8Bhlvteqkyo6f6zCX",
+        "password":"SBsaOp4CsLa8mq3ddHb6LFLgT2eMVYbI"
+    },
+// "host": "localhost",
+//
+    "port": 18080,
+    "sms":{
+        "uid":"1001@500883280002",
+        "password":"51C1A651495061424DA83EBAE14BBD80",
+        "sendURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi",
+        "checkURL":"http://smsapi.c123.cn/OpenPlatform/OpenApi?action=getBalance&ac=1001@500883280002&authkey=51C1A651495061424DA83EBAE14BBD80"
+    },
+//
+    "i18n": {
+         "fallback": "zh-CN",
+         "contentPath": "path:./locales"
+    },
+    "email" : {
+        "service": "QQex",
+        "auth": {
+            "user": "support@iiiui.com",
+            "pass": "Afdsds12"
+        }
+//    service: "QQ",
+//    auth: {
+//        user: "329392019@qq.com',
+//        pass: 'afds12354'
+//    }
+    },
+//
+// "routes": {
+//     "routePath": "path:./controllers"
+// },
+//
+  "view engines": {
+//      "js": {
+//         "module": "adaro",
+//         "settings": {
+//             "helpers": null,
+//             "stream": false
+//         }
+//      },
+//
+     "dust": {
+         "module": "adaro",
+         "settings": {
+             "helpers": null,
+             "stream": false
+         }
+     }
+}
+// "express": {
+//     "x-powered-by": false,
+//     "trust proxy": false,
+//     "jsonp callback name": null,
+//     "json replacer": null,
+//     "json spaces": 0,
+//     "case sensitive routing": false,
+//     "strict routing": false,
+//     "view cache": true,
+//     "view engine": "js",
+//     "views": "path:./.build/templates"
+// }
+
+}

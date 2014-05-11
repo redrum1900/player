@@ -1,0 +1,96 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav" /}
+{/top}
+{<title}用户管理{/title}
+
+{<script}
+    <script type="text/javascript" src="components/ng-grid.min.js"></script>
+    <script type="text/javascript" src="components/moment.min.js"></script>
+    <script type="text/javascript" src="js/gridTemplates.js"></script>
+{/script}
+<link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+{<body}
+    <div id="userMDiv" ng-app="UserMApp" ng-controller="UserMCtrl">
+
+    <script type="text/ng-template" id="modal.html">
+    <div class="modal-header">
+        <h3>{{ title }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="row" style="padding-bottom: 15px">
+            <h5 style="color: #444444; padding-bottom: 10px" class="col-md-8">新增客户，如果是属于客户的门店则需要选择客户总部</h5>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text"
+                       class="form-control"
+                       ng-model="data.username"
+                       tooltip="客户名称"
+                       placeholder="请输入客户名称">
+            </div>
+            <div class="col-md-4" >
+                <input type="text" class="form-control"
+                       ng-model="data.man"
+                       tooltip="联系人"
+                       placeholder="联系人">
+            </div>
+            <div class="col-md-4" >
+                <input type="text" class="form-control"
+                       ng-model="data.mobile"
+                       tooltip="手机号"
+                       placeholder="请输入手机号">
+            </div>
+            <div class="col-md-4" style="margin-top: 10px">
+                <input type="text"
+                       class="form-control"
+                       ng-model="data.email"
+                       tooltip="Email"
+                       placeholder="请输入Email">
+            </div>
+            <div class="col-md-8" style="margin-top: 10px">
+                <input type="text"
+                       tooltip="联系人详情"
+                       class="form-control"
+                       ng-model="data.man_info"
+                       placeholder="请输入联系人备注信息">
+            </div>
+            <div class="col-md-4" style="margin-top: 10px">
+                <select class="form-control input-medium"
+                        ng-model="data.parent"
+                        ng-options="parent as parent.username for parent in parents"
+                        tooltip="如果为总部客户，则无需选择，仅分店客户需要选择">
+                    <option value="" >客户总部</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>
+        <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
+        <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
+    </div>
+    </script>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                  <input type="text" class="form-control" ng-model="searchText"
+                         placeholder="请输入客户名称进行检索">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+                  </span>
+                </div>
+            </div>
+            <div class="col-md-2 col-md-offset-6">
+                <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
+            </div>
+        </div>
+
+        <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
+
+    </div>
+    <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="../components/angular-locale_zh-cn.js"></script>
+    <script src="js/client.js"></script>
+{/body}

@@ -1,0 +1,27 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav"/}
+{/top}
+{<title}
+    控制台
+{/title}
+{<script}
+    <script src="components/d3/d3.js"></script>
+    <script src="components/nvd3/nv.d3.js"></script>
+    <script src="../components/angularjs-nvd3-directives/dist/angularjs-nvd3-directives.min.js"></script>
+    <link rel="stylesheet" href="components/nvd3/nv.d3.css"/>
+{/script}
+{<body}
+	<div id="consoleDiv" ng-app="ConsoleApp" ng-controller="ConsoleCtrl">
+        <div class="bs-callout bs-callout-danger">
+            短信剩余：{{ smsLeft }}
+        </div>
+        <nvd3-line-chart data="data"
+                showXAxis="true"
+                showYAxis="true"
+                tooltips="true"
+                interactive="true">
+        </nvd3-line-chart>
+	</div>
+{/body}
+<script src="js/console.js"></script>
