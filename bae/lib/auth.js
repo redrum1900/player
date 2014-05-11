@@ -7,7 +7,7 @@ var Manager = require('../models').Manager,
     RememberMeStrategy = require('passport-remember-me'),
     LocalStrategy = require('passport-local').Strategy;
 var log4js = require('log4js');
-var logger = log4js.getLogger('node-log-sdk');
+var logger = log4js.getLogger('Auth');
 
 exports.config = function (settings) {
 
@@ -29,7 +29,7 @@ exports.localStrategy = function () {
         Manager.getAuthenticated(username, password, function(err, user, reason){
             if(err)
                 logger.error(err)
-            else if(reason)
+            else if(reason != null)
                 logger.warn(username, password, reason);
             if(!user){
                 return done(err, false, {message:reason});
