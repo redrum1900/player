@@ -10,11 +10,14 @@ module.exports = (app)->
       Dict.findOne
         'key':'SongTags'
         (err, dic) ->
-          if dic.list
-            tags.forEach (tag) ->
-              dic.list.addToSet tag if dic.list.indexOf(tag) == -1
+          if dic
+            if dic.list
+              tags.forEach (tag) ->
+                dic.list.addToSet tag if dic.list.indexOf(tag) == -1
+            else
+              dic.list = tags
           else
-            dic.list = result.tags
+            dic = new Dict(key:'SongTags',list:tags)
           dic.save()
 
   app.get '/songs', auth.isAuthenticated(), (req, res)->

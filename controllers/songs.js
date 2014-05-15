@@ -17,14 +17,21 @@
         return Dict.findOne({
           'key': 'SongTags'
         }, function(err, dic) {
-          if (dic.list) {
-            tags.forEach(function(tag) {
-              if (dic.list.indexOf(tag) === -1) {
-                return dic.list.addToSet(tag);
-              }
-            });
+          if (dic) {
+            if (dic.list) {
+              tags.forEach(function(tag) {
+                if (dic.list.indexOf(tag) === -1) {
+                  return dic.list.addToSet(tag);
+                }
+              });
+            } else {
+              dic.list = tags;
+            }
           } else {
-            dic.list = result.tags;
+            dic = new Dict({
+              key: 'SongTags',
+              list: tags
+            });
           }
           return dic.save();
         });
