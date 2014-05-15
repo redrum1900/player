@@ -17,8 +17,15 @@ module.exports = function(app){
         var putPolicy = new qiniu.rs.PutPolicy('yfcdn');
         putPolicy.expires = 3600;
         var token = putPolicy.token();
-        console.log(token);
-        res.json({status: true, result: token});
+        res.json({'uptoken':token})
+    });
+
+    app.get('/upload/token/mp3', auth.isAuthenticated(), function (req, res) {
+        var putPolicy = new qiniu.rs.PutPolicy('yfcdn');
+        putPolicy.expires = 3600;
+        putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k'
+        var token = putPolicy.token();
+        res.json({'uptoken':token})
     });
 
     app.post('/uploaded', function(req, res){

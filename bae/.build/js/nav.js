@@ -6,7 +6,7 @@ var nav = angular.module('nav', []);
 function NavController($scope, $timeout){
 	$scope.navs = [
 		{href:'/console', label:'控制台'},
-		{href:'/songs', label:'曲库管理'},
+		{href:'/songs', label:'媒资管理'},
 		{href:'/clients', label:'客户管理'},
 		{href:'/feedback', label:'客户反馈'},
 		{href:'/setting', label:'系统设置'},

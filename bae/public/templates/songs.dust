@@ -2,22 +2,57 @@
 {<top}
     {>"layouts/nav" /}
 {/top}
-{<title}用户管理{/title}
+{<title}媒资管理{/title}
 
 {<script}
     <script type="text/javascript" src="components/ng-grid.min.js"></script>
     <script type="text/javascript" src="components/moment.min.js"></script>
     <script type="text/javascript" src="js/gridTemplates.js"></script>
+    <script type="text/javascript" src="js/token.js"></script>
 {/script}
 <link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+<link rel="stylesheet" href="components/ng-tags-input/ng-tags-input.min.css"/>
 {<body}
-    <div id="songMDiv" ng-app="SongMApp" ng-controller="SongMCtrl">
+    <div id="songDiv" ng-app="SongApp" ng-controller="SongCtrl">
+
+    <script type="text/ng-template" id="modal.html">
+    <div class="modal-header row" style="margin-left: 0px;margin-right: 0px;">
+        <h3 class="col-md-4">{{ title }}</h3>
+    </div>
+    <div class="modal-body" id="c2">
+        <div class="input-group" >
+            <input type="text" class="form-control" placeholder="媒资名称"
+                   ng-model="data.name">
+            <span id="c1" class="input-group-btn">
+                <button id="p1" class="btn btn-default" type="button">{{ label }}</button>
+            </span>
+        </div>
+
+        <img tooltip="{{ imgProgress }}" ng-src="{{ cover }}" id="p2"
+             style="vertical-align: top;display:inline-block; cursor: pointer;margin-top: 10px;border: 1px solid rgb(212,212,212);width: 200px;height: 200px">
+        <div style="width: 350px;display:inline-block;margin-top: 10px;margin-left: 8px">
+            <tags-input ng-model="data.tags"
+                        placeholder="设置标签"
+                        min-length="1">
+                <auto-complete source="loadTags($query)"
+                               min-length="1"
+                        ></auto-complete>
+            </tags-input>
+        </div>
+
+    </div>
+    <div class="modal-footer">
+        <span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>
+        <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
+        <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
+    </div>
+    </script>
 
     <div class="row">
         <div class="col-md-4">
             <div class="input-group">
               <input type="text" class="form-control" ng-model="searchText"
-                     placeholder="请输入歌曲名称进行检索">
+                     placeholder="请输入媒资名称进行检索">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
               </span>
@@ -26,21 +61,24 @@
         <div class="col-md-4">
             <tags-input ng-model="s_tags"
                         placeholder="标签筛选"
+                        on-tag-removed="search()"
+                        on-tag-added="search()"
                         min-length="1">
                 <auto-complete source="loadTags($query)"
                                min-length="1"
                         ></auto-complete>
             </tags-input>
         </div>
-        <div class="col-md-2 col-md-offset-6">
-            <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
-        </div>
+        <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
     </div>
 
     <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
 
     </div>
+    <script src="../components/angular-route/angular-route.min.js"></script>
     <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
     <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="../components/qiniu.js"></script>
+    <script src="../components/plupload.full.min.js"></script>
     <script src="js/songs.js"></script>
 {/body}

@@ -23,8 +23,6 @@ exports.localStrategy = function () {
 
     return new LocalStrategy(function (username, password, done) {
 
-        console.warn('Use LocalStrategy '+username);
-
         //Retrieve the user from the database by login
         Manager.getAuthenticated(username, password, function(err, user, reason){
             if(err)

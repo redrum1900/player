@@ -102,7 +102,6 @@ module.exports = (app) ->
     data = req.query
     query = {}
     query = 'username':new RegExp data.username, 'i' if data.username
-    console.log query
     User.find(query).populate('creator', 'username')
     .populate('updator', 'username')
     .populate('parent', 'username')
@@ -153,7 +152,6 @@ module.exports = (app) ->
     user.code = code
     user.password = code
     user.save (err, result) ->
-      console.log err, result
       if err
         Error err, res
       else

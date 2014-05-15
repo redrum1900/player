@@ -3,8 +3,9 @@ Schema = Mongoose.Schema
 
 SongSchema = new Schema
   name:type:String,index:true,required:true
-  cover:String,
+  cover:String
   url:String
+  size:Number
   tags:type:[String],index:true
   id3:Schema.Types.Mixed
   disabled:type:Boolean,default:false

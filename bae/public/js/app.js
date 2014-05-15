@@ -1,5 +1,5 @@
 'use strict';
-var imgHost = 'http://lenovour.qiniudn.com/';
+var imgHost = 'http://yfcdn.qiniudn.com/';
 var uploadHost = 'http://up.qiniu.com/';
 
 var getDict = function(http, key, callback){
