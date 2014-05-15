@@ -181,7 +181,7 @@
     };
     $scope.ok = function() {
       var msg;
-      if (!$scope.data.songname) {
+      if (!$scope.data.username) {
         msg = '客户名称必填';
       }
       if (msg) {
