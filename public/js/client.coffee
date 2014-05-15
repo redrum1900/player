@@ -121,7 +121,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http) ->
     return
 
   $scope.ok = ->
-    unless $scope.data.username
+    unless $scope.data.songname
       msg = '客户名称必填'
     if(msg)
       $scope.msg = msg

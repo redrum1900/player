@@ -169,7 +169,6 @@
           'username': new RegExp(data.username, 'i')
         };
       }
-      console.log(query);
       return User.find(query).populate('creator', 'username').populate('updator', 'username').populate('parent', 'username').sort({
         'created_at': -1
       }).limit(data.perPage).skip(data.perPage * (data.page - 1)).exec(function(err, result) {
@@ -247,7 +246,6 @@
       user.code = code;
       user.password = code;
       return user.save(function(err, result) {
-        console.log(err, result);
         if (err) {
           return Error(err, res);
         } else {

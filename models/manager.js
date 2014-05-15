@@ -90,7 +90,6 @@ ManagerSchema.statics = {
         delete options.perPage;
         delete options.page;
         delete options.id;
-        console.log('Get Users: ', options);
         var q = {};
         if(options.info)
             q = {$or: [
@@ -128,7 +127,6 @@ ManagerSchema.statics = {
                 if (err) return cb(err);
 
                 // check if the password was a match
-                console.log('matched: ', isMatch);
                 if (isMatch) {
                     if(user.disabled){
                         return cb(null, null, '您的账号已被禁用');
@@ -145,7 +143,6 @@ ManagerSchema.statics = {
                         $set: { loginAttempts: 0 },
                         $unset: { lockUntil: 1 }
                     };
-                    console.log('goto update', updates);
                     user.update(updates, function (err) {
                         if (err) return cb(err);
                         return cb(null, user);

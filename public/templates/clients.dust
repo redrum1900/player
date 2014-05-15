@@ -47,7 +47,7 @@
                        ng-model="data.email"
                        tooltip="Email"
                        placeholder="请输入Email">
-            </div>
+            </div>xxl
             <div class="col-md-8" style="margin-top: 10px">
                 <input type="text"
                        tooltip="联系人详情"

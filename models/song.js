@@ -14,6 +14,7 @@
     },
     cover: String,
     url: String,
+    size: Number,
     tags: {
       type: [String],
       index: true
