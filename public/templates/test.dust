@@ -1,0 +1,14 @@
+{>"layouts/master" /}
+{<title}
+    重置密码
+{/title}
+
+{<top}
+    {>"layouts/nav" /}
+{/top}
+
+{<body}
+
+
+{/body}
+

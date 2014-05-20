@@ -1,0 +1,25 @@
+<div class="row">
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" ng-model="$parent.menuName"
+                   placeholder="请输入歌单名称进行检索">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+              </span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <tags-input ng-model="$parent.s_tags"
+                    placeholder="标签筛选"
+                    on-tag-removed="search()"
+                    on-tag-added="search()"
+                    min-length="1">
+            <auto-complete source="loadTags($query)"
+                           min-length="1"
+                    ></auto-complete>
+        </tags-input>
+    </div>
+    <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
+</div>
+
+<div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>

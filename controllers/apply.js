@@ -2,7 +2,7 @@
 
 
 var Apply = require('../models/apply');
-var Manager = require('../models/manager');
+var Manager = require('../models').Manager;
 var Joi = require('joi');
 var validator = require('../lib/validator');
 var auth = require('../lib/auth');

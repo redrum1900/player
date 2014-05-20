@@ -6,6 +6,7 @@ var Manager = require('../models').Manager;
 var Apply = require('../models/apply');
 var Mail = require('../lib/email');
 var bcrypt =require('bcrypt');
+var logger = require('log4js').getLogger('Apply');
 
 module.exports = function (app) {
 
@@ -18,18 +19,16 @@ module.exports = function (app) {
     app.post('/apply/handler', auth.isAuthenticated(0), function (req, res) {
         var data = req.body;
         delete data['_id'];
-        console.log(data);
         Apply.findOneAndUpdate({username: data.username}, data, function (err, result) {
-            console.log('Applied:'+result);
             if(data.approved){
                 var password = Math.ceil(Math.random()*1000000);
-                console.log(password);
                 var m = new Manager();
                 m.username = data.username;
                 m.email = data.email;
                 m.password = password;
                 m.approved = true;
-
+                m.role = 1
+                logger.trace(m.email)
                 var domain = 'http://'+req.headers.host;
                 bcrypt.genSalt(10, function(err, salt) {
                     if(err){
@@ -52,6 +51,7 @@ module.exports = function (app) {
                                             res.json({status:false, results:'操作失败，邮件发送失败'});
                                     })
                                 }else{
+                                    logger.error(err);
                                     res.json({status:false, results:'操作失败，请再试一次'});
                                 }
                             })

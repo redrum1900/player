@@ -76,7 +76,6 @@
 
     </div>
     <script src="../components/angular-route/angular-route.min.js"></script>
-    <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
     <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
     <script src="../components/qiniu.js"></script>
     <script src="../components/plupload.full.min.js"></script>

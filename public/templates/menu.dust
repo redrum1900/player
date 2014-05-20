@@ -1,0 +1,30 @@
+{>"layouts/master" /}
+{<top}
+    {>"layouts/nav" /}
+{/top}
+{<title}歌单推送{/title}
+
+{<script}
+    <script type="text/javascript" src="components/ng-grid.min.js"></script>
+    <script type="text/javascript" src="components/moment.min.js"></script>
+    <script type="text/javascript" src="js/gridTemplates.js"></script>
+    <script type="text/javascript" src="js/token.js"></script>
+{/script}
+<link rel="stylesheet" type="text/css" href="css/ng-grid.min.css">
+<link rel="stylesheet" href="components/ng-tags-input/ng-tags-input.min.css"/>
+{<body}
+    <div id="menuDiv" ng-app="MenuApp" ng-controller="MenuCtrl">
+
+
+    <div ng-include="module">
+    </div>
+
+    </div>
+    <script src="../components/angular-route/angular-route.min.js"></script>
+    <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="../components/qiniu.js"></script>
+    <script src="../components/plupload.full.min.js"></script>
+    <script src="../components/angular-locale_zh-cn.js"></script>
+    <script src="js/menu.js"></script>
+{/body}

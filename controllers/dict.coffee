@@ -17,7 +17,6 @@ module.exports = (app) ->
       key:data.key
       'value list'
       (err, result) ->
-        console.log err, result
         if err
           Error err, res
         else

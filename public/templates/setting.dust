@@ -26,6 +26,19 @@
                     on-tag-removed="tagRemoved('SongTags')"
                     on-tag-added="tagAdded('SongTags')"
                 ></tags-input>
+        <div class="row">
+            <h4 class="col-md-4">歌单标签</h4>
+            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
+                通过便签可以很方便的对歌单进行分类并很快的检索到
+            </h5>
+        </div>
+        <tags-input ng-model="MenuTags.list"
+                    ng-disabled="handling"
+                    placeholder="新增"
+                    min-length="1"
+                    on-tag-removed="tagRemoved('MenuTags')"
+                    on-tag-added="tagAdded('MenuTags')"
+                ></tags-input>
     </div>
 {/body}
 <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>

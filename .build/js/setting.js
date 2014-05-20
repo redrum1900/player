@@ -62,7 +62,8 @@
     $scope.tagRemoved = function(key) {
       return $scope.updateTags(key, $scope[key], updateResult);
     };
-    return $scope.getTags('SongTags');
+    $scope.getTags('SongTags');
+    return $scope.getTags('MenuTags');
   });
 
   angular.bootstrap(document.getElementById("settingDiv"), ['SettingApp']);
