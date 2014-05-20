@@ -2,9 +2,9 @@
 (function() {
   var ModalInstanceCtrl, client;
 
-  client = angular.module('UserMApp', ['ngGrid', 'ui.bootstrap']);
+  client = angular.module('UserMApp', ['ngGrid', 'ui.bootstrap', 'ngTagsInput']);
 
-  client.controller('UserMCtrl', function($scope, $http, $modal) {
+  client.controller('UserMCtrl', function($scope, $http, $modal, $q, $filter) {
     var listUri, updateStatusUri;
     listUri = '/user/list';
     updateStatusUri = '/user/update/status';
@@ -15,9 +15,19 @@
       return $scope.getList();
     };
     $scope.getList = function() {
+      var tags;
+      tags = '';
+      if ($scope.s_tags) {
+        tags = [];
+        $scope.s_tags.forEach(function(tag) {
+          return tags.push(tag.text);
+        });
+        tags = tags.join(',');
+      }
       return $http.get(listUri, {
         params: {
           username: $scope.searchText,
+          tags: tags,
           page: $scope.page,
           perPage: 20
         }
@@ -38,6 +48,27 @@
       });
     };
     $scope.getList();
+    $scope.tags = [];
+    getDict($http, 'ClientTags', function(result) {
+      if (result && result.list && result.list.length) {
+        return result.list.forEach(function(tag) {
+          console.log(tag);
+          if (typeof tag === 'string') {
+            return $scope.tags.push({
+              text: tag
+            });
+          } else {
+            return $scope.tags.push(tag);
+          }
+        });
+      }
+    });
+    $scope.loadTags = function(query) {
+      var deffered;
+      deffered = $q.defer();
+      deffered.resolve($filter('filter')($scope.tags, query));
+      return deffered.promise;
+    };
     $scope.updateStatus = function(data) {
       $scope.updating = true;
       data.disabled = !data.disabled;
@@ -77,6 +108,10 @@
           displayName: "总部",
           cellTemplate: textCellTemplate
         }, {
+          field: "tags",
+          displayName: "标签",
+          cellTemplate: textCellTemplate
+        }, {
           field: "man",
           displayName: "联系人",
           cellTemplate: textCellTemplate
@@ -98,16 +133,6 @@
           field: "created_at",
           width: 100,
           displayName: "创建时间",
-          cellTemplate: dateCellTemplate
-        }, {
-          field: "updator.username",
-          width: 88,
-          displayName: "更新者",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "updated_at",
-          width: 100,
-          displayName: "更新时间",
           cellTemplate: dateCellTemplate
         }, {
           field: "handler",
@@ -137,6 +162,9 @@
           },
           http: function() {
             return $http;
+          },
+          tags: function() {
+            return $scope.tags;
           }
         }
       });
@@ -157,10 +185,11 @@
 
   angular.bootstrap(document.getElementById("userMDiv"), ['UserMApp']);
 
-  ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, http) {
+  ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, http, tags, $q, $filter) {
     var getParents;
     $scope.data = data;
     $scope.buttonDisabled = false;
+    $scope.tags = tags;
     getParents = function() {
       return http.get('/user/parents').success(function(result) {
         return $scope.parents = result.result;
@@ -173,6 +202,12 @@
     } else {
       $scope.title = '新增客户';
     }
+    $scope.loadTags = function(query) {
+      var deffered;
+      deffered = $q.defer();
+      deffered.resolve($filter('filter')($scope.tags, query));
+      return deffered.promise;
+    };
     $scope.cancel = function() {
       $modalInstance.close();
     };
@@ -181,16 +216,29 @@
     };
     $scope.ok = function() {
       var msg;
-      if (!$scope.data.username) {
+      data = angular.copy($scope.data);
+      if (!data.username) {
         msg = '客户名称必填';
       }
       if (msg) {
         $scope.msg = msg;
         return;
       } else {
+        tags = [];
+        if (data.tags) {
+          data.tags.forEach(function(tag) {
+            if (typeof tag === 'string') {
+              return tags.push(tag);
+            } else {
+              return tags.push(tag.text);
+            }
+          });
+        }
+        data.tags = tags;
         $scope.buttonDisabled = true;
         if ($scope.update) {
-          http.post('/user/update', $scope.data).success(function(result) {
+          delete data['parent'];
+          http.post('/user/update', data).success(function(result) {
             if (result.status) {
               return $modalInstance.close('refresh');
             } else {
@@ -202,7 +250,7 @@
             return $scope.buttonDisabled = false;
           });
         } else {
-          http.post('/user/add', $scope.data).success(function(result) {
+          http.post('/user/add', data).success(function(result) {
             if (result.status) {
               return $modalInstance.close(result.results);
             } else {

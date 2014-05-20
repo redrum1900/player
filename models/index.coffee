@@ -14,4 +14,19 @@ module.exports = {
   Client : Mongoose.model 'Client'
   Song : Mongoose.model 'Song'
   Menu : Mongoose.model 'Menu'
+  updateTags : (key, tags)->
+    if tags
+      Dict = module.exports.Dict
+      Dict.findOne
+        key:key
+        (err, dic) ->
+          if dic
+            if dic.list
+              tags.forEach (tag) ->
+                dic.list.addToSet tag if dic.list.indexOf(tag) == -1
+            else
+              dic.list = tags
+          else
+            dic = new Dict(key:key,list:tags)
+          dic.save()
 }

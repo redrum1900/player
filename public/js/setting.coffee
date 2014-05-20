@@ -46,6 +46,7 @@ setting.controller 'SettingCtrl', ($scope, $http) ->
 
   $scope.getTags 'SongTags'
   $scope.getTags 'MenuTags'
+  $scope.getTags 'ClientTags'
 #  #问题涉及的用户属性
 #  $scope.getTags 'QUserPros'
 #  #用户来源

@@ -1,5 +1,5 @@
-client = angular.module 'UserMApp', ['ngGrid', 'ui.bootstrap']
-client.controller 'UserMCtrl', ($scope, $http, $modal) ->
+client = angular.module 'UserMApp', ['ngGrid', 'ui.bootstrap', 'ngTagsInput']
+client.controller 'UserMCtrl', ($scope, $http, $modal, $q, $filter) ->
 
   listUri = '/user/list'
   updateStatusUri = '/user/update/status'
@@ -11,7 +11,13 @@ client.controller 'UserMCtrl', ($scope, $http, $modal) ->
     $scope.getList()
 
   $scope.getList = ->
-    $http.get(listUri, params:username:$scope.searchText,page:$scope.page,perPage:20).success (result) ->
+    tags = ''
+    if $scope.s_tags
+      tags = []
+      $scope.s_tags.forEach (tag)->
+        tags.push tag.text
+      tags = tags.join ','
+    $http.get(listUri, params:username:$scope.searchText,tags:tags,page:$scope.page,perPage:20).success (result) ->
       if(result.status)
         if !$scope.list
           $scope.list = result.results;
@@ -24,6 +30,21 @@ client.controller 'UserMCtrl', ($scope, $http, $modal) ->
         showAlert result.error
 
   $scope.getList()
+
+  $scope.tags = []
+  getDict $http, 'ClientTags', (result) ->
+    if result and result.list and result.list.length
+      result.list.forEach (tag) ->
+        console.log tag
+        if typeof tag == 'string'
+          $scope.tags.push text:tag
+        else
+          $scope.tags.push tag
+
+  $scope.loadTags = (query) ->
+    deffered = $q.defer()
+    deffered.resolve $filter('filter') $scope.tags, query
+    return deffered.promise
 
   $scope.updateStatus = (data) ->
     $scope.updating = true
@@ -49,13 +70,12 @@ client.controller 'UserMCtrl', ($scope, $http, $modal) ->
       {field: "username", displayName:"客户名称", cellTemplate: textCellTemplate}
       {field: "code", displayName:"客户密码", cellTemplate: textCellTemplate}
       {field: "parent.username", displayName:"总部", cellTemplate: textCellTemplate}
+      {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "man", displayName:"联系人", cellTemplate: textCellTemplate}
       {field: "mobile", displayName:"手机号", width:115, cellTemplate: textCellTemplate}
       {field: "email", displayName:"邮箱", cellTemplate: textCellTemplate}
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
-      {field: "updator.username", width:88, displayName:"更新者", cellTemplate: textCellTemplate}
-      {field: "updated_at", width:100, displayName:"更新时间", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
       <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a>
@@ -79,6 +99,7 @@ client.controller 'UserMCtrl', ($scope, $http, $modal) ->
       resolve:
         data:->$scope.data
         http:->$http
+        tags:->$scope.tags
     )
     modalInstance.result.then ((data) ->
       $scope.list = [] unless $scope.list
@@ -96,10 +117,11 @@ client.controller 'UserMCtrl', ($scope, $http, $modal) ->
 
 angular.bootstrap document.getElementById("userMDiv"), ['UserMApp']
 
-ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http) ->
+ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http, tags, $q, $filter) ->
 
   $scope.data = data
   $scope.buttonDisabled = false
+  $scope.tags = tags
 
   getParents = ->
     http.get('/user/parents').success (result)->
@@ -112,6 +134,11 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http) ->
   else
     $scope.title = '新增客户'
 
+  $scope.loadTags = (query) ->
+    deffered = $q.defer()
+    deffered.resolve $filter('filter') $scope.tags, query
+    return deffered.promise
+
   $scope.cancel = ->
     $modalInstance.close()
     return
@@ -121,15 +148,25 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http) ->
     return
 
   $scope.ok = ->
-    unless $scope.data.username
+    data = angular.copy $scope.data
+    unless data.username
       msg = '客户名称必填'
     if(msg)
       $scope.msg = msg
       return
     else
+      tags = []
+      if data.tags
+        data.tags.forEach (tag)->
+          if typeof tag == 'string'
+            tags.push(tag)
+          else
+            tags.push(tag.text)
+      data.tags = tags
       $scope.buttonDisabled = true
       if $scope.update
-        http.post('/user/update', $scope.data).success((result) ->
+        delete data['parent']
+        http.post('/user/update', data).success((result) ->
           if result.status
             $modalInstance.close 'refresh'
           else
@@ -138,7 +175,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, http) ->
               $scope.msg = '出错了，请稍后再试'
               $scope.buttonDisabled = false
       else
-        http.post('/user/add', $scope.data).success((result) ->
+        http.post('/user/add', data).success((result) ->
           if result.status
             $modalInstance.close result.results
           else

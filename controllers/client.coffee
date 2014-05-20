@@ -6,6 +6,7 @@ UpdateObject = require('../lib/utils').updateObject
 Redis = require '../lib/database/redis'
 SMS = require '../lib/sms'
 EventProxy = require 'eventproxy'
+updateTags = models.updateTags
 
 module.exports = (app) ->
 
@@ -102,6 +103,10 @@ module.exports = (app) ->
     data = req.query
     query = {}
     query = 'username':new RegExp data.username, 'i' if data.username
+    tags = data.tags
+    if tags
+      arr = tags.split ','
+      query.tags = $all:arr
     User.find(query).populate('creator', 'username')
     .populate('updator', 'username')
     .populate('parent', 'username')
@@ -126,6 +131,7 @@ module.exports = (app) ->
           if err
             Error err, res
           else
+            updateTags 'ClientTags', result.tags
             res.json status:true, results:result
 
   app.get '/user/parents', auth.isAuthenticated(), (req, res)->
@@ -155,4 +161,5 @@ module.exports = (app) ->
       if err
         Error err, res
       else
+        updateTags 'ClientTags', result.tags
         res.json status:true, results:result

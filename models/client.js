@@ -40,6 +40,10 @@
         sparse: true
       }
     },
+    tags: {
+      type: [String],
+      index: true
+    },
     man: String,
     man_info: String,
     loginAttempts: {
