@@ -39,6 +39,19 @@
                     on-tag-removed="tagRemoved('MenuTags')"
                     on-tag-added="tagAdded('MenuTags')"
                 ></tags-input>
+        <div class="row">
+            <h4 class="col-md-4">客户标签</h4>
+            <h5 style="position: relative;float: right;color: #cccccc; padding-right: 10px">
+                通过便签可以很方便的对客户进行分组，以便批量推送歌单或管理
+            </h5>
+        </div>
+        <tags-input ng-model="ClientTags.list"
+                    ng-disabled="handling"
+                    placeholder="新增"
+                    min-length="1"
+                    on-tag-removed="tagRemoved('ClientTags')"
+                    on-tag-added="tagAdded('ClientTags')"
+                ></tags-input>
     </div>
 {/body}
 <script src="../components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>

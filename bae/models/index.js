@@ -22,7 +22,34 @@
     Dict: Mongoose.model('Dict'),
     Client: Mongoose.model('Client'),
     Song: Mongoose.model('Song'),
-    Menu: Mongoose.model('Menu')
+    Menu: Mongoose.model('Menu'),
+    updateTags: function(key, tags) {
+      var Dict;
+      if (tags) {
+        Dict = module.exports.Dict;
+        return Dict.findOne({
+          key: key
+        }, function(err, dic) {
+          if (dic) {
+            if (dic.list) {
+              tags.forEach(function(tag) {
+                if (dic.list.indexOf(tag) === -1) {
+                  return dic.list.addToSet(tag);
+                }
+              });
+            } else {
+              dic.list = tags;
+            }
+          } else {
+            dic = new Dict({
+              key: key,
+              list: tags
+            });
+          }
+          return dic.save();
+        });
+      }
+    }
   };
 
 }).call(this);

@@ -6,6 +6,9 @@
   text-align: center;
   top: 0px;
 }
+.spacer {
+  margin-top: 10px;
+}
 .modal-backdrop .am-fade {
   opacity: .5;
   transition: opacity .15s linear;

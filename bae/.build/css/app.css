@@ -8,27 +8,31 @@
   top: 0px;
 }
 /* line 10, /Users/mani/yf/Projects/bae/app */
+.spacer {
+  margin-top: 10px;
+}
+/* line 14, /Users/mani/yf/Projects/bae/app */
 .modal-backdrop .am-fade {
   opacity: .5;
   transition: opacity .15s linear;
 }
-/* line 13, /Users/mani/yf/Projects/bae/app */
+/* line 17, /Users/mani/yf/Projects/bae/app */
 .modal-backdrop .am-fade.ng-enter {
   opacity: 0;
 }
-/* line 15, /Users/mani/yf/Projects/bae/app */
+/* line 19, /Users/mani/yf/Projects/bae/app */
 .modal-backdrop .am-fade.ng-enter.ng-enter-active {
   opacity: .5;
 }
-/* line 19, /Users/mani/yf/Projects/bae/app */
+/* line 23, /Users/mani/yf/Projects/bae/app */
 .modal-backdrop .am-fade.ng-leave {
   opacity: .5;
 }
-/* line 21, /Users/mani/yf/Projects/bae/app */
+/* line 25, /Users/mani/yf/Projects/bae/app */
 .modal-backdrop .am-fade.ng-leave.ng-leave-active {
   opacity: 0;
 }
-/* line 27, /Users/mani/yf/Projects/bae/app */
+/* line 31, /Users/mani/yf/Projects/bae/app */
 .file-upload {
   display: block;
   position: absolute;
@@ -45,7 +49,7 @@
   color: inherit;
   text-align: start;
 }
-/* line 44, /Users/mani/yf/Projects/bae/app */
+/* line 48, /Users/mani/yf/Projects/bae/app */
 body {
   margin: 0;
   padding: 0;
@@ -54,12 +58,12 @@ body {
   padding-top: 70px;
   padding-bottom: 30px;
 }
-/* line 53, /Users/mani/yf/Projects/bae/app */
+/* line 57, /Users/mani/yf/Projects/bae/app */
 .login-container {
   width: 340px;
   margin: 160px auto;
 }
-/* line 58, /Users/mani/yf/Projects/bae/app */
+/* line 62, /Users/mani/yf/Projects/bae/app */
 .col-md-6-0p {
   position: relative;
   padding-left: 0px;
@@ -67,22 +71,22 @@ body {
   width: 45%;
   margin: 10px;
 }
-/* line 66, /Users/mani/yf/Projects/bae/app */
+/* line 70, /Users/mani/yf/Projects/bae/app */
 .forget {
   display: inline-block;
   position: absolute;
   right: 18px;
 }
-/* line 72, /Users/mani/yf/Projects/bae/app */
+/* line 76, /Users/mani/yf/Projects/bae/app */
 .alerts {
   margin: 20px;
 }
-/* line 74, /Users/mani/yf/Projects/bae/app */
+/* line 78, /Users/mani/yf/Projects/bae/app */
 .alerts p {
   margin: 0;
   padding: 0;
 }
-/* line 79, /Users/mani/yf/Projects/bae/app */
+/* line 83, /Users/mani/yf/Projects/bae/app */
 .alert-message.danger,
 .alert-message.danger:hover,
 .alert-message.error,
@@ -93,7 +97,7 @@ alert-message.success:hover,
 .alert-message.info:hover {
   color: #ffffff;
 }
-/* line 82, /Users/mani/yf/Projects/bae/app */
+/* line 86, /Users/mani/yf/Projects/bae/app */
 .alert-message {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
@@ -123,27 +127,27 @@ alert-message.success:hover,
   -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
-/* line 110, /Users/mani/yf/Projects/bae/app */
+/* line 114, /Users/mani/yf/Projects/bae/app */
 .alert-message .close {
   font-family: Arial, sans-serif;
   line-height: 18px;
   margin-top: 0;
 }
-/* line 115, /Users/mani/yf/Projects/bae/app */
+/* line 119, /Users/mani/yf/Projects/bae/app */
 .alert-message a {
   font-weight: bold;
   color: #404040;
   text-decoration: none;
 }
-/* line 120, /Users/mani/yf/Projects/bae/app */
+/* line 124, /Users/mani/yf/Projects/bae/app */
 .alert-message p {
   margin-bottom: 0;
 }
-/* line 122, /Users/mani/yf/Projects/bae/app */
+/* line 126, /Users/mani/yf/Projects/bae/app */
 .alert-message p a:hover {
   text-decoration: underline;
 }
-/* line 127, /Users/mani/yf/Projects/bae/app */
+/* line 131, /Users/mani/yf/Projects/bae/app */
 .alert-message.danger,
 .alert-message.error {
   background-color: #c43c35;
@@ -160,7 +164,7 @@ alert-message.success:hover,
   border-color: #c43c35 #c43c35 #882a25;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
-/* line 142, /Users/mani/yf/Projects/bae/app */
+/* line 146, /Users/mani/yf/Projects/bae/app */
 .alert-message.success {
   background-color: #57a957;
   background-repeat: repeat-x;
@@ -176,7 +180,7 @@ alert-message.success:hover,
   border-color: #57a957 #57a957 #3d773d;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
-/* line 157, /Users/mani/yf/Projects/bae/app */
+/* line 161, /Users/mani/yf/Projects/bae/app */
 .alert-message.info {
   background-color: #339bb9;
   background-repeat: repeat-x;
@@ -192,11 +196,11 @@ alert-message.success:hover,
   border-color: #339bb9 #339bb9 #22697d;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
-/* line 173, /Users/mani/yf/Projects/bae/app */
+/* line 177, /Users/mani/yf/Projects/bae/app */
 :root .alert-message {
   border-radius: 0 \0;
 }
-/* line 177, /Users/mani/yf/Projects/bae/app */
+/* line 181, /Users/mani/yf/Projects/bae/app */
 .close {
   float: right;
   color: #000000;
@@ -209,7 +213,7 @@ alert-message.success:hover,
   -moz-opacity: 0.25;
   opacity: 0.25;
 }
-/* line 189, /Users/mani/yf/Projects/bae/app */
+/* line 193, /Users/mani/yf/Projects/bae/app */
 .close:hover {
   color: #000000;
   text-decoration: none;
@@ -218,7 +222,7 @@ alert-message.success:hover,
   -moz-opacity: 0.4;
   opacity: 0.4;
 }
-/* line 197, /Users/mani/yf/Projects/bae/app */
+/* line 201, /Users/mani/yf/Projects/bae/app */
 .alert-message.danger p a,
 .alert-message.error p a,
 .alert-message.success p a,

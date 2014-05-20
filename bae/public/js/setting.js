@@ -63,7 +63,8 @@
       return $scope.updateTags(key, $scope[key], updateResult);
     };
     $scope.getTags('SongTags');
-    return $scope.getTags('MenuTags');
+    $scope.getTags('MenuTags');
+    return $scope.getTags('ClientTags');
   });
 
   angular.bootstrap(document.getElementById("settingDiv"), ['SettingApp']);
