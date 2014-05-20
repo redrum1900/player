@@ -218,9 +218,13 @@
             console.log(data);
             return $timeout(function() {
               $scope.data.url = data.key;
-              $scope.size = file.size;
+              $scope.data.size = file.size;
               $scope.label = '上传成功';
-              return $scope.buttonDisabled = false;
+              $scope.buttonDisabled = false;
+              return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
+                $scope.data.duration = result.format.duration;
+                return console.log($scope.data);
+              });
             }, 500);
           },
           'UploadProgress': function(up, file) {

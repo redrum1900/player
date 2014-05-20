@@ -155,9 +155,12 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
           console.log data
           $timeout(->
             $scope.data.url = data.key
-            $scope.size = file.size
+            $scope.data.size = file.size
             $scope.label = '上传成功'
             $scope.buttonDisabled = false
+            http.get('http://yfcdn.qiniudn.com/'+data.key+'?avinfo').success (result)->
+              $scope.data.duration = result.format.duration
+              console.log $scope.data
           , 500)
         'UploadProgress':(up,file)->
           $scope.label = file.percent + "%"

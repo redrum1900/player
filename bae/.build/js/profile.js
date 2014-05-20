@@ -70,7 +70,7 @@ datagrid.controller('MMCtrl', function ($scope, $http, $modal, $log) {
             templateUrl: 'modal.html',
             controller: ModalInstanceCtrl,
             resolve: {
-                data: function () {
+                title: function () {
                     return $scope.data
                 },
                 content: function () {
@@ -115,7 +115,7 @@ datagrid.controller('MMCtrl', function ($scope, $http, $modal, $log) {
             if (result.status) {
 
             } else {
-                $scope.data = '操作管理员失败';
+                $scope.title = '操作管理员失败';
                 $scope.content = result.results;
                 $scope.open();
                 data.disabled = !data.disabled;
@@ -143,10 +143,11 @@ datagrid.controller('MMCtrl', function ($scope, $http, $modal, $log) {
         ]
     };
 })
+
 angular.bootstrap(document.getElementById("MMDiv"), ['MM']);
 
 var ModalInstanceCtrl = function ($scope, $modalInstance, title, content) {
-    $scope.data = title;
+    $scope.title = title;
     $scope.content = content;
     $scope.ok = function () {
         $modalInstance.close();

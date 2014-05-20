@@ -16,14 +16,17 @@
       }
       return res.render('index', model);
     });
-    app.get('/setting', function(req, res) {
+    app.get('/setting', auth.isAuthenticated(), function(req, res) {
       return res.render('setting');
+    });
+    app.get('/test', function(req, res) {
+      return res.render('test');
     });
     return app.post('/login', function(req, res) {
       var data;
       data = req.body;
       if (data.action === 'apply') {
-        return res.direct('/apply');
+        return res.redirect('/apply');
       }
       if (!data.username || !data.password) {
         return res.render('index', {

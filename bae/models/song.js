@@ -15,6 +15,7 @@
     cover: String,
     url: String,
     size: Number,
+    duration: Number,
     tags: {
       type: [String],
       index: true

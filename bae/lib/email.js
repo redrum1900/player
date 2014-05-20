@@ -1,20 +1,20 @@
 var Mailer = require('nodemailer');
-
+var logger = require('log4js').getLogger('Email');
 var internals = {};
 
 module.exports = {
     sendMail: function (mailOptions, callback) {
 
-        mailOptions.from = '联想研究系统 <support@blossompavilion.com>'
+        mailOptions.from = '乐府管理系统 <support@iiiui.com>'
         mailOptions.headers = {'X-Laziness-level': 1000};
 
         internals.transport.sendMail(mailOptions, function (error, response) {
             if (error) {
                 if(callback)
                     callback(false);
-                console.error('Sent email error: ' + error);
+                logger.error('Sent email error: ' + error);
             } else {
-                console.log('Sent mail: ' + response.message);
+                logger.trace('Sent mail: ' + response.message);
                 if(callback)
                     callback(true);
             }

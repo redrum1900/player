@@ -31,7 +31,6 @@
         key: data.key
       }, 'value list', function(err, result) {
         var arr;
-        console.log(err, result);
         if (err) {
           return Error(err, res);
         } else {

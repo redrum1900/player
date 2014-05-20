@@ -6,6 +6,7 @@ SongSchema = new Schema
   cover:String
   url:String
   size:Number
+  duration:Number
   tags:type:[String],index:true
   id3:Schema.Types.Mixed
   disabled:type:Boolean,default:false
