@@ -5,7 +5,7 @@
   songs = angular.module('SongApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']);
 
   songs.controller('SongCtrl', function($scope, $http, $modal, $q, $filter) {
-    var listUri, updateStatusUri;
+    var listUri, updateStatus, updateStatusUri;
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
     configScopeForNgGrid($scope);
@@ -49,6 +49,17 @@
     };
     $scope.getList();
     $scope.updateStatus = function(data) {
+      if (!data.disabled) {
+        return confirm(2, '媒资状态更新', '是否确认禁用该媒资，一旦禁用后创建歌单时将不能再选中该媒资', function(value) {
+          if (value) {
+            return updateStatus(data);
+          }
+        });
+      } else {
+        return updateStatus(data);
+      }
+    };
+    updateStatus = function(data) {
       $scope.updating = true;
       data.disabled = !data.disabled;
       return $http.post(updateStatusUri, {
@@ -109,8 +120,8 @@
         }, {
           field: "handler",
           displayName: "操作",
-          width: 100,
-          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs col-md-5 col-md-offset-2" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
+          width: 150,
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
         }
       ]
     };

@@ -15,7 +15,6 @@
 {<body}
     <div id="menuDiv" ng-app="MenuApp" ng-controller="MenuCtrl">
 
-
     <div ng-include="module">
     </div>
 

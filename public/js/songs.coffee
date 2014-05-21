@@ -32,6 +32,14 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter) ->
   $scope.getList()
 
   $scope.updateStatus = (data) ->
+    if !data.disabled
+      confirm 2, '媒资状态更新', '是否确认禁用该媒资，一旦禁用后创建歌单时将不能再选中该媒资', (value)->
+        if value
+          updateStatus(data)
+    else
+      updateStatus(data)
+
+  updateStatus = (data)->
     $scope.updating = true
     data.disabled = !data.disabled
     $http.post(updateStatusUri,{_id:data._id, disabled:data.disabled}).success (result) ->
@@ -59,10 +67,10 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
       {field: "updator.username", width:88, displayName:"更新者", cellTemplate: textCellTemplate}
       {field: "updated_at", width:100, displayName:"更新时间", cellTemplate: dateCellTemplate}
-      {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
-      <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
-      <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a>
-      <a class="btn btn-xs col-md-5 col-md-offset-2" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
+      {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
+      <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+        <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a>
+        <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
     ]
 
   $scope.edit = (data) ->

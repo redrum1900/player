@@ -139,7 +139,7 @@ module.exports = (app) ->
     User.find(parent:null).populate('parent', 'username').select('username parent').exec (err, result)->
       res.json result:result
 
-  app.post '/user/update/status', auth.isAuthenticated(), (req, res) ->
+  app.post '/user/update/status', auth.isAuthenticated(0), (req, res) ->
     data = req.body
     User.findByIdAndUpdate data._id, $set:disabled:data.disabled, (err, result) ->
       if err
