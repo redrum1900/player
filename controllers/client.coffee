@@ -15,37 +15,13 @@ module.exports = (app) ->
 
   app.post '/api/user/login', (req, res)->
     data = req.body
-    if !data.udid && (!data.mobile || !data.code)
+    if !data.username || !data.password
       return res.json status:false, result:'udid或手机号&验证码不能为空'
-
-    ep = new EventProxy()
-    ep.once 'save', (user)->
-      Redis.setUser user, (ret)->
-        if ret
-          reply null, user, res
-        else
-          reply '服务出错，请稍后再试', null, res
-
-    if data.mobile
-      User.getAuthenticated data.mobile, data.code, (err, result)->
-        if err
-          reply err, result, res
-        else
-          ep.emit 'save', result
-    else
-      User.findOne udid:data.udid, '-last_login_time -signed_in_times -updated_at -password -come_from -loginAttempts -lockUntil -creator -updator', (err, result)->
-        if err
-          reply err, result, res
-        else if result
-          result.signed_in_times++
-          result.save()
-          ep.emit 'save', result
-        else
-          user = new User data
-          user.come_from = 'app'
-          user.save (err, result)->
-            ep.emit 'save', result
-
+    User.getAuthenticated data.username, data.password, (err, result)->
+      if err
+        Error err, res
+      else
+        res.json status:true, results:result
 
   app.post '/api/user/code', (req, res)->
     data = req.body
@@ -152,6 +128,8 @@ module.exports = (app) ->
     if data.parent
       data.username = data.parent.username+':'+data.username
       data.parent = data.parent._id
+    if data.username.indexOf('@') != -1
+      return res.json status:false, results:'用户名不能有邮件@符号'
     user = new User data
     user.creator = req.user
     code = Math.floor(Math.random()*899999) + 100000

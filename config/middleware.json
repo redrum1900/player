@@ -6,7 +6,9 @@
             "503": "errors/503"
         },
         "logger":{
-            "enabled":false
+            "module":"../lib/middleware/log",
+            "format":"[:date] [:status] [:method] [:url] (:response-time ms)",
+            "level":"auto"
         },
         "appsec": {
             "csrf":false

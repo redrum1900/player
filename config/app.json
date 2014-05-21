@@ -8,6 +8,21 @@
         "username":"KktW3LP8Bhlvteqkyo6f6zCX",
         "password":"SBsaOp4CsLa8mq3ddHb6LFLgT2eMVYbI"
     },
+    "log4js":{
+        "levels":{
+            "request":"DEBUG"
+        },
+        "appenders":[
+            {
+                "type":"console",
+                "layout":{
+                    "type":"pattern",
+                    "pattern":"[%d] [%p] [%c] %m",
+                    "tokens":{}
+                }
+            }
+        ]
+    },
 // "host": "localhost",
 //
     "port": 18080,
