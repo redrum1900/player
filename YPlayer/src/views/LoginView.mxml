@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" 
+					 xmlns:components="com.pamakids.components.*"
+					 title="登录系统"
+					 >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.models.ResultVO;
+			import com.pamakids.services.ServiceBase;
+			
+			import controllers.API;
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				API.instance.login(username.text, password.text, function(vo:ResultVO):void{
+					if(vo.status){
+						var so:SharedObject = SharedObject.getLocal('yp');
+						so.data.username = username.text;
+						so.data.password = password.text;
+						so.flush();
+						ServiceBase.id = vo.results+'';
+						close();
+					}
+					else{
+						PAlert.show(vo.errorResult);
+					}
+				});				
+			}
+		]]>
+	</fx:Script>
+	
+	<components:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  paddingLeft="40" paddingRight="40"
+						  paddingBottom="20" paddingTop="30"
+						  gap="10"
+						  />
+	</components:layout>
+	
+	<s:TextInput id="username"
+				 prompt="用户名/邮箱/手机号"
+				 skinClass="skins.textinput.LoginTextInputSkin"/>
+	<s:TextInput id="password"
+				 prompt="密码"
+				 skinClass="skins.textinput.LoginTextInputSkin"/>
+	<s:Spacer height="10"/>
+	<s:Button label="登录" skinClass="skins.buttons.LoginButtonSkin" click="button1_clickHandler(event)"/>
+</components:PopupBox>

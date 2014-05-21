@@ -11,11 +11,17 @@
 			import com.greensock.easing.Cubic;
 			import com.pamakids.components.controls.SoundPlayer;
 			import com.pamakids.events.ODataEvent;
+			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.models.ResultVO;
+			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
+			import com.youli.messengers.PreloaderMessenger;
 			
 			import flash.utils.setTimeout;
 			
 			import mx.events.FlexEvent;
+			
+			import controllers.API;
 			
 			import models.SongVO;
 			
@@ -81,6 +87,24 @@
 				panelGroup.height = height-57-48;
 				panelGroup.x = 2;
 				panelGroup.width = width-4;
+				
+				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void{
+					TweenLite.delayedCall(0.5, autoLogin);
+				});
+			}
+			
+			private function autoLogin():void
+			{
+				var so:SharedObject = SharedObject.getLocal('yp');
+				if(so.data.username && so.data.password){
+					API.instance.login(so.data.username, so.data.password, function(vo:ResultVO):void{
+						if(vo.status)
+							ServiceBase.id = vo.results+'';
+					});
+				}else{
+					var l:LoginView = new LoginView();
+					PopupBoxManager.popup(l);
+				}
 			}
 			
 			private function getPlayer():SoundPlayer
@@ -119,6 +143,7 @@
 			private var song2:SongVO;
 			
 			private var player2:SoundPlayer;
+			private var songs:Array;
 			
 			private function initPlayer():void
 			{
@@ -132,19 +157,24 @@
 				soundVisualizer.y = -18;
 				sv.addChild(soundVisualizer);
 				
-				var vo:SongVO = new SongVO();
-				vo.url = '/assets/temp/1.mp3';
-				vo.cover = '/assets/temp/1.jpg';
-				vo.name = '你听我说';
+//				var vo:SongVO = new SongVO();
+//				vo.url = '/assets/temp/1.mp3';
+//				vo.cover = '/assets/temp/1.jpg';
+//				vo.name = '你听我说';
+//				
+//				song2 = new SongVO();
+//				song2.url = '/assets/temp/2.mp3';
+//				song2.cover = '/assets/temp/2.jpg';
+//				song2.name = 'Just One Last Dance';
+//				
+//				song1 = song2;
+//				song2 = vo;
+//				play(song1);
 				
-				song2 = new SongVO();
-				song2.url = '/assets/temp/2.mp3';
-				song2.cover = '/assets/temp/2.jpg';
-				song2.name = 'Just One Last Dance';
-				
-				song1 = song2;
-				song2 = vo;
-				play(song1);
+				API.instance.addEventListener('PLAY', function(e:Event):void{
+					songs = API.instance.getSongList();
+					play(songs[0]);
+				});
 			}
 			
 			private function play(vo:SongVO):void

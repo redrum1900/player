@@ -7,8 +7,39 @@ SMS = models.SMS
 Song = models.Song
 Menu = models.Menu
 UpdateObject = require('../lib/utils').updateObject
+qiniu = require 'qiniu'
+logger = require('log4js').getLogger('Menu')
 
 module.exports = (app)->
+
+  app.get '/api/menu/list', (req, res)->
+    id = req.query.id
+    query = {disabled:false}
+    query.clients = id
+    query.end_date = $gt:new Date()
+    Menu.find(query)
+    .select('_id')
+    .exec (err, result)->
+      if err
+        Error err, res
+      else
+        res.json status:true, results:result
+
+  saveMenu = (id, callback)->
+    Menu.findById(id)
+    .select('name list begin_date end_date')
+    .populate('list.songs.song', 'name cover url duration')
+    .exec (err, result)->
+      extra = new qiniu.io.PutExtra()
+      putPolicy = new qiniu.rs.PutPolicy('yfcdn')
+      token = putPolicy.token()
+      qiniu.io.put token, id+'.json', JSON.stringify(result), extra, (err, result)->
+        if !err
+          logger.trace result
+          callback true
+        else
+          logger.error err
+          callback false
 
   app.get '/menu', auth.isAuthenticated(), (req, res)->
     res.render 'menu'
@@ -62,7 +93,11 @@ module.exports = (app)->
             Error err, res
           else
             updateTags result.tags
-            res.json status:true, results:result
+            saveMenu result.id, (value)->
+              if value
+                res.json status:true, results:result
+              else
+                res.json status:false, results:'保存歌单失败'
 
   app.post '/menu/update/status', auth.isAuthenticated(), (req, res) ->
     data = req.body
@@ -82,4 +117,8 @@ module.exports = (app)->
         Error err, res
       else
         updateTags result.tags
-        res.json status:true, results:result
+        saveMenu result.id, (value)->
+          if value
+            res.json status:true, results:result
+          else
+            res.json status:false, results:'保存歌单失败'

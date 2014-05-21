@@ -1,29 +1,22 @@
 var navScope;
 var navTimeOut;
-var navModal;
 
 var nav = angular.module('nav', ['ui.bootstrap']);
 
 function NavController($scope, $timeout, $modal){
-	$scope.navs = [
-		{href:'/console', label:'控制台'},
-		{href:'/songs', label:'媒资管理'},
-        {href:'/menu', label:'歌单推送'},
-		{href:'/clients', label:'客户管理'},
-		{href:'/feedback', label:'客户反馈'},
-		{href:'/setting', label:'系统设置'},
-        {href:'/log', label:'操作日志'}
-	];
 
+    navModal = $modal;
     navScope = $scope;
     navTimeOut = $timeout;
-    navModal = $modal;
 
-	angular.forEach($scope.navs, function(nav){
-		if(nav.href == window.location.pathname){
-			nav.active = 'active';
-		}
-	});
+    $scope.init = function (navs){
+        $scope.navs = angular.fromJson(navs);
+        angular.forEach($scope.navs, function(nav){
+            if(nav.href == window.location.pathname){
+                nav.active = 'active';
+            }
+        });
+    }
 }
 
 var confirm = function(type, title, content,callback, ok, cancel){
@@ -65,6 +58,7 @@ var ModalInstanceCtrl = function ($scope, $modalInstance, title, content, ok, ca
         $modalInstance.dismiss('cancel');
     };
 };
+
 
 var showAlert = function(message){
     navTimeOut(function () {

@@ -11,6 +11,9 @@
 					   xmlns:nativeApplicationUpdater="com.youli.nativeApplicationUpdater.*" xmlns:views="views.*">
 	<fx:Script>
 		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.models.ResultVO;
 			import com.youli.components.LMouseData;
 			import com.youli.messengers.PreloaderMessenger;
 			
@@ -21,13 +24,12 @@
 			import air.update.events.UpdateEvent;
 			
 			import controllers.AC;
+			import controllers.API;
+			
+			import views.LoginView;
 			
 			protected function inited(event:FlexEvent):void
 			{
-				ToolTipManager.showEffect=fadeIn;
-				ToolTipManager.hideEffect=fadeOut;
-				ToolTipManager.showDelay=0;
-				
 				var l:LMouseData = new LMouseData();
 				Mouse.registerCursor('busy', l.mouseCursorData);
 				
@@ -45,6 +47,11 @@
 			{
 				AC.centerWindow(nativeWindow);
 				updater.initialize();
+				ToolTipManager.showEffect=fadeIn;
+				ToolTipManager.hideEffect=fadeOut;
+				ToolTipManager.showDelay=0;
+				PAlert.PARENT = this
+				PopupBoxManager.PARENT = this
 			}
 			
 			protected function updater_initializedHandler(event:UpdateEvent):void
@@ -105,6 +112,10 @@
 			fontSize: 13;
 			color:"0x505050";
 			chromeColor:"0xe8e8e8";
+		}
+		
+		components|PopupBox{
+			skinClass:ClassReference("skins.popup.PopupBoxSkin")
 		}
 	</fx:Style>
 	

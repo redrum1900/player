@@ -63,43 +63,44 @@ ClientSchema.methods.incLoginAttempts = (callback)->
 ClientSchema.statics =
   getAuthenticated : (usernameOrMobileOrEmail, password, callback)->
     query = {}
-    if usernameOrMobileOrEmail.indexOf '@' != -1
+    if usernameOrMobileOrEmail.indexOf('@') != -1
       query.email = usernameOrMobileOrEmail
     else if parseInt(usernameOrMobileOrEmail) > 0 && usernameOrMobileOrEmail.length == 11
       query.mobile = usernameOrMobileOrEmail
     else
       query.username = usernameOrMobileOrEmail
+    console.log query
     this.findOne query, (err, result)->
       if err
         return callback err
       return callback '用户不存在' unless result
-    if result.isLocked
-      return result.incLoginAttempts (err)->
-        if err
-          return callback err
-        else
-          callback '您密码错误超过限制，已禁止登录，请两小时后再试或通过手机或邮箱找回密码'
-    result.comparePassword password, (err, isMatch)->
-      if err
-        return callback err
-      if isMatch
-        return callback '抱歉，您的账号已被禁用，请联系管理人员' if result.disabled
-        result.last_login_time = new Date()
-        result.signed_in_times++
-        if !result.loginAttempts && !user.lockUntil
-          result.save()
-          callback null, result
-        else
-          result.loginAttempts = 0
-          result.lockUntil = 0
-          result.save (err, result)->
-            if err
-              return callback err
-            callback null, result
-      else
-        result.incLoginAttempts (err)->
+      if result.isLocked
+        return result.incLoginAttempts (err)->
           if err
             return callback err
-          callback '密码错误'
+          else
+            callback '您密码错误超过限制，已禁止登录，请两小时后再试或通过手机或邮箱找回密码'
+      result.comparePassword password, (err, isMatch)->
+        if err
+          return callback err
+        if isMatch
+          return callback '抱歉，您的账号已被禁用，请联系管理人员' if result.disabled
+          result.last_login_time = new Date()
+          result.signed_in_times++
+          if !result.loginAttempts && !result.lockUntil
+            result.save()
+            callback null, result
+          else
+            result.loginAttempts = 0
+            result.lockUntil = 0
+            result.save (err, result)->
+              if err
+                return callback err
+              callback null, result
+        else
+          result.incLoginAttempts (err)->
+            if err
+              return callback err
+            callback '密码错误'
 
 Mongoose.model 'Client', ClientSchema

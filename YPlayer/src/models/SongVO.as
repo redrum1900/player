@@ -14,5 +14,6 @@ package models
 		public var time:String;
 		public var name:String;
 		public var playTime:String;
+		public var allow_circle:Boolean;
 	}
 }

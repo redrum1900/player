@@ -14,6 +14,11 @@ package controllers
 				isMac = true;
 		}
 		
+		public function login():void
+		{
+			
+		}
+		
 		public static function get i():AC
 		{
 			return Singleton.getInstance(AC);

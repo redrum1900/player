@@ -3,6 +3,8 @@ LOGIN_EXPIRE_TIME = 60*60
 CODE_EXPIRE_TIME = 60
 logger = require('log4js').getLogger('Redis')
 
+client = {}
+
 module.exports =
   config: (conf)->
     host = null
@@ -12,7 +14,6 @@ module.exports =
       port = conf.port
     options = "no_ready_check":true
     client = Redis.createClient(port, host, options)
-    this.client = client
     client.on 'error', (err)->
       logger.error err
     if !debug
