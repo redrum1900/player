@@ -47,6 +47,14 @@ client.controller 'UserMCtrl', ($scope, $http, $modal, $q, $filter) ->
     return deffered.promise
 
   $scope.updateStatus = (data) ->
+    if !data.disabled
+      confirm 2, '客户状态更新', '是否确认禁用该客户，一旦禁用后该客户将不能使用软件', (value)->
+        if value
+          updateStatus(data)
+    else
+      updateStatus(data)
+
+  updateStatus = (data)->
     $scope.updating = true
     data.disabled = !data.disabled
     $http.post(updateStatusUri,{_id:data._id, disabled:data.disabled}).success (result) ->
@@ -77,9 +85,9 @@ client.controller 'UserMCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
-      <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
-      <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a>
-      <a class="btn btn-xs col-md-5 col-md-offset-2" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
+      <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+      <a class="btn btn-primary btn-xs " ng-click="edit(row.entity)">编辑</a>
+      <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
     ]
 
   $scope.edit = (data) ->

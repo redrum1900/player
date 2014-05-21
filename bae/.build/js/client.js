@@ -5,7 +5,7 @@
   client = angular.module('UserMApp', ['ngGrid', 'ui.bootstrap', 'ngTagsInput']);
 
   client.controller('UserMCtrl', function($scope, $http, $modal, $q, $filter) {
-    var listUri, updateStatusUri;
+    var listUri, updateStatus, updateStatusUri;
     listUri = '/user/list';
     updateStatusUri = '/user/update/status';
     configScopeForNgGrid($scope);
@@ -70,6 +70,17 @@
       return deffered.promise;
     };
     $scope.updateStatus = function(data) {
+      if (!data.disabled) {
+        return confirm(2, '客户状态更新', '是否确认禁用该客户，一旦禁用后该客户将不能使用软件', function(value) {
+          if (value) {
+            return updateStatus(data);
+          }
+        });
+      } else {
+        return updateStatus(data);
+      }
+    };
+    updateStatus = function(data) {
       $scope.updating = true;
       data.disabled = !data.disabled;
       return $http.post(updateStatusUri, {
@@ -138,7 +149,7 @@
           field: "handler",
           displayName: "操作",
           width: 100,
-          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs col-md-5 col-md-offset-2" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-primary btn-xs " ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
         }
       ]
     };

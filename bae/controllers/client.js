@@ -225,7 +225,7 @@
         });
       });
     });
-    app.post('/user/update/status', auth.isAuthenticated(), function(req, res) {
+    app.post('/user/update/status', auth.isAuthenticated(0), function(req, res) {
       var data;
       data = req.body;
       return User.findByIdAndUpdate(data._id, {

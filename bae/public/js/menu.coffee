@@ -35,6 +35,14 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
   $scope.getList()
 
   $scope.updateStatus = (data) ->
+    if !data.disabled
+      confirm 2, '歌单状态更新', '是否确认禁用该歌单，一旦禁用后客户将不能再不会再使用该歌单', (value)->
+        if value
+          updateStatus(data)
+    else
+      updateStatus(data)
+
+  updateStatus = (data)->
     $scope.updating = true
     data.disabled = !data.disabled
     $http.post(updateStatusUri,{_id:data._id, disabled:data.disabled}).success (result) ->
@@ -62,12 +70,11 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "end_date", displayName:"结束日期", cellTemplate: dateCellTemplate}
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
-      {field: "updator.username", width:88, displayName:"更新者", cellTemplate: textCellTemplate}
-      {field: "updated_at", width:100, displayName:"更新时间", cellTemplate: dateCellTemplate}
-      {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
-                  <div class="col-md-8 col-md-offset-2" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
-                  <a class="btn btn-primary btn-xs col-md-5" ng-click="edit(row.entity)">编辑</a>
-                  <a class="btn btn-xs col-md-5 col-md-offset-2" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
+      {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
+                  <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+                    <a class="btn btn-info btn-xs" ng-click="clients(row.entity)">客户</a>
+                    <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a>
+                    <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
     ]
 
   $scope.songGrid =
@@ -187,15 +194,20 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       wrong = '歌单名称不能为空'
       return confirm(1, '保存失败', wrong)
     else
-      console.log 'save menu', menu
       list = menu.list
       list.forEach (list)->
         songs = list.songs
         if songs
-          console.log songs
           songs.forEach (s)->
             s.song = s.song._id
-      console.log 'save menu', menu
+      tags = []
+      if menu.tags
+        menu.tags.forEach (tag)->
+          if typeof tag == 'string'
+            tags.push(tag)
+          else
+            tags.push(tag.text)
+      menu.tags = tags
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
           showAlert result.error unless result.status
@@ -210,6 +222,22 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
             if(!value)
               $scope.back()
           , '继续编辑', '返回列表')
+
+  $scope.clients = (menu)->
+    modalInstance = $modal.open(
+      templateUrl:'clients.html'
+      controller:ClientsModalInstanceCtrl
+      backdrop:'static'
+      resolve:
+        menu:->menu
+    )
+    modalInstance.result.then ((clients) ->
+      if clients
+        $http.post('/menu/update',{_id:menu._id,clients:clients}).success (result) ->
+          showAlert result.error unless result.status
+          $scope.search()
+    ), ->
+      return
 
   $scope.open = ->
     modalInstance = $modal.open(
@@ -231,6 +259,114 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       return
     ), ->
       return
+
+ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, menu) ->
+  listUri = '/user/list'
+  configScopeForNgGrid $scope
+
+  menu = angular.copy menu
+  $scope.clients = menu.clients
+
+  $scope.search = ->
+    $scope.page = 1
+    $scope.list = null
+    $scope.getList()
+
+  $scope.getList = ->
+    tags = ''
+    if $scope.s_tags
+      tags = []
+      $scope.s_tags.forEach (tag)->
+        tags.push tag.text
+      tags = tags.join ','
+    $http.get(listUri, params:username:$scope.searchText,tags:tags,page:$scope.page,perPage:20).success (result) ->
+      if(result.status)
+        if !$scope.list
+          $scope.list = result.results;
+          refreshStatus()
+        else if result.results and result.results.length
+          result.results.forEach (item)->
+            $scope.list.push item
+          refreshStatus()
+        else
+          showAlert '没有更多的数据了'
+      else
+        showAlert result.error
+
+  refreshStatus = ->
+    $scope.list.forEach (item)->
+      item.style = choosedStyle(item)
+      item.label = choosedLabel(item)
+
+  $scope.getList()
+
+  $scope.tags = []
+  getDict $http, 'ClientTags', (result) ->
+    if result and result.list and result.list.length
+      result.list.forEach (tag) ->
+        if typeof tag == 'string'
+          $scope.tags.push text:tag
+        else
+          $scope.tags.push tag
+
+  $scope.loadTags = (query) ->
+    deffered = $q.defer()
+    deffered.resolve $filter('filter') $scope.tags, query
+    return deffered.promise
+
+  $scope.page = 1
+
+  $scope.$on 'ngGridEventScroll', ->
+    $scope.page++
+    $scope.getList()
+
+  choosed = (data)->
+    has = false
+    $scope.clients.forEach (c)->
+      if c == data._id
+        has = true
+    return has
+
+  choosedStyle = (data)->
+    return if choosed(data) then 'btn-warning' else 'btn-success'
+
+  $scope.handle = (data)->
+    if choosed(data)
+      i = 0
+      while i < $scope.clients.length
+        if $scope.clients[i] == data._id
+          $scope.clients.splice(i, 1)
+        i++
+    else
+      $scope.clients.push data._id if $scope.clients.indexOf(data._id) == -1
+    refreshStatus()
+
+  choosedLabel = (data)->
+    return if choosed(data) then '取消' else '选中'
+
+  $scope.cancel = ->
+    $modalInstance.close()
+    return
+
+  $scope.ok = ->
+    $modalInstance.close($scope.clients)
+    return
+
+  $scope.dataGrid =
+    data:'list'
+    multiSelect:false
+    enableRowSelection:false
+    enableSorting:false
+    enableHighlighting:true
+    rowHeight:40
+    columnDefs:[
+      {field: "username", displayName:"客户名称", cellTemplate: textCellTemplate}
+      {field: "parent.username", displayName:"总部", cellTemplate: textCellTemplate}
+      {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
+      {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
+            <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+            <a class="btn btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)" ng-disabled="updating">{{ row.entity.label }}</a></div></div>'}
+    ]
 
 ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
 

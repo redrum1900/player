@@ -39,9 +39,10 @@
 <div class="row" style="margin-bottom: 20px">
     <div class="col-md-4">
         <input type="text" class="form-control" ng-model="$parent.data.name"
+               tooltip="歌单名称"
                placeholder="请输入歌单名称">
     </div>
-    <div class="col-md-2" style="padding-left: 0">
+    <div class="col-md-2" style="padding-left: 0; width: 170px">
         <p class="input-group">
             <input type="text" class="form-control" datepicker-popup="{{ format }}"
                    ng-model="$parent.data.begin_date"
@@ -57,7 +58,7 @@
                   </span>
         </p>
     </div>
-    <div class="col-md-2" style="padding-left: 0">
+    <div class="col-md-2" style="padding-left: 0; width: 170px">
         <p class="input-group">
             <input type="text" class="form-control" datepicker-popup="{{ format }}"
                    ng-model="$parent.data.end_date"
@@ -79,21 +80,39 @@
     <button ng-disabled="$parent.handling" class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addTime()">新增时段</button>
 </div>
 
-<tabset>
-    <tab ng-click="changeTime(time)" ng-repeat="time in $parent.data.list" heading="{{time.name}}" active="time.active">
-    </tab>
-</tabset>
+<div class="row">
+    <div class="col-md-8" style="
+    padding-right: 0px;
+">
+        <tabset>
+            <tab ng-click="changeTime(time)" ng-repeat="time in $parent.data.list" heading="{{time.name}}" active="time.active">
+            </tab>
+        </tabset>
+    </div>
+    <div class="col-md-4" style="
+    padding-left: 0px;
+    margin-top: 8px;
+">
+        <tags-input ng-model="data.tags"
+                    placeholder="设置标签"
+                    min-length="1">
+            <auto-complete source="loadTags($query)"
+                           min-length="1"
+                    ></auto-complete>
+        </tags-input>
+    </div>
+</div>
 
 <div class="row" style="margin-top: 10px">
     <div class="col-md-2" tooltip="修改时段名称">
         <input type="text" class="form-control" ng-model="$parent.time.name"
                 >
     </div>
-    <div class="col-md-1" tooltip="设置开始时间，比如8:00">
+    <div  style="float:left;width: 70px" tooltip="设置开始时间，比如8:00">
         <input type="text" class="form-control" ng-model="$parent.time.begin"
                 >
     </div>
-    <div class="col-md-1" tooltip="设置结束时间，比如18:00">
+    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="设置结束时间，比如18:00">
         <input type="text" class="form-control" ng-model="$parent.time.end"
                 >
     </div>
