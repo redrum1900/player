@@ -25,52 +25,24 @@
       return res.render('clients');
     });
     app.post('/api/user/login', function(req, res) {
-      var data, ep;
+      var data;
       data = req.body;
-      if (!data.udid && (!data.mobile || !data.code)) {
+      if (!data.username || !data.password) {
         return res.json({
           status: false,
           result: 'udid或手机号&验证码不能为空'
         });
       }
-      ep = new EventProxy();
-      ep.once('save', function(user) {
-        return Redis.setUser(user, function(ret) {
-          if (ret) {
-            return reply(null, user, res);
-          } else {
-            return reply('服务出错，请稍后再试', null, res);
-          }
-        });
+      return User.getAuthenticated(data.username, data.password, function(err, result) {
+        if (err) {
+          return Error(err, res);
+        } else {
+          return res.json({
+            status: true,
+            results: result
+          });
+        }
       });
-      if (data.mobile) {
-        return User.getAuthenticated(data.mobile, data.code, function(err, result) {
-          if (err) {
-            return reply(err, result, res);
-          } else {
-            return ep.emit('save', result);
-          }
-        });
-      } else {
-        return User.findOne({
-          udid: data.udid
-        }, '-last_login_time -signed_in_times -updated_at -password -come_from -loginAttempts -lockUntil -creator -updator', function(err, result) {
-          var user;
-          if (err) {
-            return reply(err, result, res);
-          } else if (result) {
-            result.signed_in_times++;
-            result.save();
-            return ep.emit('save', result);
-          } else {
-            user = new User(data);
-            user.come_from = 'app';
-            return user.save(function(err, result) {
-              return ep.emit('save', result);
-            });
-          }
-        });
-      }
     });
     app.post('/api/user/code', function(req, res) {
       var data;
@@ -249,6 +221,12 @@
       if (data.parent) {
         data.username = data.parent.username + ':' + data.username;
         data.parent = data.parent._id;
+      }
+      if (data.username.indexOf('@') !== -1) {
+        return res.json({
+          status: false,
+          results: '用户名不能有邮件@符号'
+        });
       }
       user = new User(data);
       user.creator = req.user;
