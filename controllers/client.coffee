@@ -16,12 +16,12 @@ module.exports = (app) ->
   app.post '/api/user/login', (req, res)->
     data = req.body
     if !data.username || !data.password
-      return res.json status:false, result:'udid或手机号&验证码不能为空'
+      return res.json status:false, results:'用户名或密码不能为空'
     User.getAuthenticated data.username, data.password, (err, result)->
       if err
         Error err, res
       else
-        res.json status:true, results:result
+        res.json status:true, results:result.id
 
   app.post '/api/user/code', (req, res)->
     data = req.body

@@ -145,61 +145,62 @@
     getAuthenticated: function(usernameOrMobileOrEmail, password, callback) {
       var query;
       query = {};
-      if (usernameOrMobileOrEmail.indexOf('@' !== -1)) {
+      if (usernameOrMobileOrEmail.indexOf('@') !== -1) {
         query.email = usernameOrMobileOrEmail;
       } else if (parseInt(usernameOrMobileOrEmail) > 0 && usernameOrMobileOrEmail.length === 11) {
         query.mobile = usernameOrMobileOrEmail;
       } else {
         query.username = usernameOrMobileOrEmail;
       }
-      this.findOne(query, function(err, result) {
+      console.log(query);
+      return this.findOne(query, function(err, result) {
         if (err) {
           return callback(err);
         }
         if (!result) {
           return callback('用户不存在');
         }
-      });
-      if (result.isLocked) {
-        return result.incLoginAttempts(function(err) {
-          if (err) {
-            return callback(err);
-          } else {
-            return callback('您密码错误超过限制，已禁止登录，请两小时后再试或通过手机或邮箱找回密码');
-          }
-        });
-      }
-      return result.comparePassword(password, function(err, isMatch) {
-        if (err) {
-          return callback(err);
-        }
-        if (isMatch) {
-          if (result.disabled) {
-            return callback('抱歉，您的账号已被禁用，请联系管理人员');
-          }
-          result.last_login_time = new Date();
-          result.signed_in_times++;
-          if (!result.loginAttempts && !user.lockUntil) {
-            result.save();
-            return callback(null, result);
-          } else {
-            result.loginAttempts = 0;
-            result.lockUntil = 0;
-            return result.save(function(err, result) {
-              if (err) {
-                return callback(err);
-              }
-              return callback(null, result);
-            });
-          }
-        } else {
+        if (result.isLocked) {
           return result.incLoginAttempts(function(err) {
             if (err) {
               return callback(err);
+            } else {
+              return callback('您密码错误超过限制，已禁止登录，请两小时后再试或通过手机或邮箱找回密码');
             }
-            return callback('密码错误');
           });
         }
+        return result.comparePassword(password, function(err, isMatch) {
+          if (err) {
+            return callback(err);
+          }
+          if (isMatch) {
+            if (result.disabled) {
+              return callback('抱歉，您的账号已被禁用，请联系管理人员');
+            }
+            result.last_login_time = new Date();
+            result.signed_in_times++;
+            if (!result.loginAttempts && !result.lockUntil) {
+              result.save();
+              return callback(null, result);
+            } else {
+              result.loginAttempts = 0;
+              result.lockUntil = 0;
+              return result.save(function(err, result) {
+                if (err) {
+                  return callback(err);
+                }
+                return callback(null, result);
+              });
+            }
+          } else {
+            return result.incLoginAttempts(function(err) {
+              if (err) {
+                return callback(err);
+              }
+              return callback('密码错误');
+            });
+          }
+        });
       });
     }
   };

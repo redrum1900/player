@@ -30,7 +30,7 @@
       if (!data.username || !data.password) {
         return res.json({
           status: false,
-          result: 'udid或手机号&验证码不能为空'
+          results: '用户名或密码不能为空'
         });
       }
       return User.getAuthenticated(data.username, data.password, function(err, result) {
@@ -39,7 +39,7 @@
         } else {
           return res.json({
             status: true,
-            results: result
+            results: result.id
           });
         }
       });
