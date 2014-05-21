@@ -17,13 +17,14 @@
       return Manager.getAuthenticated(username, password, function(err, user, reason) {
         if (err) {
           logger.error(err);
-        } else if (reason !== null) {
-          logger.warn('Login Failed:' + username + '-' + password + '-' + reason);
         }
         if (!user) {
+          logger.warn('Login Failed:' + username + '-' + password + '-' + reason);
           return done(err, false, {
             message: reason
           });
+        } else {
+          logger.trace('Loged in:' + username);
         }
         return done(null, user);
       });
