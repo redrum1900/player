@@ -36,7 +36,7 @@ module.exports = (app)->
       token = putPolicy.token()
       qiniu.io.put token, id+'.json', JSON.stringify(result), extra, (err, result)->
         if !err
-          logger.trace result
+          logger.trace id+'.json'
           callback true
         else
           logger.error err
