@@ -20,7 +20,6 @@ MenuSchema = new Schema
   creator:type:Schema.Types.ObjectId,ref:"Manager"
   updator:type:Schema.Types.ObjectId,ref:"Manager"
 
-
 Timestamps = require('mongoose-times')
 MenuSchema.plugin Timestamps, created:"created_at", lastUpdated:"updated_at"
 

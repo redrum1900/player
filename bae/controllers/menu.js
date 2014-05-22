@@ -36,7 +36,9 @@
       query.end_date = {
         $gt: new Date()
       };
-      return Menu.find(query).select('_id').exec(function(err, result) {
+      return Menu.find(query).select('_id updated_at end_date').sort({
+        end_date: 1
+      }).exec(function(err, result) {
         if (err) {
           return Error(err, res);
         } else {

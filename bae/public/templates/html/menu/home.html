@@ -37,7 +37,7 @@
 </script>
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <form class="input-group" ng-submit="search()">
             <input type="text" class="form-control" ng-model="$parent.menuName"
                    placeholder="请输入歌单名称进行检索">
@@ -46,7 +46,7 @@
               </span>
         </form>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <tags-input ng-model="$parent.s_tags"
                     placeholder="标签筛选"
                     on-tag-removed="search()"
@@ -57,6 +57,7 @@
                     ></auto-complete>
         </tags-input>
     </div>
+    <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
 </div>
 
 <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>

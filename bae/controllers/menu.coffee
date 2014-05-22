@@ -18,7 +18,8 @@ module.exports = (app)->
     query.clients = id
     query.end_date = $gt:new Date()
     Menu.find(query)
-    .select('_id')
+    .select('_id updated_at end_date')
+    .sort(end_date:1)
     .exec (err, result)->
       if err
         Error err, res
