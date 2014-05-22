@@ -57,7 +57,7 @@
         token = putPolicy.token();
         return qiniu.io.put(token, id + '.json', JSON.stringify(result), extra, function(err, result) {
           if (!err) {
-            logger.trace(result);
+            logger.trace(id + '.json');
             return callback(true);
           } else {
             logger.error(err);
