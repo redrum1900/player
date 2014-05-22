@@ -215,7 +215,6 @@
               hour: h,
               minute: m
             });
-            console.log(time, time.isValid());
             if (!time.isValid()) {
               wrong = true;
             }
@@ -238,7 +237,6 @@
     getDict($http, 'MenuTags', function(result) {
       if (result && result.list && result.list.length) {
         return result.list.forEach(function(tag) {
-          console.log(tag);
           if (typeof tag === 'string') {
             return $scope.tags.push({
               text: tag
@@ -366,7 +364,17 @@
       modalInstance = $modal.open({
         templateUrl: 'modal.html',
         controller: ModalInstanceCtrl,
-        backdrop: 'static'
+        backdrop: 'static',
+        resolve: {
+          songs: function() {
+            var arr;
+            arr = [];
+            $scope.time.songs.forEach(function(s) {
+              return arr.push(s.song);
+            });
+            return arr;
+          }
+        }
       });
       return modalInstance.result.then((function(data) {
         var time;
@@ -379,7 +387,7 @@
             var has;
             has = false;
             time.songs.forEach(function(s2) {
-              if (s._id === s2._id) {
+              if (s._id === s2.song._id) {
                 return has = true;
               }
             });
@@ -490,6 +498,13 @@
         return 'btn-success';
       }
     };
+    choosedLabel = function(data) {
+      if (choosed(data)) {
+        return '取消';
+      } else {
+        return '选中';
+      }
+    };
     $scope.handle = function(data) {
       var i;
       if (choosed(data)) {
@@ -506,13 +521,6 @@
         }
       }
       return refreshStatus();
-    };
-    choosedLabel = function(data) {
-      if (choosed(data)) {
-        return '取消';
-      } else {
-        return '选中';
-      }
     };
     $scope.cancel = function() {
       $modalInstance.close();
@@ -550,12 +558,14 @@
     };
   };
 
-  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter) {
-    var listUri, updateStatusUri;
+  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter, songs) {
+    var choosed, choosedLabel, choosedStyle, listUri, refreshStatus, updateStatusUri;
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
     configScopeForNgGrid($scope);
     $scope.title = '插入媒资';
+    $scope.songs = angular.copy(songs);
+    console.log($scope.songs);
     $scope.search = function() {
       $scope.page = 1;
       $scope.list = null;
@@ -581,11 +591,13 @@
       }).success(function(result) {
         if (result.status) {
           if (!$scope.list) {
-            return $scope.list = result.results;
+            $scope.list = result.results;
+            return refreshStatus();
           } else if (result.results && result.results.length) {
-            return result.results.forEach(function(item) {
+            result.results.forEach(function(item) {
               return $scope.list.push(item);
             });
+            return refreshStatus();
           } else {
             return showAlert('没有更多的数据了');
           }
@@ -613,18 +625,50 @@
       $scope.page++;
       return $scope.getList();
     });
-    $scope.songs = [];
-    $scope.choose = function(song) {
+    refreshStatus = function() {
+      return $scope.list.forEach(function(item) {
+        item.style = choosedStyle(item);
+        return item.label = choosedLabel(item);
+      });
+    };
+    choosed = function(data) {
       var has;
       has = false;
-      $scope.songs.forEach(function(s) {
-        if (s._id === song._id) {
+      $scope.songs.forEach(function(c) {
+        if (c._id === data._id) {
           return has = true;
         }
       });
-      if (!has) {
-        return $scope.songs.push(song);
+      return has;
+    };
+    choosedStyle = function(data) {
+      if (choosed(data)) {
+        return 'btn-warning';
+      } else {
+        return 'btn-success';
       }
+    };
+    choosedLabel = function(data) {
+      if (choosed(data)) {
+        return '取消';
+      } else {
+        return '选中';
+      }
+    };
+    $scope.handle = function(data) {
+      var i;
+      if (choosed(data)) {
+        i = 0;
+        while (i < $scope.songs.length) {
+          if ($scope.songs[i]._id === data._id) {
+            $scope.songs.splice(i, 1);
+          }
+          i++;
+        }
+      } else {
+        $scope.songs.push(data);
+      }
+      return refreshStatus();
     };
     $scope.dataGrid = {
       data: 'list',
@@ -642,7 +686,7 @@
           field: "handler",
           displayName: "操作",
           width: 100,
-          cellTemplate: '<div class="row text-center pagination-centered" ng-style="{height: rowHeight}"> <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-click="choose(row.entity)">选择</a> </div></div>'
+          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
         }
       ]
     };
@@ -650,7 +694,6 @@
     getDict($http, 'SongTags', function(result) {
       if (result && result.list && result.list.length) {
         return result.list.forEach(function(tag) {
-          console.log(tag);
           if (typeof tag === 'string') {
             return $scope.tags.push({
               text: tag

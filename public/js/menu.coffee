@@ -142,7 +142,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           h = parseInt(arr[0])
           m = parseInt(arr[1])
           time = moment(hour:h,minute:m)
-          console.log time, time.isValid()
           if !time.isValid()
             wrong = true
     if wrong
@@ -159,7 +158,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
   getDict $http, 'MenuTags', (result) ->
     if result and result.list and result.list.length
       result.list.forEach (tag) ->
-        console.log tag
         if typeof tag == 'string'
           $scope.tags.push text:tag
         else
@@ -244,6 +242,12 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       templateUrl:'modal.html'
       controller:ModalInstanceCtrl
       backdrop:'static'
+      resolve:
+        songs: ->
+          arr = []
+          $scope.time.songs.forEach (s)->
+            arr.push s.song
+          return arr
     )
     modalInstance.result.then ((data) ->
       if data
@@ -252,7 +256,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
         data.forEach (s)->
           has = false
           time.songs.forEach (s2)->
-            if s._id == s2._id
+            if s._id == s2.song._id
               has = true
           time.songs.push(song:s) unless has
         $scope.refreshSongList()
@@ -330,6 +334,9 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
   choosedStyle = (data)->
     return if choosed(data) then 'btn-warning' else 'btn-success'
 
+  choosedLabel = (data)->
+    return if choosed(data) then '取消' else '选中'
+
   $scope.handle = (data)->
     if choosed(data)
       i = 0
@@ -340,9 +347,6 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
     else
       $scope.clients.push data._id if $scope.clients.indexOf(data._id) == -1
     refreshStatus()
-
-  choosedLabel = (data)->
-    return if choosed(data) then '取消' else '选中'
 
   $scope.cancel = ->
     $modalInstance.close()
@@ -368,13 +372,15 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
             <a class="btn btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)" ng-disabled="updating">{{ row.entity.label }}</a></div></div>'}
     ]
 
-ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
+ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs) ->
 
   listUri = '/song/list'
   updateStatusUri = '/song/update/status'
   configScopeForNgGrid $scope
 
   $scope.title = '插入媒资'
+  $scope.songs = angular.copy songs
+  console.log $scope.songs
 
   $scope.search = ->
     $scope.page = 1
@@ -392,9 +398,11 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
       if(result.status)
         if !$scope.list
           $scope.list = result.results;
+          refreshStatus()
         else if result.results and result.results.length
           result.results.forEach (item)->
             $scope.list.push item
+          refreshStatus()
         else
           showAlert '没有更多的数据了'
       else
@@ -415,15 +423,34 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
     $scope.page++
     $scope.getList()
 
-  $scope.songs = []
+  refreshStatus = ->
+    $scope.list.forEach (item)->
+      item.style = choosedStyle(item)
+      item.label = choosedLabel(item)
 
-  $scope.choose = (song)->
+  choosed = (data)->
     has = false
-    $scope.songs.forEach (s)->
-      if s._id == song._id
+    $scope.songs.forEach (c)->
+      if c._id == data._id
         has = true
-    if !has
-      $scope.songs.push song
+    return has
+
+  choosedStyle = (data)->
+    return if choosed(data) then 'btn-warning' else 'btn-success'
+
+  choosedLabel = (data)->
+    return if choosed(data) then '取消' else '选中'
+
+  $scope.handle = (data)->
+    if choosed(data)
+      i = 0
+      while i < $scope.songs.length
+        if $scope.songs[i]._id == data._id
+          $scope.songs.splice(i, 1)
+        i++
+    else
+      $scope.songs.push data
+    refreshStatus()
 
   $scope.dataGrid =
     data:'list'
@@ -434,8 +461,9 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
     rowHeight:40
     columnDefs:[
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
-      {field: "handler", displayName: "操作", width:100, cellTemplate: '<div class="row text-center pagination-centered" ng-style="{height: rowHeight}">
-                        <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-click="choose(row.entity)">选择</a>
+      {field: "handler", displayName: "操作", width:100, cellTemplate: '
+      <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+                        <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a>
                         </div></div>'}
     ]
 
@@ -443,7 +471,6 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
   getDict $http, 'SongTags', (result) ->
     if result and result.list and result.list.length
       result.list.forEach (tag) ->
-        console.log tag
         if typeof tag == 'string'
           $scope.tags.push text:tag
         else
