@@ -33,6 +33,10 @@
         ]
       }
     ],
+    quality: {
+      type: Number,
+      "default": 64
+    },
     clients: {
       type: [
         Schema.Types.ObjectId, {

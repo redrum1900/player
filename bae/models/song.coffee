@@ -8,6 +8,9 @@ SongSchema = new Schema
   size:Number
   duration:Number
   tags:type:[String],index:true
+  artist:String
+  album:String
+  published_at:Date
   id3:Schema.Types.Mixed
   disabled:type:Boolean,default:false
   creator:type:Schema.Types.ObjectId,ref:"Manager"

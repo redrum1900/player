@@ -18,7 +18,7 @@ module.exports = (app)->
     query.clients = id
     query.end_date = $gt:new Date()
     Menu.find(query)
-    .select('_id updated_at end_date')
+    .select('_id updated_at end_date quality')
     .sort(end_date:1)
     .exec (err, result)->
       if err
@@ -28,11 +28,11 @@ module.exports = (app)->
 
   saveMenu = (id, callback)->
     Menu.findById(id)
-    .select('name list begin_date end_date')
+    .select('name list begin_date end_date quality')
     .populate('list.songs.song', 'name cover url duration')
     .exec (err, result)->
       extra = new qiniu.io.PutExtra()
-      putPolicy = new qiniu.rs.PutPolicy('yfcdn')
+      putPolicy = new qiniu.rs.PutPolicy('yfcdn:'+id+'.json')
       token = putPolicy.token()
       qiniu.io.put token, id+'.json', JSON.stringify(result), extra, (err, result)->
         if !err
@@ -88,6 +88,7 @@ module.exports = (app)->
         Error err, res
       else
         UpdateObject result, data
+        console.log data
         result.updator = req.user
         result.save (err, result) ->
           if err

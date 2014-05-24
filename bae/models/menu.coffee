@@ -12,6 +12,7 @@ MenuSchema = new Schema
       allow_circle:type:Boolean,default:false
     ]
   ]
+  quality:type:Number,default:64
   clients:type:[Schema.Types.ObjectId,ref:"Client"],index:true
   begin_date:Date
   end_date:Date

@@ -36,7 +36,7 @@
       query.end_date = {
         $gt: new Date()
       };
-      return Menu.find(query).select('_id updated_at end_date').sort({
+      return Menu.find(query).select('_id updated_at end_date quality').sort({
         end_date: 1
       }).exec(function(err, result) {
         if (err) {
@@ -50,10 +50,10 @@
       });
     });
     saveMenu = function(id, callback) {
-      return Menu.findById(id).select('name list begin_date end_date').populate('list.songs.song', 'name cover url duration').exec(function(err, result) {
+      return Menu.findById(id).select('name list begin_date end_date quality').populate('list.songs.song', 'name cover url duration').exec(function(err, result) {
         var extra, putPolicy, token;
         extra = new qiniu.io.PutExtra();
-        putPolicy = new qiniu.rs.PutPolicy('yfcdn');
+        putPolicy = new qiniu.rs.PutPolicy('yfcdn:' + id + '.json');
         token = putPolicy.token();
         return qiniu.io.put(token, id + '.json', JSON.stringify(result), extra, function(err, result) {
           if (!err) {
@@ -131,6 +131,7 @@
           return Error(err, res);
         } else {
           UpdateObject(result, data);
+          console.log(data);
           result.updator = req.user;
           return result.save(function(err, result) {
             if (err) {

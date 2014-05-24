@@ -67,6 +67,10 @@ module.exports = (app)->
 
   app.post '/song/add', auth.isAuthenticated(), (req, res) ->
     data = req.body
+    if data.published_at && data.published_at.indexOf('-') != 0
+      arr = data.published_at.split('-')
+      date = new Date(arr[0], arr[1], arr[2])
+      data.published_at = date
     song = new Song data
     song.creator = req.user
     song.save (err, result) ->
