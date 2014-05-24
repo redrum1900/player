@@ -20,6 +20,9 @@
       type: [String],
       index: true
     },
+    artist: String,
+    album: String,
+    published_at: Date,
     id3: Schema.Types.Mixed,
     disabled: {
       type: Boolean,

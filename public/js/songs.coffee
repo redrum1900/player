@@ -62,11 +62,11 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter) ->
     columnDefs:[
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
-      {field: "id3", displayName:"歌曲信息", cellTemplate: textCellTemplate}
+      {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
+      {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
+      {field: "published_at", displayName:"发布时间", cellTemplate: dateCellTemplate}
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
-      {field: "updator.username", width:88, displayName:"更新者", cellTemplate: textCellTemplate}
-      {field: "updated_at", width:100, displayName:"更新时间", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
         <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a>
@@ -86,7 +86,6 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter) ->
   getDict $http, 'SongTags', (result) ->
     if result and result.list and result.list.length
       result.list.forEach (tag) ->
-        console.log tag
         if typeof tag == 'string'
           $scope.tags.push text:tag
         else
@@ -124,7 +123,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter) ->
 
 ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $filter) ->
 
-  $scope.data = data
+  $scope.data = angular.copy data
   $scope.buttonDisabled = false
   $scope.tags = tags
   $scope.label = '上传媒资'
@@ -141,6 +140,9 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     deffered.resolve $filter('filter') $scope.tags, query
     return deffered.promise
 
+  mp3Uploaded = if data then false else true
+  coverUplaoded = if data then false else true
+
   $timeout(->
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
@@ -149,7 +151,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       unique_names: true
       domain: imgHost
       container: 'c1'
-      max_file_size: '10mb'
+      max_file_size: '100mb'
       flash_swf_url: 'js/plupload/Moxie.swf'
       dragdrop:true
       drop_element:'c1'
@@ -157,7 +159,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       auto_start: true
       init:
         'BeforeUpload': (up, file)->
-          $scope.buttonDisabled = true
+            $scope.buttonDisabled = true
         'FileUploaded':(up, file, info)->
           data = angular.fromJson info
           console.log data
@@ -165,13 +167,24 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
             $scope.data.url = data.key
             $scope.data.size = file.size
             $scope.label = '上传成功'
-            $scope.buttonDisabled = false
             http.get('http://yfcdn.qiniudn.com/'+data.key+'?avinfo').success (result)->
-              $scope.data.duration = result.format.duration
-              console.log $scope.data
+              format = result.format
+              data = $scope.data
+              data.duration = format.duration
+              if format.tags
+                format = format.tags
+                data.name = format.title
+                data.artist = format.artist
+                data.album = format.album
+                data.published_at = format.TYER
+              console.log format
+              mp3Uploaded = true
+              if coverUplaoded
+                $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
           $scope.label = file.percent + "%"
+          console.log file.percent
         'Error':(up, err, errTip)->
           $scope.msg = err
           $scope.buttonDisabled = false
@@ -201,8 +214,10 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
           $timeout(->
             $scope.data.cover = data.key
             $scope.cover = imgHost+$scope.data.cover+'?imageView2/1/w/200/h/200'
-            $scope.buttonDisabled = false
             $scope.imgProgress = '上传封面'
+            coverUplaoded = true
+            if mp3Uploaded
+              $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
           $scope.imgProgress = file.percent + "%"
@@ -249,7 +264,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       else
         http.post('/song/add', $scope.data).success((result) ->
           if result.status
-            $modalInstance.close result.results
+            $modalInstance.close 'refresh'
           else
             $scope.msg = result.error
             $scope.buttonDisabled = false).error (error) ->

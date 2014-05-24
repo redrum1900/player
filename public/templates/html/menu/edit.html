@@ -37,10 +37,16 @@
 </script>
 
 <div class="row" style="margin-bottom: 20px">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <input type="text" class="form-control" ng-model="$parent.data.name"
                tooltip="歌单名称"
                placeholder="请输入歌单名称">
+    </div>
+    <div class="col-md-1" style="padding-left: 0; width: 100px">
+        <input type="text" class="form-control" ng-model="$parent.data.quality"
+               tooltip="歌曲质量，目前仅支持192k和64k，输入192或64即可"
+               tooltip-placement="bottom"
+               placeholder="歌曲质量">
     </div>
     <div class="col-md-2" style="padding-left: 0; width: 170px">
         <p class="input-group">

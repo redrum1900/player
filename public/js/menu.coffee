@@ -174,7 +174,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     begin = $scope.time.begin
     h = begin.split(':')[0]
     m = begin.split(':')[1]
-    time = moment(hour:h,minute:m)
+    time = moment(hour:parseInt(h),minute:parseInt(m))
     songs.sort (a, b)->
       return a.index-b.index
     while i < songs.length
@@ -184,12 +184,17 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       if song.song.duration
         time.add 's', song.song.duration
       i++
+    time.add 'm', 1
+    $scope.time.end = time.format('HH:mm')
 
   $scope.saveMenu = ->
     $scope.handling = false
     menu = angular.copy $scope.data
     if !menu.name
       wrong = '歌单名称不能为空'
+    else if menu.quality
+      wrong = '歌曲质量目前仅支持64和192两种' if parseInt(menu.quality) != 64 && parseInt(menu.quality) != 192
+    if wrong
       return confirm(1, '保存失败', wrong)
     else
       list = menu.list
@@ -206,6 +211,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           else
             tags.push(tag.text)
       menu.tags = tags
+      console.log menu
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
           showAlert result.error unless result.status

@@ -254,20 +254,19 @@
       return deffered.promise;
     };
     $scope.refreshSongList = function() {
-      var begin, h, i, m, song, songs, time, _results;
+      var begin, h, i, m, song, songs, time;
       songs = $scope.time.songs;
       i = 0;
       begin = $scope.time.begin;
       h = begin.split(':')[0];
       m = begin.split(':')[1];
       time = moment({
-        hour: h,
-        minute: m
+        hour: parseInt(h),
+        minute: parseInt(m)
       });
       songs.sort(function(a, b) {
         return a.index - b.index;
       });
-      _results = [];
       while (i < songs.length) {
         song = songs[i];
         song.index = i;
@@ -275,9 +274,10 @@
         if (song.song.duration) {
           time.add('s', song.song.duration);
         }
-        _results.push(i++);
+        i++;
       }
-      return _results;
+      time.add('m', 1);
+      return $scope.time.end = time.format('HH:mm');
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
@@ -285,6 +285,12 @@
       menu = angular.copy($scope.data);
       if (!menu.name) {
         wrong = '歌单名称不能为空';
+      } else if (menu.quality) {
+        if (parseInt(menu.quality) !== 64 && parseInt(menu.quality) !== 192) {
+          wrong = '歌曲质量目前仅支持64和192两种';
+        }
+      }
+      if (wrong) {
         return confirm(1, '保存失败', wrong);
       } else {
         list = menu.list;
@@ -308,6 +314,7 @@
           });
         }
         menu.tags = tags;
+        console.log(menu);
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
             if (!result.status) {

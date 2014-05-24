@@ -94,9 +94,17 @@
           displayName: "标签",
           cellTemplate: textCellTemplate
         }, {
-          field: "id3",
-          displayName: "歌曲信息",
+          field: "artist",
+          displayName: "歌手",
           cellTemplate: textCellTemplate
+        }, {
+          field: "album",
+          displayName: "专辑",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "published_at",
+          displayName: "发布时间",
+          cellTemplate: dateCellTemplate
         }, {
           field: "creator.username",
           width: 88,
@@ -106,16 +114,6 @@
           field: "created_at",
           width: 100,
           displayName: "创建时间",
-          cellTemplate: dateCellTemplate
-        }, {
-          field: "updator.username",
-          width: 88,
-          displayName: "更新者",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "updated_at",
-          width: 100,
-          displayName: "更新时间",
           cellTemplate: dateCellTemplate
         }, {
           field: "handler",
@@ -137,7 +135,6 @@
     getDict($http, 'SongTags', function(result) {
       if (result && result.list && result.list.length) {
         return result.list.forEach(function(tag) {
-          console.log(tag);
           if (typeof tag === 'string') {
             return $scope.tags.push({
               text: tag
@@ -188,7 +185,8 @@
   });
 
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, tags, http, $q, $filter) {
-    $scope.data = data;
+    var coverUplaoded, mp3Uploaded;
+    $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
     $scope.label = '上传媒资';
@@ -205,6 +203,8 @@
       deffered.resolve($filter('filter')($scope.tags, query));
       return deffered.promise;
     };
+    mp3Uploaded = data ? false : true;
+    coverUplaoded = data ? false : true;
     $timeout(function() {
       var uploader, uploader2;
       uploader = Qiniu.uploader({
@@ -214,7 +214,7 @@
         unique_names: true,
         domain: imgHost,
         container: 'c1',
-        max_file_size: '10mb',
+        max_file_size: '100mb',
         flash_swf_url: 'js/plupload/Moxie.swf',
         dragdrop: true,
         drop_element: 'c1',
@@ -231,15 +231,29 @@
               $scope.data.url = data.key;
               $scope.data.size = file.size;
               $scope.label = '上传成功';
-              $scope.buttonDisabled = false;
               return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
-                $scope.data.duration = result.format.duration;
-                return console.log($scope.data);
+                var format;
+                format = result.format;
+                data = $scope.data;
+                data.duration = format.duration;
+                if (format.tags) {
+                  format = format.tags;
+                  data.name = format.title;
+                  data.artist = format.artist;
+                  data.album = format.album;
+                  data.published_at = format.TYER;
+                }
+                console.log(format);
+                mp3Uploaded = true;
+                if (coverUplaoded) {
+                  return $scope.buttonDisabled = false;
+                }
               });
             }, 500);
           },
           'UploadProgress': function(up, file) {
-            return $scope.label = file.percent + "%";
+            $scope.label = file.percent + "%";
+            return console.log(file.percent);
           },
           'Error': function(up, err, errTip) {
             $scope.msg = err;
@@ -271,8 +285,11 @@
             return $timeout(function() {
               $scope.data.cover = data.key;
               $scope.cover = imgHost + $scope.data.cover + '?imageView2/1/w/200/h/200';
-              $scope.buttonDisabled = false;
-              return $scope.imgProgress = '上传封面';
+              $scope.imgProgress = '上传封面';
+              coverUplaoded = true;
+              if (mp3Uploaded) {
+                return $scope.buttonDisabled = false;
+              }
             }, 500);
           },
           'UploadProgress': function(up, file) {
@@ -328,7 +345,7 @@
         } else {
           http.post('/song/add', $scope.data).success(function(result) {
             if (result.status) {
-              return $modalInstance.close(result.results);
+              return $modalInstance.close('refresh');
             } else {
               $scope.msg = result.error;
               return $scope.buttonDisabled = false;
