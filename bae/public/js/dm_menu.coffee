@@ -20,7 +20,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       $scope.s_tags.forEach (tag)->
         tags.push tag.text
       tags = tags.join ','
-    $http.get(listUri, params:type:1,name:$scope.menuName,tags:tags,page:$scope.page,perPage:20).success (result) ->
+    $http.get(listUri, params:type:2,name:$scope.menuName,tags:tags,page:$scope.page,perPage:20).success (result) ->
       if(result.status)
         if !$scope.list
           $scope.list = result.results;
@@ -36,7 +36,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
 
   $scope.updateStatus = (data) ->
     if !data.disabled
-      confirm 2, '歌单状态更新', '是否确认禁用该歌单，一旦禁用后客户将不能再不会再使用该歌单', (value)->
+      confirm 2, 'DM列表状态更新', '是否确认禁用该DM列表，一旦禁用后客户将不能再不会再使用DM列表', (value)->
         if value
           updateStatus(data)
     else
@@ -78,54 +78,41 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     ]
 
   $scope.songGrid =
-    data:'time.songs'
+    data:'data.dm_list'
     multiSelect:false
     enableRowSelection:false
     enableSorting:false
-    enableHighlighting:true
-    rowHeight:40
+    enableHighlighting:false
+    enableCellEdit: true
     columnDefs:[
-      {field: "song.name", displayName:"名称", cellTemplate: textCellTemplate}
-      {field: "time", displayName:"播放时间", cellTemplate: textCellTemplate}
-      {field: "song.duration", displayName:"时长（秒）", cellTemplate: textCellTemplate}
-      {field: "allow_circle", displayName:"是否允许随机播放", cellTemplate: textCellTemplate}
-      {field: "handler", displayName: "操作", width:180, cellTemplate: '
+      {field: "dm.name", displayName:"名称", cellTemplate: textCellTemplate}
+      {field: "playTime", displayName:"播放时间", cellTemplate: textCellTemplate}
+      {field: "dm.duration", displayName:"时长（秒）", cellTemplate: textCellTemplate}
+      {field: "repeat", displayName:"重复次数", cellTemplate: textCellTemplate}
+      {field: "interval", displayName:"间隔时间（秒）", cellTemplate: textCellTemplate}
+      {field: "handler", displayName: "操作", width:100, cellTemplate: '
       <div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
-        <input type="checkbox" style="margin-top: 7px; margin-right: 8px" ng-checked="row.entity.allow_circle" tooltip="允许随机循环" tooltip-append-to-body="true" ng-model="row.entity.allow_circle">
-        <input style="width: 40px;margin-right: 8px" tooltip-append-to-body="true" ng-model="row.entity.index" tooltip="排序，值越小越靠前">
         <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a>
         </div></div>'}
     ]
 
   $scope.removeSong = (song)->
-    arr = $scope.time.songs
+    arr = $scope.dm_list
     arr.splice arr.indexOf(song), 1
 
   $scope.edit = (data) ->
     $scope.data = data
-    $scope.time = data.list[0]
-    $scope.module = 'templates/html/menu/edit.html'
-    $scope.refreshSongList()
+    $scope.module = 'templates/html/menu/dm_edit.html'
 
   $scope.add = ->
-    time = name:'默认时段', active:true, songs:[]
-    $scope.data = {list:[time]}
-    $scope.time = time
-    $scope.module = 'templates/html/menu/edit.html'
-
-  $scope.changeTime = (time)->
-    $scope.time = time
-    $scope.refreshSongList()
+    $scope.data = {dm_list:[]}
+    $scope.module = 'templates/html/menu/dm_edit.html'
 
   $scope.back = ->
     $scope.module = 'templates/html/menu/home.html'
     $scope.list = null
     $scope.getList()
-
-  $scope.addTime = ->
-    time = name:'新增时段'
-    $scope.data.list.push time
 
   validateTime = (time)->
     if !time
@@ -145,14 +132,12 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           if !time.isValid()
             wrong = true
     if wrong
-      confirm(1, '时段开始或结束时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的')
       return false
     else
-      return true
+      return time
 
   $scope.addSong = ->
-    if validateTime($scope.time.begin)
-      $scope.open()
+    $scope.open()
 
   $scope.tags = []
   getDict $http, 'MenuTags', (result) ->
@@ -168,43 +153,27 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     deffered.resolve $filter('filter') $scope.tags, query
     return deffered.promise
 
-  $scope.refreshSongList = ->
-    songs = $scope.time.songs
-    begin = $scope.time.begin
-    if !begin
-      return
-    i = 0
-    h = begin.split(':')[0]
-    m = begin.split(':')[1]
-    time = moment(hour:parseInt(h),minute:parseInt(m))
-    songs.sort (a, b)->
-      return a.index-b.index
-    while i < songs.length
-      song = songs[i]
-      song.index = i
-      song.time = time.format('HH:mm:ss')
-      if song.song.duration
-        time.add 's', song.song.duration
-      i++
-    time.add 'm', 1
-    $scope.time.end = time.format('HH:mm')
-
   $scope.saveMenu = ->
     $scope.handling = false
     menu = angular.copy $scope.data
     if !menu.name
-      wrong = '歌单名称不能为空'
+      wrong = 'DM列表名称不能为空'
     if menu.quality
-      wrong = '歌曲质量目前仅支持64和192两种' if parseInt(menu.quality) != 64 && parseInt(menu.quality) != 192
+      wrong = '音频质量目前仅支持64和192两种' if parseInt(menu.quality) != 64 && parseInt(menu.quality) != 192
+    if menu.dm_list
+      menu.dm_list.forEach (dm)->
+        playTime = validateTime(dm.playTime)
+        if !playTime
+          wrong = '播放时间格式不对，必须是10:10这样的格式，注意冒号'
+          console.log wrong
+          return false
     if wrong
       return confirm(1, '保存失败', wrong)
     else
-      list = menu.list
+      list = menu.dm_list
+      temp_list = angular.copy list
       list.forEach (list)->
-        songs = list.songs
-        if songs
-          songs.forEach (s)->
-            s.song = s.song._id
+        list.dm = list.dm._id
       tags = []
       if menu.tags
         menu.tags.forEach (tag)->
@@ -213,20 +182,20 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           else
             tags.push(tag.text)
       menu.tags = tags
-      menu.type = 1
+      menu.type = 2
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
-          console.log 'save menu3', result
           showAlert result.error unless result.status
           $scope.data = result.results
-          confirm(2, '保存成功', '继续编辑或返回歌单列表', (value)->
+          $scope.data.dm_list = temp_list
+          confirm(2, '保存成功', '继续编辑或返回DM列表', (value)->
             if(!value)
               $scope.back()
           , '继续编辑', '返回列表')
       else
         $http.post('/menu/update',menu).success (result) ->
           showAlert result.error unless result.status
-          confirm(2, '保存成功', '继续编辑或返回歌单列表', (value)->
+          confirm(2, '保存成功', '继续编辑或返回DM列表', (value)->
             if(!value)
               $scope.back()
           , '继续编辑', '返回列表')
@@ -255,21 +224,20 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       resolve:
         songs: ->
           arr = []
-          $scope.time.songs.forEach (s)->
-            arr.push s.song
+          $scope.data.dm_list.forEach (s)->
+            arr.push s.dm
           return arr
     )
     modalInstance.result.then ((data) ->
       if data
-        time = $scope.time
-        time.songs = [] unless time.songs
+        dm_menu = $scope.data
+        dm_menu.dm_list= [] unless dm_menu.dm_list
         data.forEach (s)->
           has = false
-          time.songs.forEach (s2)->
-            if s._id == s2.song._id
-              has = true
-          time.songs.push(song:s) unless has
-        $scope.refreshSongList()
+#          dm_menu.dm_list.forEach (s2)->
+#            if s._id == s2.dm._id
+#              has = true
+          dm_menu.dm_list.push(dm:s,repeat:0,playTime:'00:00',interval:0) unless has
       return
     ), ->
       return
@@ -384,11 +352,10 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
 
 ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs) ->
 
-  listUri = '/song/list'
-  updateStatusUri = '/song/update/status'
+  listUri = '/dm/list'
   configScopeForNgGrid $scope
 
-  $scope.title = '插入媒资'
+  $scope.title = '插入DM，单个DM可选择多次'
   $scope.songs = angular.copy songs
   console.log $scope.songs
 
@@ -420,13 +387,6 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
 
   $scope.getList()
 
-  $scope.updateStatus = (data) ->
-    $scope.updating = true
-    data.disabled = !data.disabled
-    $http.post(updateStatusUri,{_id:data._id, disabled:data.disabled}).success (result) ->
-      showAlert result.error unless result.status
-      $scope.updating = false
-
   $scope.page = 1
 
   $scope.$on 'ngGridEventScroll', ->
@@ -440,9 +400,9 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
 
   choosed = (data)->
     has = false
-    $scope.songs.forEach (c)->
-      if c._id == data._id
-        has = true
+#    $scope.songs.forEach (c)->
+#      if c._id == data._id
+#        has = true
     return has
 
   choosedStyle = (data)->
@@ -452,15 +412,14 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
     return if choosed(data) then '取消' else '选中'
 
   $scope.handle = (data)->
-    if choosed(data)
-      i = 0
-      while i < $scope.songs.length
-        if $scope.songs[i]._id == data._id
-          $scope.songs.splice(i, 1)
-        i++
-    else
-      $scope.songs.push data
-    refreshStatus()
+#    if choosed(data)
+#      i = 0
+#      while i < $scope.songs.length
+#        if $scope.songs[i]._id == data._id
+#          $scope.songs.splice(i, 1)
+#        i++
+#    else
+    $scope.songs.push data
 
   $scope.dataGrid =
     data:'list'
@@ -478,7 +437,7 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
     ]
 
   $scope.tags = []
-  getDict $http, 'SongTags', (result) ->
+  getDict $http, 'DMTags', (result) ->
     if result and result.list and result.list.length
       result.list.forEach (tag) ->
         if typeof tag == 'string'

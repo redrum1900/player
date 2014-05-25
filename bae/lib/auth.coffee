@@ -38,6 +38,8 @@ exports.injectUser = (req, res, next)->
       {href:'/console', label:'控制台'},
       {href:'/songs', label:'媒资管理'},
       {href:'/menu', label:'歌单推送'},
+      {href:'/dm', label:'DM管理'},
+      {href:'/dm_menu', label:'DM推送'},
       {href:'/clients', label:'客户管理'},
       {href:'/feedback', label:'客户反馈'},
       {href:'/log', label:'操作日志'}

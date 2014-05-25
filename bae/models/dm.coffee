@@ -1,21 +1,17 @@
 Mongoose = require 'mongoose'
 Schema = Mongoose.Schema
 
-SongSchema = new Schema
+DMSchema = new Schema
   name:type:String,index:true,required:true
-  cover:String
   url:String
   size:Number
   duration:Number
   tags:type:[String],index:true
-  artist:String
-  album:String
-  published_at:Date
   disabled:type:Boolean,default:false
   creator:type:Schema.Types.ObjectId,ref:"Manager"
   updator:type:Schema.Types.ObjectId,ref:"Manager"
 
 Timestamps = require('mongoose-times')
-SongSchema.plugin Timestamps, created:"created_at", lastUpdated:"updated_at"
+DMSchema.plugin Timestamps, created:"created_at", lastUpdated:"updated_at"
 
-Mongoose.model 'Song', SongSchema
+Mongoose.model 'DM', DMSchema

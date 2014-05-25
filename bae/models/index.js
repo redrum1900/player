@@ -16,6 +16,8 @@
 
   require('./menu');
 
+  require('./dm');
+
   module.exports = {
     SMS: Mongoose.model("SMS"),
     Manager: Mongoose.model("Manager"),
@@ -23,6 +25,7 @@
     Client: Mongoose.model('Client'),
     Song: Mongoose.model('Song'),
     Menu: Mongoose.model('Menu'),
+    DM: Mongoose.model('DM'),
     updateTags: function(key, tags) {
       var Dict;
       if (tags) {

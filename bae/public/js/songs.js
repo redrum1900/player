@@ -4,7 +4,7 @@
 
   songs = angular.module('SongApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']);
 
-  songs.controller('SongCtrl', function($scope, $http, $modal, $q, $filter) {
+  songs.controller('SongCtrl', function($scope, $http, $modal, $q, $filter, $window) {
     var listUri, updateStatus, updateStatusUri;
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
@@ -119,9 +119,12 @@
           field: "handler",
           displayName: "操作",
           width: 150,
-          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a> <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'
         }
       ]
+    };
+    $scope["try"] = function(data) {
+      return $window.open(imgHost + data.url + '?avthumb/mp3/ab/64k');
     };
     $scope.edit = function(data) {
       $scope.data = data;

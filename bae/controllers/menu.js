@@ -52,6 +52,7 @@
     saveMenu = function(id, callback) {
       return Menu.findById(id).select('name list begin_date end_date quality').populate('list.songs.song', 'name cover url duration').exec(function(err, result) {
         var extra, putPolicy, token;
+        console.log(result);
         extra = new qiniu.io.PutExtra();
         putPolicy = new qiniu.rs.PutPolicy('yfcdn:' + id + '.json');
         token = putPolicy.token();
@@ -110,7 +111,8 @@
           $all: arr
         };
       }
-      return Menu.find(query).populate('creator', 'username').populate('updator', 'username').populate('list.songs.song', 'name duration').sort({
+      query.type = data.type;
+      return Menu.find(query).populate('creator', 'username').populate('updator', 'username').populate('list.songs.song', 'name duration').populate('dm_list.dm', 'name duration').sort({
         'created_at': -1
       }).limit(data.perPage).skip(data.perPage * (data.page - 1)).exec(function(err, result) {
         if (err) {
@@ -180,7 +182,6 @@
       menu = new Menu(data);
       menu.creator = req.user;
       return menu.save(function(err, result) {
-        console.log('save menu', err, result);
         if (err) {
           return Error(err, res);
         } else {

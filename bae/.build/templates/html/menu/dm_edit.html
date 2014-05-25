@@ -7,7 +7,7 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <input type="text" class="form-control" ng-model="$parent.searchText"
-                           placeholder="请输入媒资名称进行检索">
+                           placeholder="请输入DM名称进行检索">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
               </span>
@@ -30,23 +30,23 @@
 
     </div>
     <div class="modal-footer">
-        <span style="color: darkred; line-height: 34px; float: left">已选择 {{ songs.length }} 首媒资</span>
+        <span style="color: darkred; line-height: 34px; float: left">已选择 {{ songs.length }} 首DM</span>
         <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
         <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
     </div>
 </script>
 
-<div class="row" style="margin-bottom: 20px">
+<div class="row">
     <div class="col-md-3">
         <input type="text" class="form-control" ng-model="$parent.data.name"
-               tooltip="歌单名称"
-               placeholder="请输入歌单名称">
+               tooltip="DM名称"
+               placeholder="请输入DM名称">
     </div>
     <div class="col-md-1" style="padding-left: 0; width: 100px">
         <input type="text" class="form-control" ng-model="$parent.data.quality"
-               tooltip="歌曲质量，目前仅支持192k和64k，输入192或64即可"
+               tooltip="音频质量，目前仅支持192k和64k，输入192或64即可"
                tooltip-placement="bottom"
-               placeholder="歌曲质量">
+               placeholder="音频质量">
     </div>
     <div class="col-md-2" style="padding-left: 0; width: 170px">
         <p class="input-group">
@@ -82,23 +82,12 @@
     </div>
 
     <button ng-disabled="$parent.handling" class="btn btn-default" style="float: right;margin-right: 15px;" ng-click="back()">返回</button>
-    <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存歌单</button>
+    <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存DM</button>
     <button ng-disabled="$parent.handling" class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addTime()">新增时段</button>
 </div>
 
 <div class="row">
-    <div class="col-md-8" style="
-    padding-right: 0px;
-">
-        <tabset>
-            <tab ng-click="changeTime(time)" ng-repeat="time in $parent.data.list" heading="{{time.name}}" active="time.active">
-            </tab>
-        </tabset>
-    </div>
-    <div class="col-md-4" style="
-    padding-left: 0px;
-    margin-top: 8px;
-">
+    <div class="col-md-4">
         <tags-input ng-model="data.tags"
                     placeholder="设置标签"
                     min-length="1">
@@ -107,24 +96,7 @@
                     ></auto-complete>
         </tags-input>
     </div>
-</div>
-
-<div class="row" style="margin-top: 10px">
-    <div class="col-md-2" tooltip="修改时段名称">
-        <input type="text" class="form-control" ng-model="$parent.time.name"
-                >
-    </div>
-    <div  style="float:left;width: 70px" tooltip="设置开始时间，比如8:00">
-        <input type="text" class="form-control" ng-model="$parent.time.begin"
-                >
-    </div>
-    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="结束时间，自动计算">
-        <input type="text" class="form-control" ng-model="$parent.time.end"
-               ng-disabled="true"
-                >
-    </div>
-    <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入媒资</button>
-    <button class="btn btn-default" style="float: right;margin-right: 15px;" tooltip="用以重新给歌单排序" ng-click="refreshSongList()">刷新歌单</button>
+    <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入DM</button>
 </div>
 
 <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="songGrid" ></div>

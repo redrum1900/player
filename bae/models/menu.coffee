@@ -12,6 +12,13 @@ MenuSchema = new Schema
       allow_circle:type:Boolean,default:false
     ]
   ]
+  dm_list:[
+    dm:type:Schema.Types.ObjectId,ref:"DM"
+    repeat:Number #重复次数
+    playTime:String #播放时间
+    interval:Number #间隔时间
+  ]
+  type:type:Number,index:true
   quality:type:Number,default:64
   clients:type:[Schema.Types.ObjectId,ref:"Client"],index:true
   begin_date:Date

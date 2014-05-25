@@ -28,7 +28,7 @@
       }
       return $http.get(listUri, {
         params: {
-          type: 1,
+          type: 2,
           name: $scope.menuName,
           tags: tags,
           page: $scope.page,
@@ -53,7 +53,7 @@
     $scope.getList();
     $scope.updateStatus = function(data) {
       if (!data.disabled) {
-        return confirm(2, '歌单状态更新', '是否确认禁用该歌单，一旦禁用后客户将不能再不会再使用该歌单', function(value) {
+        return confirm(2, 'DM列表状态更新', '是否确认禁用该DM列表，一旦禁用后客户将不能再不会再使用DM列表', function(value) {
           if (value) {
             return updateStatus(data);
           }
@@ -127,76 +127,60 @@
       ]
     };
     $scope.songGrid = {
-      data: 'time.songs',
+      data: 'data.dm_list',
       multiSelect: false,
       enableRowSelection: false,
       enableSorting: false,
-      enableHighlighting: true,
-      rowHeight: 40,
+      enableHighlighting: false,
+      enableCellEdit: true,
       columnDefs: [
         {
-          field: "song.name",
+          field: "dm.name",
           displayName: "名称",
           cellTemplate: textCellTemplate
         }, {
-          field: "time",
+          field: "playTime",
           displayName: "播放时间",
           cellTemplate: textCellTemplate
         }, {
-          field: "song.duration",
+          field: "dm.duration",
           displayName: "时长（秒）",
           cellTemplate: textCellTemplate
         }, {
-          field: "allow_circle",
-          displayName: "是否允许随机播放",
+          field: "repeat",
+          displayName: "重复次数",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "interval",
+          displayName: "间隔时间（秒）",
           cellTemplate: textCellTemplate
         }, {
           field: "handler",
           displayName: "操作",
-          width: 180,
-          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <input type="checkbox" style="margin-top: 7px; margin-right: 8px" ng-checked="row.entity.allow_circle" tooltip="允许随机循环" tooltip-append-to-body="true" ng-model="row.entity.allow_circle"> <input style="width: 40px;margin-right: 8px" tooltip-append-to-body="true" ng-model="row.entity.index" tooltip="排序，值越小越靠前"> <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a> </div></div>'
+          width: 100,
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a> </div></div>'
         }
       ]
     };
     $scope.removeSong = function(song) {
       var arr;
-      arr = $scope.time.songs;
+      arr = $scope.dm_list;
       return arr.splice(arr.indexOf(song), 1);
     };
     $scope.edit = function(data) {
       $scope.data = data;
-      $scope.time = data.list[0];
-      $scope.module = 'templates/html/menu/edit.html';
-      return $scope.refreshSongList();
+      return $scope.module = 'templates/html/menu/dm_edit.html';
     };
     $scope.add = function() {
-      var time;
-      time = {
-        name: '默认时段',
-        active: true,
-        songs: []
-      };
       $scope.data = {
-        list: [time]
+        dm_list: []
       };
-      $scope.time = time;
-      return $scope.module = 'templates/html/menu/edit.html';
-    };
-    $scope.changeTime = function(time) {
-      $scope.time = time;
-      return $scope.refreshSongList();
+      return $scope.module = 'templates/html/menu/dm_edit.html';
     };
     $scope.back = function() {
       $scope.module = 'templates/html/menu/home.html';
       $scope.list = null;
       return $scope.getList();
-    };
-    $scope.addTime = function() {
-      var time;
-      time = {
-        name: '新增时段'
-      };
-      return $scope.data.list.push(time);
     };
     validateTime = function(time) {
       var arr, h, m, wrong;
@@ -224,16 +208,13 @@
         }
       }
       if (wrong) {
-        confirm(1, '时段开始或结束时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的');
         return false;
       } else {
-        return true;
+        return time;
       }
     };
     $scope.addSong = function() {
-      if (validateTime($scope.time.begin)) {
-        return $scope.open();
-      }
+      return $scope.open();
     };
     $scope.tags = [];
     getDict($http, 'MenuTags', function(result) {
@@ -255,59 +236,36 @@
       deffered.resolve($filter('filter')($scope.tags, query));
       return deffered.promise;
     };
-    $scope.refreshSongList = function() {
-      var begin, h, i, m, song, songs, time;
-      songs = $scope.time.songs;
-      begin = $scope.time.begin;
-      if (!begin) {
-        return;
-      }
-      i = 0;
-      h = begin.split(':')[0];
-      m = begin.split(':')[1];
-      time = moment({
-        hour: parseInt(h),
-        minute: parseInt(m)
-      });
-      songs.sort(function(a, b) {
-        return a.index - b.index;
-      });
-      while (i < songs.length) {
-        song = songs[i];
-        song.index = i;
-        song.time = time.format('HH:mm:ss');
-        if (song.song.duration) {
-          time.add('s', song.song.duration);
-        }
-        i++;
-      }
-      time.add('m', 1);
-      return $scope.time.end = time.format('HH:mm');
-    };
     $scope.saveMenu = function() {
-      var list, tags, wrong;
+      var list, tags, temp_list, wrong;
       $scope.handling = false;
       menu = angular.copy($scope.data);
       if (!menu.name) {
-        wrong = '歌单名称不能为空';
+        wrong = 'DM列表名称不能为空';
       }
       if (menu.quality) {
         if (parseInt(menu.quality) !== 64 && parseInt(menu.quality) !== 192) {
-          wrong = '歌曲质量目前仅支持64和192两种';
+          wrong = '音频质量目前仅支持64和192两种';
         }
+      }
+      if (menu.dm_list) {
+        menu.dm_list.forEach(function(dm) {
+          var playTime;
+          playTime = validateTime(dm.playTime);
+          if (!playTime) {
+            wrong = '播放时间格式不对，必须是10:10这样的格式，注意冒号';
+            console.log(wrong);
+            return false;
+          }
+        });
       }
       if (wrong) {
         return confirm(1, '保存失败', wrong);
       } else {
-        list = menu.list;
+        list = menu.dm_list;
+        temp_list = angular.copy(list);
         list.forEach(function(list) {
-          var songs;
-          songs = list.songs;
-          if (songs) {
-            return songs.forEach(function(s) {
-              return s.song = s.song._id;
-            });
-          }
+          return list.dm = list.dm._id;
         });
         tags = [];
         if (menu.tags) {
@@ -320,15 +278,15 @@
           });
         }
         menu.tags = tags;
-        menu.type = 1;
+        menu.type = 2;
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
-            console.log('save menu3', result);
             if (!result.status) {
               showAlert(result.error);
             }
             $scope.data = result.results;
-            return confirm(2, '保存成功', '继续编辑或返回歌单列表', function(value) {
+            $scope.data.dm_list = temp_list;
+            return confirm(2, '保存成功', '继续编辑或返回DM列表', function(value) {
               if (!value) {
                 return $scope.back();
               }
@@ -339,7 +297,7 @@
             if (!result.status) {
               showAlert(result.error);
             }
-            return confirm(2, '保存成功', '继续编辑或返回歌单列表', function(value) {
+            return confirm(2, '保存成功', '继续编辑或返回DM列表', function(value) {
               if (!value) {
                 return $scope.back();
               }
@@ -384,35 +342,32 @@
           songs: function() {
             var arr;
             arr = [];
-            $scope.time.songs.forEach(function(s) {
-              return arr.push(s.song);
+            $scope.data.dm_list.forEach(function(s) {
+              return arr.push(s.dm);
             });
             return arr;
           }
         }
       });
       return modalInstance.result.then((function(data) {
-        var time;
+        var dm_menu;
         if (data) {
-          time = $scope.time;
-          if (!time.songs) {
-            time.songs = [];
+          dm_menu = $scope.data;
+          if (!dm_menu.dm_list) {
+            dm_menu.dm_list = [];
           }
           data.forEach(function(s) {
             var has;
             has = false;
-            time.songs.forEach(function(s2) {
-              if (s._id === s2.song._id) {
-                return has = true;
-              }
-            });
             if (!has) {
-              return time.songs.push({
-                song: s
+              return dm_menu.dm_list.push({
+                dm: s,
+                repeat: 0,
+                playTime: '00:00',
+                interval: 0
               });
             }
           });
-          $scope.refreshSongList();
         }
       }), function() {});
     };
@@ -574,11 +529,10 @@
   };
 
   ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter, songs) {
-    var choosed, choosedLabel, choosedStyle, listUri, refreshStatus, updateStatusUri;
-    listUri = '/song/list';
-    updateStatusUri = '/song/update/status';
+    var choosed, choosedLabel, choosedStyle, listUri, refreshStatus;
+    listUri = '/dm/list';
     configScopeForNgGrid($scope);
-    $scope.title = '插入媒资';
+    $scope.title = '插入DM，单个DM可选择多次';
     $scope.songs = angular.copy(songs);
     console.log($scope.songs);
     $scope.search = function() {
@@ -622,19 +576,6 @@
       });
     };
     $scope.getList();
-    $scope.updateStatus = function(data) {
-      $scope.updating = true;
-      data.disabled = !data.disabled;
-      return $http.post(updateStatusUri, {
-        _id: data._id,
-        disabled: data.disabled
-      }).success(function(result) {
-        if (!result.status) {
-          showAlert(result.error);
-        }
-        return $scope.updating = false;
-      });
-    };
     $scope.page = 1;
     $scope.$on('ngGridEventScroll', function() {
       $scope.page++;
@@ -649,11 +590,6 @@
     choosed = function(data) {
       var has;
       has = false;
-      $scope.songs.forEach(function(c) {
-        if (c._id === data._id) {
-          return has = true;
-        }
-      });
       return has;
     };
     choosedStyle = function(data) {
@@ -671,19 +607,7 @@
       }
     };
     $scope.handle = function(data) {
-      var i;
-      if (choosed(data)) {
-        i = 0;
-        while (i < $scope.songs.length) {
-          if ($scope.songs[i]._id === data._id) {
-            $scope.songs.splice(i, 1);
-          }
-          i++;
-        }
-      } else {
-        $scope.songs.push(data);
-      }
-      return refreshStatus();
+      return $scope.songs.push(data);
     };
     $scope.dataGrid = {
       data: 'list',
@@ -706,7 +630,7 @@
       ]
     };
     $scope.tags = [];
-    getDict($http, 'SongTags', function(result) {
+    getDict($http, 'DMTags', function(result) {
       if (result && result.list && result.list.length) {
         return result.list.forEach(function(tag) {
           if (typeof tag === 'string') {
@@ -739,4 +663,4 @@
 
 }).call(this);
 
-//# sourceMappingURL=menu.map
+//# sourceMappingURL=dm_menu.map
