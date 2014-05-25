@@ -6,6 +6,7 @@ require './dict'
 require './client'
 require './song'
 require './menu'
+require './dm'
 
 module.exports = {
   SMS : Mongoose.model "SMS"
@@ -14,6 +15,7 @@ module.exports = {
   Client : Mongoose.model 'Client'
   Song : Mongoose.model 'Song'
   Menu : Mongoose.model 'Menu'
+  DM : Mongoose.model 'DM'
   updateTags : (key, tags)->
     if tags
       Dict = module.exports.Dict

@@ -1,8 +1,8 @@
-songs = angular.module 'SongApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']
-songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
+dm = angular.module 'DMApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']
+dm.controller 'DMCtrl', ($scope, $http, $modal, $q, $filter, $window) ->
 
-  listUri = '/song/list'
-  updateStatusUri = '/song/update/status'
+  listUri = '/dm/list'
+  updateStatusUri = '/dm/update/status'
   configScopeForNgGrid $scope
 
   $scope.search = ->
@@ -33,7 +33,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
 
   $scope.updateStatus = (data) ->
     if !data.disabled
-      confirm 2, '媒资状态更新', '是否确认禁用该媒资，一旦禁用后创建歌单时将不能再选中该媒资', (value)->
+      confirm 2, 'DM状态更新', '是否确认禁用该DM，一旦禁用后创建歌单时将不能再选中该DM', (value)->
         if value
           updateStatus(data)
     else
@@ -62,9 +62,6 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
     columnDefs:[
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
-      {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
-      {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
-      {field: "published_at", displayName:"发布时间", cellTemplate: dateCellTemplate}
       {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
       {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
@@ -73,8 +70,9 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
         <a class="btn btn-primary btn-xs" ng-click="edit(row.entity)">编辑</a>
         <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
     ]
+
   $scope.try = (data)->
-    $window.open(imgHost+data.url+'?avthumb/mp3/ab/64k')
+    $window.open imgHost+data.url+'?avthumb/mp3/ab/64k','_blank'
 
   $scope.edit = (data) ->
     $scope.data = data
@@ -86,7 +84,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
     return
 
   $scope.tags = []
-  getDict $http, 'SongTags', (result) ->
+  getDict $http, 'DMTags', (result) ->
     if result and result.list and result.list.length
       result.list.forEach (tag) ->
         if typeof tag == 'string'
@@ -129,22 +127,19 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
   $scope.data = angular.copy data
   $scope.buttonDisabled = false
   $scope.tags = tags
-  $scope.label = '上传媒资'
+  $scope.label = '上传DM'
 
   if data._id
     $scope.update = true
-    $scope.title = '编辑媒资'
+    $scope.title = '编辑DM'
     $scope.cover = imgHost+$scope.data.cover+'?imageView2/1/w/200/h/200'
   else
-    $scope.title = '新增媒资'
+    $scope.title = '新增DM'
 
   $scope.loadTags = (query) ->
     deffered = $q.defer()
     deffered.resolve $filter('filter') $scope.tags, query
     return deffered.promise
-
-  mp3Uploaded = if data then false else true
-  coverUplaoded = if data then false else true
 
   $timeout(->
     uploader = Qiniu.uploader(
@@ -162,7 +157,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       auto_start: true
       init:
         'BeforeUpload': (up, file)->
-            $scope.buttonDisabled = true
+          $scope.buttonDisabled = true
         'FileUploaded':(up, file, info)->
           data = angular.fromJson info
           console.log data
@@ -181,49 +176,11 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
                 data.album = format.album
                 data.published_at = format.TYER
               console.log format
-              mp3Uploaded = true
-              if coverUplaoded
-                $scope.buttonDisabled = false
+              $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
           $scope.label = file.percent + "%"
           console.log file.percent
-        'Error':(up, err, errTip)->
-          $scope.msg = err
-          $scope.buttonDisabled = false
-    )
-
-    $scope.imgProgress = '上传封面'
-
-    uploader2 = Qiniu.uploader(
-      runtimes: 'html5,flash,html4'
-      browse_button: 'p2'
-      uptoken_url:'/upload/token'
-      unique_names: true
-      domain: imgHost
-      container: 'c2'
-      max_file_size: '10mb'
-      flash_swf_url: 'js/plupload/Moxie.swf'
-      dragdrop:true
-      drop_element:'c2'
-      max_retries: 1
-      auto_start: true
-      init:
-        'BeforeUpload': (up, file)->
-          $scope.buttonDisabled = true
-        'FileUploaded':(up, file, info)->
-          data = angular.fromJson info
-          console.log data
-          $timeout(->
-            $scope.data.cover = data.key
-            $scope.cover = imgHost+$scope.data.cover+'?imageView2/1/w/200/h/200'
-            $scope.imgProgress = '上传封面'
-            coverUplaoded = true
-            if mp3Uploaded
-              $scope.buttonDisabled = false
-          , 500)
-        'UploadProgress':(up,file)->
-          $scope.imgProgress = file.percent + "%"
         'Error':(up, err, errTip)->
           $scope.msg = err
           $scope.buttonDisabled = false
@@ -235,13 +192,10 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     return
 
   $scope.ok = ->
-
     if !$scope.data.name
-      msg = '媒资名称必填'
+      msg = 'DM名称必填'
     else if !$scope.data.url
-      msg = '媒资尚未上传'
-    else if !$scope.data.cover
-      msg = '媒资封面尚未添加'
+      msg = 'DM尚未上传'
     if(msg)
       $scope.msg = msg
       return
@@ -256,7 +210,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
             tags.push(tag.text)
       $scope.data.tags = tags
       if $scope.update
-        http.post('/song/update', $scope.data).success((result) ->
+        http.post('/dm/update', $scope.data).success((result) ->
           if result.status
             $modalInstance.close 'refresh'
           else
@@ -265,7 +219,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
               $scope.msg = '出错了，请稍后再试'
               $scope.buttonDisabled = false
       else
-        http.post('/song/add', $scope.data).success((result) ->
+        http.post('/dm/add', $scope.data).success((result) ->
           if result.status
             $modalInstance.close 'refresh'
           else
@@ -273,9 +227,6 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
             $scope.buttonDisabled = false).error (error) ->
               $scope.msg = '出错了，请稍后再试'
               $scope.buttonDisabled = false
-    return
-
-  return
 
 angular.element(document).ready ->
-  angular.bootstrap document.getElementById("songDiv"), ['SongApp']
+  angular.bootstrap document.getElementById("dmDiv"), ['DMApp']

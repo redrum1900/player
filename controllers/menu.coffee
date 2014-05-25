@@ -31,6 +31,7 @@ module.exports = (app)->
     .select('name list begin_date end_date quality')
     .populate('list.songs.song', 'name cover url duration')
     .exec (err, result)->
+      console.log result
       extra = new qiniu.io.PutExtra()
       putPolicy = new qiniu.rs.PutPolicy('yfcdn:'+id+'.json')
       token = putPolicy.token()
@@ -68,10 +69,12 @@ module.exports = (app)->
     if tags
       arr = tags.split ','
       query.tags = $all:arr
+    query.type = data.type
     Menu.find(query)
     .populate('creator', 'username')
     .populate('updator', 'username')
     .populate('list.songs.song', 'name duration')
+    .populate('dm_list.dm', 'name duration')
     .sort('created_at':-1)
     .limit(data.perPage)
     .skip(data.perPage*(data.page-1))
@@ -114,7 +117,6 @@ module.exports = (app)->
     menu = new Menu data
     menu.creator = req.user
     menu.save (err, result) ->
-      console.log 'save menu', err, result
       if err
         Error err, res
       else

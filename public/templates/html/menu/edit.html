@@ -118,8 +118,9 @@
         <input type="text" class="form-control" ng-model="$parent.time.begin"
                 >
     </div>
-    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="设置结束时间，比如00:00，24小时制">
+    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="结束时间，自动计算">
         <input type="text" class="form-control" ng-model="$parent.time.end"
+               ng-disabled="true"
                 >
     </div>
     <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入媒资</button>

@@ -33,6 +33,21 @@
         ]
       }
     ],
+    dm_list: [
+      {
+        dm: {
+          type: Schema.Types.ObjectId,
+          ref: "DM"
+        },
+        repeat: Number,
+        playTime: String,
+        interval: Number
+      }
+    ],
+    type: {
+      type: Number,
+      index: true
+    },
     quality: {
       type: Number,
       "default": 64
