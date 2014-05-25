@@ -4,28 +4,30 @@
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				mouseEnabled="false" mouseChildren="false"
 				autoDrawBackground="false" >
-	
+
 	<fx:Script>
 		<![CDATA[
+			import com.pamakids.utils.DateUtil;
+
 			import models.SongVO;
-			
+
 			[Bindable]
 			private var l:String;
-			
+
 			[Bindable]
 			private var c:uint = 0xffffff;
-			
+
 			override public function set data(value:Object):void
 			{
 				super.data = value;
 				fillData();
 			}
-			
+
 			private function fillData():void
 			{
 				if(data){
 					if(data is SongVO){
-						l = data.playTime+' '+data.name;
+						l = DateUtil.getHMS(data.playTime as Date)+' '+data.name;
 						c = 0xffffff;
 					}else{
 						c = 0xE19440;
@@ -33,11 +35,11 @@
 					}
 				}
 			}
-			
+
 		]]>
 	</fx:Script>
-	
-	
+
+
 	<s:Label text="{l}" fontSize="14" color="{c}"/>
-	
+
 </s:ItemRenderer>

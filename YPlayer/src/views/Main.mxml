@@ -4,35 +4,38 @@
 		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
 		 creationComplete="inited(event)"
 		 >
-	
+
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
 			import com.greensock.easing.Cubic;
+			import com.pamakids.components.PAlert;
 			import com.pamakids.components.controls.SoundPlayer;
 			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.LoadManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
+			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
-			
+
 			import flash.utils.setTimeout;
-			
+
 			import mx.events.FlexEvent;
-			
+
 			import controllers.API;
-			
+
 			import models.SongVO;
-			
+
 			import views.components.SoundVisualizer;
-			
+
 			[Bindable]
 			public var volume:int = 80;
-			
+
 			private var downX:Number;
 			private var player1:SoundPlayer;
-			
+
 			protected function thumb_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
@@ -41,110 +44,143 @@
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 				downX = event.stageX;
 			}
-			
+
 			protected function mouseUpHandler(event:MouseEvent):void
 			{
 				thumb.stopDrag();
 				stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 			}
-			
+
 			protected function mouseMoveHandler(event:MouseEvent):void
 			{
 				volume = thumb.x*100/track.width
 				player.volume = volume/100;
 			}
-			
+
 			protected function volumeGroup_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
 				var v:int = volumeGroup.globalToLocal(new Point(event.stageX, 0)).x;
 				toVolume(v);
 			}
-			
+
 			private function toVolume(v:int):void
 			{
 				TweenLite.to(this, 0.3, {volume:v, ease:Cubic.easeOut});
 				player.volume = v/100;
 			}
-			
+
 			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
-			
+
 			private var player:SoundPlayer;
 			private var soundVisualizer:SoundVisualizer;
-			
+
 			protected function inited(event:FlexEvent):void
 			{
-//				var t:Timer = new Timer(1000);
-//				t.start();
-//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
-//					updateTime();
-//				});
-//				updateTime();
-				
+				//				var t:Timer = new Timer(1000);
+				//				t.start();
+				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
+				//					updateTime();
+				//				});
+				//				updateTime();
+
+				api = API.instance;
+
 				initPlayer();
 				panelGroup.y = info.y+info.height-3;
 				panelGroup.height = height-57-48;
 				panelGroup.x = 2;
 				panelGroup.width = width-4;
-				
+
+				LoadManager.instance.errorHandler = function():void{
+					PAlert.show('媒资加载出错，请检查网络连接，如果仍有问题请联系我们');
+				}
+
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
 			}
-			
+
 			private function autoLogin():void
 			{
 				var so:SharedObject = SharedObject.getLocal('yp');
 				if(so.data.username && so.data.password){
-					API.instance.login(so.data.username, so.data.password, function(vo:ResultVO):void{
-						if(vo.status)
-							ServiceBase.id = vo.results+'';
-					});
+					if(api.online){
+						api.login(so.data.username, so.data.password, function(vo:ResultVO):void{
+							if(vo.status){
+								ServiceBase.id = vo.results+'';
+								so.data.id = ServiceBase.id;
+								so.flush();
+							}
+							else{
+								if(vo.errCode){
+									api.online = false;
+									api.getMenuList();
+								}else{
+									var l:LoginView = new LoginView();
+									PopupBoxManager.popup(l);
+								}
+							}
+						});
+					}else{
+						api.getMenuList();
+					}
 				}else{
-					var l:LoginView = new LoginView();
-					PopupBoxManager.popup(l);
+					if(api.online)
+					{
+						var l:LoginView = new LoginView();
+						PopupBoxManager.popup(l);
+					}else{
+						PAlert.show('第一次使用需要网络连接，请联网后再试', '网络连接失败', this, function():void{
+							autoLogin();
+						}, PAlert.CONFIRM, '再试一次', '', true);
+					}
 				}
 			}
-			
+
 			private function getPlayer():SoundPlayer
 			{
 				var p:SoundPlayer = new SoundPlayer(1000);
 				p.autoPlay = true;
 				return p;
 			}
-			
+
 			private function updateTime():void
 			{
 				var n:Date = new Date();
 				time = n.getHours()+' : '+n.getMinutes()+' : '+n.getSeconds();
 			}
-			
+
 			[Bindable]
 			private var time:String;
-			
+
 			private var brodcasting:Boolean;
-			
+
 			protected function playingHandler(event:DataEvent):void
 			{
 				if(brodcasting)
 					return;
 				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
 				var tt:int = Math.ceil(player.soundLength/1000);
-				time = '正在播放：'+song1.name + ' '+DateUtil.formateTime(tt-pt) +' 后将播放：'+song2.name;
+				time = '正在播放：'+song1.name;
+				if(song2)
+					time+=' '+DateUtil.formateTime(tt-pt)+' 后将播放：'+song2.name;
+				else
+					time+=' '+DateUtil.formateTime(tt-pt)+' 后将将结束今天的播放'
 			}
-			
+
 			protected function player1PlayedHandler(event:Event):void
 			{
-				play(song2);
+				play();
 			}
-			
+
 			private var song1:SongVO;
 			private var song2:SongVO;
-			
+
 			private var player2:SoundPlayer;
 			private var songs:Array;
-			
+
 			private function initPlayer():void
 			{
 				player1 = getPlayer();
@@ -156,42 +192,81 @@
 				soundVisualizer = new SoundVisualizer(width, height);
 				soundVisualizer.y = -18;
 				sv.addChild(soundVisualizer);
-				
-//				var vo:SongVO = new SongVO();
-//				vo.url = '/assets/temp/1.mp3';
-//				vo.cover = '/assets/temp/1.jpg';
-//				vo.name = '你听我说';
-//				
-//				song2 = new SongVO();
-//				song2.url = '/assets/temp/2.mp3';
-//				song2.cover = '/assets/temp/2.jpg';
-//				song2.name = 'Just One Last Dance';
-//				
-//				song1 = song2;
-//				song2 = vo;
-//				play(song1);
-				
+
+				//				var vo:SongVO = new SongVO();
+				//				vo.url = '/assets/temp/1.mp3';
+				//				vo.cover = '/assets/temp/1.jpg';
+				//				vo.name = '你听我说';
+				//				
+				//				song2 = new SongVO();
+				//				song2.url = '/assets/temp/2.mp3';
+				//				song2.cover = '/assets/temp/2.jpg';
+				//				song2.name = 'Just One Last Dance';
+				//				
+				//				song1 = song2;
+				//				song2 = vo;
+				//				play(song1);
+
 				API.instance.addEventListener('PLAY', function(e:Event):void{
-					songs = API.instance.getSongList();
-					play(songs[0]);
+					play();
 				});
 			}
-			
-			private function play(vo:SongVO):void
+
+			private var playingIndex:int;
+
+			private function play():void
 			{
-				player.url = vo.url;
-				setTimeout(function():void{
-					soundVisualizer.setCover(vo.cover);
-				}, 1000);
+				var now:Date = new Date();
+				var has:Boolean;
+				var vo:SongVO;
+				for(var i:int; i<api.songs.length; i++){
+					vo = api.songs[i];
+					if(vo != song1 && vo.playTime.getTime()+vo.duration*1000-now.getTime()>1000){
+						vo = api.songs[i];
+						playingIndex = i;
+						has = true;
+						if(i!= api.songs.length-1)
+							song2 = api.songs[i+1];
+						else
+							song2 = null
+						song1 = vo;
+						break;
+					}
+				}
+				if(!has){
+					PAlert.show('抱歉，该时段无合适播放的曲目，请联系我们更新', '播放失败', null, null, 'normal', '', '', true);
+				}else{
+					time = '准备开始播放 '+vo.name;
+					var f:File = File.applicationStorageDirectory.resolvePath(URLUtil.getCachePath(vo.url));
+					now = new Date();
+					var s:Number = now.getTime()-vo.playTime.getTime();
+					trace(DateUtil.getHMS(vo.playTime), s, DateUtil.getHMS(now));
+					if(f.exists){
+						player.url = File.applicationStorageDirectory.resolvePath(URLUtil.getCachePath(vo.url)).url;
+						player.currentPosition = s;
+						autoLoad();
+					}else{
+						LoadManager.instance.load(vo.url, function():void{
+							player.url = File.applicationStorageDirectory.resolvePath(URLUtil.getCachePath(vo.url)).url;
+							player.currentPosition = s;
+							autoLoad();
+						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void{
+							time = '第一次播放 '+vo.name+' ，请稍候，加载进度 '+Math.round(percent*100)+'%';
+						});
+					}
+					setTimeout(function():void{
+						soundVisualizer.setCover(vo.cover);
+					}, 1000);
+				}
 			}
-			
+
 			protected function randomPlay_changeHandler(event:Event):void
 			{
 				trace(randomPlay.selected);
 			}
-			
+
 			private var songPanel:ListPanel;
-			
+
 			protected function songList_changeHandler(event:Event):void
 			{
 				var wait:Number = 0;
@@ -207,15 +282,15 @@
 						panelGroup.addElement(songPanel);
 						panelButton[songPanel] = songList;
 					}
-					
+
 					songList.selected ? show(songPanel) : hide(songPanel);
 				});
 			}
-			
+
 			private var panel:Group;
 			private var broPanel:BroPanel;
 			private var panelButton:Dictionary = new Dictionary();
-			
+
 			protected function broList_changeHandler(event:Event):void
 			{
 				var wait:Number = 0;
@@ -233,11 +308,11 @@
 						panelGroup.addElement(broPanel);
 						panelButton[broPanel] = broList;
 					}
-					
+
 					broList.selected ? show(broPanel) : hide(broPanel);
 				});
 			}
-			
+
 			private function show(p:Group):void
 			{
 				p.x = panelGroup.width;
@@ -245,16 +320,17 @@
 				soundVisualizer.graphics.clear()
 				panel = p;
 			}
-			
+
 			private function hide(p:Group):void
 			{
 				panelButton[p].selected = false;
 				TweenLite.to(p, 0.5, {x:panelGroup.width, ease:Cubic.easeOut});
 				panel = null;
 			}
-			
+
 			private var insertPanel:InsertPanel;
-			
+			private var api:API;
+
 			protected function insertSong_changeHandler(event:Event):void
 			{
 				var wait:Number = 0;
@@ -272,11 +348,11 @@
 						panelGroup.addElement(insertPanel);
 						panelButton[insertPanel] = insertSong;
 					}
-					
+
 					insertSong.selected ? show(insertPanel) : hide(insertPanel);
 				});
 			}
-			
+
 			protected function playBroHandler(event:ODataEvent):void
 			{
 				if(brodcasting)
@@ -313,15 +389,56 @@
 					player2.url = url;
 				}, 800)
 			}
-			
+
+			public var loaded:int=0;
+
+			private function autoLoad():void
+			{
+				var vo:SongVO;
+				var file:File;
+				var songs:Array = api.songs;
+				loaded++;
+				if(playingIndex != songs.length-1){
+					playingIndex++;
+					vo = songs[playingIndex];
+					file = File.applicationStorageDirectory.resolvePath(URLUtil.getCachePath(vo.url));
+					if(!file.exists){
+						LoadManager.instance.load(vo.url, function():void{
+							trace('loaded:'+vo.name);
+							autoLoad();
+						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void{
+						});
+					}else{
+						loaded++;
+					}
+				}else if (loaded != songs.length){
+					playingIndex=0;
+					autoLoad();
+				}else{
+					trace('all loaded');
+				}
+//				for(var i:int; i<api.songs.length; i++){
+//					vo = api.songs[i];
+//					song1 = vo;
+//					if(i!= api.songs.length-1)
+//						song2 = api.songs[i+1];
+//					if(vo.playTime.getTime()>now.getTime()){
+//						vo = api.songs[i!=0 ? i-1 : 0];
+//						playingIndex = i;
+//						has = true;
+//						break;
+//					}
+//				}
+			}
+
 		]]>
 	</fx:Script>
-	
+
 	<mx:UIComponent id="sv" mouseChildren="false" y="{info.y}" mouseEnabled="false"/>
-	
+
 	<s:Group id="panelGroup" clipAndEnableScrolling="true">
 	</s:Group>
-	
+
 	<s:Group height="57" width="100%">
 		<s:Group id="info" y="{topBG.height}" width="100%">
 			<s:BitmapImage x="1" source="@Embed('/assets/trasBG.png')"/>
@@ -385,5 +502,5 @@
 			<s:Image buttonMode="true" toolTip="最大音" click="toVolume(100)" source="@Embed('/assets/v2.png')"/>
 		</s:HGroup>
 	</s:Group>
-	
+
 </s:Group>

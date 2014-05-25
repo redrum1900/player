@@ -6,59 +6,71 @@
 	<fx:Script>
 		<![CDATA[
 			import com.pamakids.utils.DateUtil;
-			
+			import com.pamakids.utils.NodeUtil;
+
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
-			
-			import models.InsertVO;
-			import models.SongVO;
-			
+
+			import controllers.API;
+
+			import models.MenuVO;
+
+			[Bindable]
+			private var label:String;
 			protected function inited(event:FlexEvent):void
 			{
-				var ac:ArrayCollection = new ArrayCollection();
-				var startTime:Date = new Date();
-				startTime.hours = 9;
-				startTime.minutes=0;
-				startTime.seconds=0;
-				for(var i:int; i<=120; i++){
-					var vo:SongVO = new SongVO();
-					vo.url = '/assets/temp/1.mp3';
-					vo.cover = '/assets/temp/1.jpg';
-					vo.name = '你听我说';
-					if(i)
-						startTime.minutes += 3;
-					vo.playTime = DateUtil.getHMS(startTime);
-					ac.addItem(vo);
-					if(i == 5)
-					{
-						var ivo:InsertVO = new InsertVO();
-						ivo.name = 'DM插播1';
-						ivo.playTime = DateUtil.getHMS(startTime);
-						ivo.time = "02:00";
-						ivo.repeat = 3;
-						ivo.interval = 60;
-						ac.addItem(ivo);
-					}
-					vo = new SongVO();
-					vo.url = '/assets/temp/2.mp3';
-					vo.cover = '/assets/temp/2.jpg';
-					vo.name = 'Just One Last Dance';
-					startTime.minutes += 3;
-					vo.playTime = DateUtil.getHMS(startTime);
-					ac.addItem(vo);
-				}
-				songs.dataProvider = ac;
+//				var ac:ArrayCollection = new ArrayCollection();
+//				var startTime:Date = new Date();
+//				startTime.hours = 9;
+//				startTime.minutes=0;
+//				startTime.seconds=0;
+//				for(var i:int; i<=120; i++){
+//					var vo:SongVO = new SongVO();
+//					vo.url = '/assets/temp/1.mp3';
+//					vo.cover = '/assets/temp/1.jpg';
+//					vo.name = '你听我说';
+//					if(i)
+//						startTime.minutes += 3;
+//					vo.playTime = DateUtil.getdate
+//					ac.addItem(vo);
+//					if(i == 5)
+//					{
+//						var ivo:InsertVO = new InsertVO();
+//						ivo.name = 'DM插播1';
+//						ivo.playTime = DateUtil.getHMS(startTime);
+//						ivo.time = "02:00";
+//						ivo.repeat = 3;
+//						ivo.interval = 60;
+//						ac.addItem(ivo);
+//					}
+//					vo = new SongVO();
+//					vo.url = '/assets/temp/2.mp3';
+//					vo.cover = '/assets/temp/2.jpg';
+//					vo.name = 'Just One Last Dance';
+//					startTime.minutes += 3;
+//					vo.playTime = DateUtil.getHMS(startTime);
+//					ac.addItem(vo);
+				var menu:MenuVO;
+				API.instance.addEventListener('PLAY', function():void{
+					menu = API.instance.menu;
+					label = '播放时段：'+menu.name+' 开始日期：'+DateUtil.getYMD(menu.begin_date)+' 结束日期：'+DateUtil.getYMD(menu.end_date)
+				});
+				menu = API.instance.menu;
+				label = '播放时段：'+menu.name+' 开始日期：'+DateUtil.getYMD(menu.begin_date)+' 结束日期：'+DateUtil.getYMD(menu.end_date)
+				trace(label);
+//				}
 			}
-			
+
 		]]>
 	</fx:Script>
 	<s:BitmapImage id="background" source="@Embed('/assets/panelBG.jpg')"
 				   width="100%" height="100%"
 				   fillMode="repeat"/>
 	<s:VGroup gap="18" width="100%" height="100%" paddingLeft="20" paddingRight="20" paddingTop="20" paddingBottom="10">
-		<s:Label color="0xffffff" fontSize="14" text="播放任务：项目名称 起止时间：02-20至05-31日 今日状态：【开店：09:00 闭店：21:00】" />
+		<s:Label color="0xffffff" fontSize="14" text="{label}" />
 		<s:List mouseDown="event.stopImmediatePropagation()" skinClass="skins.SongListSkin"
 				width="100%" height="100%"
+				dataProvider="{new ArrayCollection(API.instance.songs)}"
 				itemRenderer="views.components.SongRenderer"
 				id="songs"
 				>

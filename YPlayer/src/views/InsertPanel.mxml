@@ -10,63 +10,66 @@
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.SoundManager;
 			import com.pamakids.managers.NiceToolTipManagerImpl;
+			import com.pamakids.utils.CloneUtil;
 			import com.pamakids.utils.FileHelper;
-			
+
 			import flash.utils.setTimeout;
-			
+
 			import mx.core.IToolTip;
 			import mx.events.FlexEvent;
 			import mx.managers.ToolTipManager;
 			import mx.utils.UIDUtil;
-			
+
+			import models.InsertVO;
+
 			import views.components.InsertItem;
-			
+
 			private const CONFIG:String = 'config/insert.yp';
-			
+
 			private var bros:Array;
-			
+
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				bros = FileManager.readFile(CONFIG) as Array;
 				setTimeout(createButtons, 500);
 				buttonsGroup.width = bg.width;
 			}
-			
+
 			[Bindable]
 			private var fname:String;
-			
+
 			protected function confirm_clickHandler(event:MouseEvent):void
 			{
 				checkTime();
 				var nurl:String = 'insert/'+UIDUtil.createUID()+'.mp3'; 
 				selectedFile.copyTo(File.applicationStorageDirectory.resolvePath(nurl), true);
-				var o:Object = {url:nurl,playTime:playTime.text,label:broName.text,repeat:int(repeatTime.text),interval:int(repeatInterval.text)};
+				var o:Object = {url:nurl,playTime:playTime.text,name:broName.text,repeat:int(repeatTime.text),interval:int(repeatInterval.text)};
 				if(bros){
-					bros.push(o);
+					bros.push(CloneUtil.convertObject(o, InsertVO));
 				}else{
-					bros = [o];
+					bros = [CloneUtil.convertObject(o, InsertVO)];
 				}
 				FileManager.saveFile(CONFIG, bros);
 				createButtons();
 				currentState = 's1';
 			}
-			
+
 			protected function choose_clickHandler(event:MouseEvent):void
 			{
 				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择广播声音文件', [new FileFilter('广播声音文件', '*.mp3')]); 
 			}
-			
+
 			private var selectedFile:File;
-			
+
 			private function selectedHandler(f:File):void
 			{
 				selectedFile = f;
 				fname = f.name;
 				broName.text = fname.replace('.mp3', '');
 			}
-			
+
 			private var i:int;
-			
+
 			private function createButtons():void
 			{
 				if(bros && i < bros.length)
@@ -75,10 +78,10 @@
 					i++;
 				}
 			}
-			
+
 			private var dic:Dictionary = new Dictionary();
 			private var createTime:int = 1;
-			
+
 			private function getButton(o:Object):InsertItem
 			{
 				var b:InsertItem = new InsertItem();
@@ -103,12 +106,12 @@
 				});
 				return b;
 			}
-			
+
 			protected function broHandler(event:MouseEvent):void
 			{
 				dispatchEvent(new ODataEvent(dic[event.currentTarget]));
 			}
-			
+
 			protected function navHandler(event:Event):void
 			{
 				var n:NativeMenuItem = event.target as NativeMenuItem;
@@ -125,7 +128,7 @@
 					}
 				}
 			}
-			
+
 			private function checkTime():void
 			{
 				var p:String = playTime.text;
@@ -152,15 +155,15 @@
 				playTime.text = p;
 				confirm.toolTip = '';
 			}
-			
+
 		]]>
 	</fx:Script>
-	
+
 	<s:states>
 		<s:State name="s1"/>
 		<s:State name="s2"/>
 	</s:states>
-	
+
 	<s:BitmapImage source="@Embed('/assets/panelBG.jpg')"
 				   width="100%" height="100%"
 				   fillMode="repeat"/>

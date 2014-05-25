@@ -11,40 +11,42 @@
 					   xmlns:nativeApplicationUpdater="com.youli.nativeApplicationUpdater.*" xmlns:views="views.*">
 	<fx:Script>
 		<![CDATA[
+			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.pamakids.models.ResultVO;
 			import com.youli.components.LMouseData;
 			import com.youli.messengers.PreloaderMessenger;
-			
+
 			import mx.events.FlexEvent;
 			import mx.managers.ToolTipManager;
-			
+
 			import air.update.events.StatusUpdateEvent;
 			import air.update.events.UpdateEvent;
-			
+
 			import controllers.AC;
-			import controllers.API;
-			
-			import views.LoginView;
-			
+
+			[Bindable]
+			private var updateURL:String = 'http://yfcdn.qiniudn.com/file/update.xml';
+
 			protected function inited(event:FlexEvent):void
 			{
 				var l:LMouseData = new LMouseData();
 				Mouse.registerCursor('busy', l.mouseCursorData);
-				
+
 				if(AC.i.isMac)
 					enter();
-//					TweenLite.delayedCall(3, enter);
 				else
-					enter();
-				
+					TweenLite.delayedCall(3, enter);
+
 				if(NativeApplication.supportsStartAtLogin && !Capabilities.isDebugger)
 					nativeApplication.startAtLogin = true;
+
+				nativeWindow.orderToFront();
 			}
-			
+
 			protected function pre(event:FlexEvent):void
 			{
+				updateURL+='?'+Math.random();
 				AC.centerWindow(nativeWindow);
 				updater.initialize();
 				ToolTipManager.showEffect=fadeIn;
@@ -53,39 +55,39 @@
 				PAlert.PARENT = this
 				PopupBoxManager.PARENT = this
 			}
-			
+
 			protected function updater_initializedHandler(event:UpdateEvent):void
 			{
 				updater.checkNow();
 			}
-			
+
 			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
 			{
-				if(event.available){
+				if(event.available && !Capabilities.isDebugger){
 					updater.downloadUpdate();
 				}else{
 					trace('软件最新');
 				}
 			}
-			
+
 			protected function updater_errorHandler(event:ErrorEvent):void
 			{
 				trace(event.toString());
 			}
-			
+
 			protected function updater_downloadCompleteHandler(event:UpdateEvent):void
 			{
 				updater.installUpdate();				
 			}
-			
+
 			private function enter():void
 			{
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
 			}
-			
+
 		]]>
 	</fx:Script>
-	
+
 	<fx:Style source="assets/font/font.css"/>
 	<fx:Style>
 		@namespace s "library://ns.adobe.com/flex/spark";
@@ -118,7 +120,7 @@
 			skinClass:ClassReference("skins.popup.PopupBoxSkin")
 		}
 	</fx:Style>
-	
+
 	<fx:Declarations>
 		<s:Fade id="fadeIn"
 				duration="300"
@@ -129,7 +131,7 @@
 				alphaFrom="1"
 				alphaTo="0"/>
 		<nativeApplicationUpdater:NativeApplicationUpdater id="updater"
-														   updateURL="http://yuefumedia.qiniudn.com/update.xml"
+														   updateURL="{updateURL}"
 														   initialized="updater_initializedHandler(event)"
 														   updateStatus="updater_updateStatusHandler(event)"
 														   error="updater_errorHandler(event)"
@@ -138,7 +140,7 @@
 														   updateError="updater_errorHandler(event)"
 														   />
 	</fx:Declarations>
-	
+
 	<s:Rect left="2" right="2" top="1" bottom="2">
 		<s:fill>
 			<s:SolidColor color="0x30373e"/>
@@ -147,7 +149,7 @@
 			<s:GlowFilter color="0"/>
 		</s:filters>
 	</s:Rect>
-	
+
 	<views:Main />
-	
+
 </s:WindowedApplication>
