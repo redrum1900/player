@@ -233,7 +233,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
 #          $scope.msg = err
 #          $scope.buttonDisabled = false
 #    )
-#  , 500)
+  , 500)
 
   $scope.cancel = ->
     $modalInstance.close()
