@@ -211,7 +211,7 @@
     mp3Uploaded = data ? false : true;
     coverUplaoded = data ? true : true;
     $timeout(function() {
-      var uploader, uploader2;
+      var uploader;
       uploader = Qiniu.uploader({
         runtimes: 'html5,flash,html4',
         browse_button: 'p1',
@@ -266,46 +266,7 @@
           }
         }
       });
-      $scope.imgProgress = '上传封面';
-      return uploader2 = Qiniu.uploader({
-        runtimes: 'html5,flash,html4',
-        browse_button: 'p2',
-        uptoken_url: '/upload/token',
-        unique_names: true,
-        domain: imgHost,
-        container: 'c2',
-        max_file_size: '10mb',
-        flash_swf_url: 'js/plupload/Moxie.swf',
-        dragdrop: true,
-        drop_element: 'c2',
-        max_retries: 1,
-        auto_start: true,
-        init: {
-          'BeforeUpload': function(up, file) {
-            return $scope.buttonDisabled = true;
-          },
-          'FileUploaded': function(up, file, info) {
-            data = angular.fromJson(info);
-            console.log(data);
-            return $timeout(function() {
-              $scope.data.cover = data.key;
-              $scope.cover = imgHost + $scope.data.cover + '?imageView2/1/w/200/h/200';
-              $scope.imgProgress = '上传封面';
-              coverUplaoded = true;
-              if (mp3Uploaded) {
-                return $scope.buttonDisabled = false;
-              }
-            }, 500);
-          },
-          'UploadProgress': function(up, file) {
-            return $scope.imgProgress = file.percent + "%";
-          },
-          'Error': function(up, err, errTip) {
-            $scope.msg = err;
-            return $scope.buttonDisabled = false;
-          }
-        }
-      });
+      return $scope.imgProgress = '上传封面';
     }, 500);
     $scope.cancel = function() {
       $modalInstance.close();
