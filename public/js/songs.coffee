@@ -5,6 +5,8 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
   updateStatusUri = '/song/update/status'
   configScopeForNgGrid $scope
 
+  $scope.module = 'templates/html/song/home.html'
+
   $scope.search = ->
     $scope.page = 1
     $scope.list = null
@@ -80,6 +82,9 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
     $scope.data = data
     $scope.open()
 
+  $scope.addMulti = ->
+
+
   $scope.add = ->
     $scope.data = {}
     $scope.open()
@@ -151,7 +156,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
       browse_button: 'p1'
-      uptoken_url:'/upload/token/mp3'
+      uptoken_url:'/upload/token/mp3/auto'
       unique_names: true
       domain: imgHost
       container: 'c1'

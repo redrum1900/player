@@ -1,5 +1,6 @@
 qiniu = require 'qiniu'
 auth = require '../lib/auth'
+logger = require('log4js').getLogger('qiniu')
 
 module.exports = (app)->
   qiniu.conf.ACCESS_KEY = 'xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J';
@@ -15,3 +16,15 @@ module.exports = (app)->
     putPolicy.expires = 3600
     putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k'
     res.json uptoken:putPolicy.token()
+
+  app.get '/upload/token/mp3/auto', auth.isAuthenticated(), (req, res)->
+    putPolicy = new qiniu.rs.PutPolicy('yfcdn')
+    putPolicy.expires = 3600
+    putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k'
+    putPolicy.callbackUrl = 'http://m.yuefu.com/callback'
+    putPolicy.callbackBody = 'size=$(fsize)&info=$(avinfo)'
+    res.json uptoken:putPolicy.token()
+
+  app.post '/callback', (req, res)->
+    logger.trace req.body
+    res.json status:true

@@ -30,7 +30,7 @@
 
         <img tooltip="{{ imgProgress }}" ng-src="{{ cover }}" id="p2" ng-if="false"
              style="vertical-align: top;display:inline-block; cursor: pointer;margin-top: 10px;border: 1px solid rgb(212,212,212);width: 200px;height: 200px">
-        <div style="width: 350px;display:inline-block;margin-top: 10px;margin-left: 8px">
+        <div style="margin-top: 18px;">
             <tags-input ng-model="data.tags"
                         placeholder="设置标签"
                         min-length="1">
@@ -48,33 +48,11 @@
     </div>
     </script>
 
-    <div class="row">
-        <div class="col-md-4">
-            <form class="input-group" ng-submit="search()">
-              <input type="text" class="form-control" ng-model="searchText"
-                     placeholder="请输入媒资名称进行检索">
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
-              </span>
-            </form>
-        </div>
-        <div class="col-md-4">
-            <tags-input ng-model="s_tags"
-                        placeholder="标签筛选"
-                        on-tag-removed="search()"
-                        on-tag-added="search()"
-                        min-length="1">
-                <auto-complete source="loadTags($query)"
-                               min-length="1"
-                        ></auto-complete>
-            </tags-input>
-        </div>
-        <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
+    <div ng-include="module">
     </div>
 
-    <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
-
     </div>
+
     <script src="../components/angular-route/angular-route.min.js"></script>
     <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
     <script src="../components/qiniu.js"></script>

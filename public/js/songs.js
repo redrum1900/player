@@ -9,6 +9,7 @@
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
     configScopeForNgGrid($scope);
+    $scope.module = 'templates/html/song/home.html';
     $scope.search = function() {
       $scope.page = 1;
       $scope.list = null;
@@ -130,6 +131,7 @@
       $scope.data = data;
       return $scope.open();
     };
+    $scope.addMulti = function() {};
     $scope.add = function() {
       $scope.data = {};
       $scope.open();
@@ -213,7 +215,7 @@
       uploader = Qiniu.uploader({
         runtimes: 'html5,flash,html4',
         browse_button: 'p1',
-        uptoken_url: '/upload/token/mp3',
+        uptoken_url: '/upload/token/mp3/auto',
         unique_names: true,
         domain: imgHost,
         container: 'c1',
