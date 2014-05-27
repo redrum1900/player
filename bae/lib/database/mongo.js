@@ -13,7 +13,7 @@ module.exports = {
             url = conf
         }
 
-        mongoose.set('debug', true);
+//        mongoose.set('debug', true);
 
         var db = mongoose.connection;
 
