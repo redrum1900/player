@@ -194,7 +194,8 @@
     $scope.addTime = function() {
       var time;
       time = {
-        name: '新增时段'
+        name: '新增时段',
+        songs: []
       };
       return $scope.data.list.push(time);
     };

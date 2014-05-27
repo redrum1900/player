@@ -144,7 +144,8 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     return deffered.promise
 
   mp3Uploaded = if data then false else true
-  coverUplaoded = if data then false else true
+#  coverUplaoded = if data then false else true
+  coverUploaded = true
 
   $timeout(->
     uploader = Qiniu.uploader(
