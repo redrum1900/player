@@ -82,8 +82,8 @@
     </div>
 
     <button ng-disabled="$parent.handling" class="btn btn-default" style="float: right;margin-right: 15px;" ng-click="back()">返回</button>
-    <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存DM</button>
-    <button ng-disabled="$parent.handling" class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addTime()">新增时段</button>
+    <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存DM列表</button>
+    <button class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addSong()">插入DM</button>
 </div>
 
 <div class="row">
@@ -96,7 +96,6 @@
                     ></auto-complete>
         </tags-input>
     </div>
-    <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入DM</button>
 </div>
 
 <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="songGrid" ></div>

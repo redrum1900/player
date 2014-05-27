@@ -92,7 +92,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "interval", displayName:"间隔时间（秒）", cellTemplate: textCellTemplate}
       {field: "handler", displayName: "操作", width:100, cellTemplate: '
       <div class="row" ng-style="{height: rowHeight}">
-      <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
+      <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 3px">
         <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a>
         </div></div>'}
     ]
