@@ -28,8 +28,8 @@ module.exports = (app)->
 
   app.post '/notify', (req, res)->
     logger.trace JSON.stringify(req.body)
-    res.json status:true, data:body
+    res.json status:true, data:req.body
 
   app.post '/callback', (req, res)->
     logger.trace JSON.stringify(req.body)
-    res.json status:true, data:body
+    res.json status:true, data:req.body
