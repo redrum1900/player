@@ -149,8 +149,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     return deffered.promise
 
   mp3Uploaded = if data then false else true
-#  coverUplaoded = if data then false else true
-  coverUploaded = true
+  coverUplaoded = if data then true else true
 
   $timeout(->
     uploader = Qiniu.uploader(
@@ -201,40 +200,40 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
 
     $scope.imgProgress = '上传封面'
 
-    uploader2 = Qiniu.uploader(
-      runtimes: 'html5,flash,html4'
-      browse_button: 'p2'
-      uptoken_url:'/upload/token'
-      unique_names: true
-      domain: imgHost
-      container: 'c2'
-      max_file_size: '10mb'
-      flash_swf_url: 'js/plupload/Moxie.swf'
-      dragdrop:true
-      drop_element:'c2'
-      max_retries: 1
-      auto_start: true
-      init:
-        'BeforeUpload': (up, file)->
-          $scope.buttonDisabled = true
-        'FileUploaded':(up, file, info)->
-          data = angular.fromJson info
-          console.log data
-          $timeout(->
-            $scope.data.cover = data.key
-            $scope.cover = imgHost+$scope.data.cover+'?imageView2/1/w/200/h/200'
-            $scope.imgProgress = '上传封面'
-            coverUplaoded = true
-            if mp3Uploaded
-              $scope.buttonDisabled = false
-          , 500)
-        'UploadProgress':(up,file)->
-          $scope.imgProgress = file.percent + "%"
-        'Error':(up, err, errTip)->
-          $scope.msg = err
-          $scope.buttonDisabled = false
-    )
-  , 500)
+#    uploader2 = Qiniu.uploader(
+#      runtimes: 'html5,flash,html4'
+#      browse_button: 'p2'
+#      uptoken_url:'/upload/token'
+#      unique_names: true
+#      domain: imgHost
+#      container: 'c2'
+#      max_file_size: '10mb'
+#      flash_swf_url: 'js/plupload/Moxie.swf'
+#      dragdrop:true
+#      drop_element:'c2'
+#      max_retries: 1
+#      auto_start: true
+#      init:
+#        'BeforeUpload': (up, file)->
+#          $scope.buttonDisabled = true
+#        'FileUploaded':(up, file, info)->
+#          data = angular.fromJson info
+#          console.log data
+#          $timeout(->
+#            $scope.data.cover = data.key
+#            $scope.cover = imgHost+$scope.data.cover+'?imageView2/1/w/200/h/200'
+#            $scope.imgProgress = '上传封面'
+#            coverUplaoded = true
+#            if mp3Uploaded
+#              $scope.buttonDisabled = false
+#          , 500)
+#        'UploadProgress':(up,file)->
+#          $scope.imgProgress = file.percent + "%"
+#        'Error':(up, err, errTip)->
+#          $scope.msg = err
+#          $scope.buttonDisabled = false
+#    )
+#  , 500)
 
   $scope.cancel = ->
     $modalInstance.close()
