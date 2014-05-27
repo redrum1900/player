@@ -277,8 +277,6 @@
         msg = '媒资名称必填';
       } else if (!$scope.data.url) {
         msg = '媒资尚未上传';
-      } else if (!$scope.data.cover) {
-        msg = '媒资封面尚未添加';
       }
       if (msg) {
         $scope.msg = msg;
