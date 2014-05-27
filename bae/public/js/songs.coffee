@@ -155,7 +155,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
       browse_button: 'p1'
-      uptoken_url:'/upload/token/mp3/auto'
+      uptoken_url:'/upload/token/mp3'
       unique_names: true
       domain: imgHost
       container: 'c1'
