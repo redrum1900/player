@@ -6,7 +6,7 @@
 
   auth = require('../lib/auth');
 
-  logger = require('log4js').getLogger('qiniu');
+  logger = require('log4js').getDefaultLogger();
 
   module.exports = function(app) {
     qiniu.conf.ACCESS_KEY = 'xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J';
@@ -33,16 +33,25 @@
       putPolicy = new qiniu.rs.PutPolicy('yfcdn');
       putPolicy.expires = 3600;
       putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k';
+      putPolicy.persistentNotifyUrl = 'http://m.yuefu.com/notify';
       putPolicy.callbackUrl = 'http://m.yuefu.com/callback';
       putPolicy.callbackBody = 'size=$(fsize)&info=$(avinfo)';
       return res.json({
         uptoken: putPolicy.token()
       });
     });
+    app.post('/notify', function(req, res) {
+      logger.trace(JSON.stringify(req.body));
+      return res.json({
+        status: true,
+        data: body
+      });
+    });
     return app.post('/callback', function(req, res) {
       logger.trace(JSON.stringify(req.body));
       return res.json({
-        status: true
+        status: true,
+        data: body
       });
     });
   };
