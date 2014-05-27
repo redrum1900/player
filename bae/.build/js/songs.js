@@ -9,6 +9,7 @@
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
     configScopeForNgGrid($scope);
+    $scope.module = 'templates/html/song/home.html';
     $scope.search = function() {
       $scope.page = 1;
       $scope.list = null;
@@ -130,6 +131,7 @@
       $scope.data = data;
       return $scope.open();
     };
+    $scope.addMulti = function() {};
     $scope.add = function() {
       $scope.data = {};
       $scope.open();
