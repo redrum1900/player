@@ -124,7 +124,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     $scope.getList()
 
   $scope.addTime = ->
-    time = name:'新增时段'
+    time = name:'新增时段',songs:[]
     $scope.data.list.push time
 
   validateTime = (time)->

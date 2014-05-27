@@ -188,7 +188,7 @@
   });
 
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, tags, http, $q, $filter) {
-    var coverUplaoded, mp3Uploaded;
+    var coverUploaded, mp3Uploaded;
     $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
@@ -207,7 +207,7 @@
       return deffered.promise;
     };
     mp3Uploaded = data ? false : true;
-    coverUplaoded = data ? false : true;
+    coverUploaded = true;
     $timeout(function() {
       var uploader, uploader2;
       uploader = Qiniu.uploader({
@@ -286,6 +286,7 @@
             data = angular.fromJson(info);
             console.log(data);
             return $timeout(function() {
+              var coverUplaoded;
               $scope.data.cover = data.key;
               $scope.cover = imgHost + $scope.data.cover + '?imageView2/1/w/200/h/200';
               $scope.imgProgress = '上传封面';
