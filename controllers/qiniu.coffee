@@ -26,5 +26,5 @@ module.exports = (app)->
     res.json uptoken:putPolicy.token()
 
   app.post '/callback', (req, res)->
-    logger.trace req.body
+    logger.trace JSON.stringify(req.body)
     res.json status:true

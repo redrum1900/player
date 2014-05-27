@@ -40,7 +40,7 @@
       });
     });
     return app.post('/callback', function(req, res) {
-      logger.trace(req.body);
+      logger.trace(JSON.stringify(req.body));
       return res.json({
         status: true
       });
