@@ -211,6 +211,7 @@
     };
     mp3Uploaded = data ? false : true;
     coverUplaoded = data ? true : true;
+    $scope.percent = 50;
     $timeout(function() {
       var uploader;
       uploader = Qiniu.uploader({
@@ -236,7 +237,7 @@
             return $timeout(function() {
               $scope.data.url = data.key;
               $scope.data.size = file.size;
-              $scope.label = '上传成功';
+              $scope.msg = '上传成功，解析音频信息';
               return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
                 var format;
                 format = result.format;
@@ -249,6 +250,8 @@
                   data.album = format.album;
                   data.published_at = format.TYER;
                 }
+                $scope.msg = '解析完成，可以添加';
+                $scope.percent = 0;
                 console.log(format);
                 mp3Uploaded = true;
                 if (coverUplaoded) {
@@ -258,7 +261,8 @@
             }, 500);
           },
           'UploadProgress': function(up, file) {
-            $scope.label = file.percent + "%";
+            $scope.percent = file.percent;
+            $scope.msg = file.percent + "%";
             return console.log(file.percent);
           },
           'Error': function(up, err, errTip) {

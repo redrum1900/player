@@ -152,6 +152,8 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
   mp3Uploaded = if data then false else true
   coverUplaoded = if data then true else true
 
+  $scope.percent = 50
+
   $timeout(->
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
@@ -175,7 +177,7 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
           $timeout(->
             $scope.data.url = data.key
             $scope.data.size = file.size
-            $scope.label = '上传成功'
+            $scope.msg = '上传成功，解析音频信息'
             http.get('http://yfcdn.qiniudn.com/'+data.key+'?avinfo').success (result)->
               format = result.format
               data = $scope.data
@@ -186,13 +188,16 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
                 data.artist = format.artist
                 data.album = format.album
                 data.published_at = format.TYER
+              $scope.msg = '解析完成，可以添加'
+              $scope.percent = 0
               console.log format
               mp3Uploaded = true
               if coverUplaoded
                 $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
-          $scope.label = file.percent + "%"
+          $scope.percent = file.percent
+          $scope.msg = file.percent + "%"
           console.log file.percent
         'Error':(up, err, errTip)->
           $scope.msg = err

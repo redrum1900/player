@@ -125,7 +125,8 @@
       ]
     };
     $scope["try"] = function(data) {
-      return $window.open(imgHost + data.url + '?avthumb/mp3/ab/64k');
+      $window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k');
+      return true;
     };
     $scope.edit = function(data) {
       $scope.data = data;
@@ -190,7 +191,7 @@
   });
 
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, tags, http, $q, $filter) {
-    var coverUploaded, mp3Uploaded;
+    var coverUplaoded, mp3Uploaded;
     $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
@@ -209,9 +210,10 @@
       return deffered.promise;
     };
     mp3Uploaded = data ? false : true;
-    coverUploaded = true;
+    coverUplaoded = data ? true : true;
+    $scope.percent = 50;
     $timeout(function() {
-      var uploader, uploader2;
+      var uploader;
       uploader = Qiniu.uploader({
         runtimes: 'html5,flash,html4',
         browse_button: 'p1',
@@ -235,7 +237,7 @@
             return $timeout(function() {
               $scope.data.url = data.key;
               $scope.data.size = file.size;
-              $scope.label = '上传成功';
+              $scope.msg = '上传成功，解析音频信息';
               return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
                 var format;
                 format = result.format;
@@ -248,6 +250,8 @@
                   data.album = format.album;
                   data.published_at = format.TYER;
                 }
+                $scope.msg = '解析完成，可以添加';
+                $scope.percent = 0;
                 console.log(format);
                 mp3Uploaded = true;
                 if (coverUplaoded) {
@@ -257,7 +261,8 @@
             }, 500);
           },
           'UploadProgress': function(up, file) {
-            $scope.label = file.percent + "%";
+            $scope.percent = file.percent;
+            $scope.msg = '上传进度' + file.percent + "%";
             return console.log(file.percent);
           },
           'Error': function(up, err, errTip) {
@@ -266,47 +271,7 @@
           }
         }
       });
-      $scope.imgProgress = '上传封面';
-      return uploader2 = Qiniu.uploader({
-        runtimes: 'html5,flash,html4',
-        browse_button: 'p2',
-        uptoken_url: '/upload/token',
-        unique_names: true,
-        domain: imgHost,
-        container: 'c2',
-        max_file_size: '10mb',
-        flash_swf_url: 'js/plupload/Moxie.swf',
-        dragdrop: true,
-        drop_element: 'c2',
-        max_retries: 1,
-        auto_start: true,
-        init: {
-          'BeforeUpload': function(up, file) {
-            return $scope.buttonDisabled = true;
-          },
-          'FileUploaded': function(up, file, info) {
-            data = angular.fromJson(info);
-            console.log(data);
-            return $timeout(function() {
-              var coverUplaoded;
-              $scope.data.cover = data.key;
-              $scope.cover = imgHost + $scope.data.cover + '?imageView2/1/w/200/h/200';
-              $scope.imgProgress = '上传封面';
-              coverUplaoded = true;
-              if (mp3Uploaded) {
-                return $scope.buttonDisabled = false;
-              }
-            }, 500);
-          },
-          'UploadProgress': function(up, file) {
-            return $scope.imgProgress = file.percent + "%";
-          },
-          'Error': function(up, err, errTip) {
-            $scope.msg = err;
-            return $scope.buttonDisabled = false;
-          }
-        }
-      });
+      return $scope.imgProgress = '上传封面';
     }, 500);
     $scope.cancel = function() {
       $modalInstance.close();
@@ -317,8 +282,6 @@
         msg = '媒资名称必填';
       } else if (!$scope.data.url) {
         msg = '媒资尚未上传';
-      } else if (!$scope.data.cover) {
-        msg = '媒资封面尚未添加';
       }
       if (msg) {
         $scope.msg = msg;
