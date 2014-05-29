@@ -6,6 +6,11 @@
   text-align: center;
   top: 0px;
 }
+.vcenter {
+  display: inline-block;
+  vertical-align: middle;
+  float: none;
+}
 .spacer {
   margin-top: 10px;
 }

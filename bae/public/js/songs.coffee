@@ -76,7 +76,8 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
         <a class="btn btn-xs" ng-class="getButtonStyle(row.getProperty(\'disabled\'))" ng-click="updateStatus(row.entity)" ng-disabled="updating">{{ isDisabled(row.getProperty("disabled")) }}</a></div></div>'}
     ]
   $scope.try = (data)->
-    $window.open(imgHost+data.url+'?avthumb/mp3/ab/64k')
+    $window.open(imgHost+data.url+'?pfop/avthumb/mp3/ab/64k')
+    return true
 
   $scope.edit = (data) ->
     $scope.data = data

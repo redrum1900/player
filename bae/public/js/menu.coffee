@@ -52,8 +52,9 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
   $scope.page = 1
 
   $scope.$on 'ngGridEventScroll', ->
-    $scope.page++
-    $scope.getList()
+    if $scope.module == 'templates/html/menu/home.html'
+      $scope.page++
+      $scope.getList()
 
   $scope.dataGrid =
     data:'list'
@@ -247,12 +248,23 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     ), ->
       return
 
+  getSongs = ->
+    allsongs = []
+    data = $scope.data
+    if data.list && data.list.length
+      data.list.forEach (list)->
+        if list.songs && list.songs.length
+          list.songs.forEach (song)->
+            allsongs.push song.song._id
+    return allsongs
+
   $scope.open = ->
     modalInstance = $modal.open(
       templateUrl:'modal.html'
       controller:ModalInstanceCtrl
       backdrop:'static'
       resolve:
+        all:getSongs
         songs: ->
           arr = []
           $scope.time.songs.forEach (s)->
@@ -263,10 +275,10 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       if data
         time = $scope.time
         time.songs = [] unless time.songs
+        allsongs = getSongs()
         data.forEach (s)->
           has = false
-          time.songs.forEach (s2)->
-            if s._id == s2.song._id
+          if allsongs.indexOf(s._id) != -1
               has = true
           time.songs.push(song:s) unless has
         $scope.refreshSongList()
@@ -382,7 +394,7 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
             <a class="btn btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)" ng-disabled="updating">{{ row.entity.label }}</a></div></div>'}
     ]
 
-ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs) ->
+ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs, all) ->
 
   listUri = '/song/list'
   updateStatusUri = '/song/update/status'
@@ -435,8 +447,13 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
 
   refreshStatus = ->
     $scope.list.forEach (item)->
-      item.style = choosedStyle(item)
-      item.label = choosedLabel(item)
+      if all
+        if all.indexOf(item._id) != -1
+          item.choosed = true
+      console.log all, item._id
+      if !item.choosed
+        item.style = choosedStyle(item)
+        item.label = choosedLabel(item)
 
   choosed = (data)->
     has = false
@@ -462,6 +479,10 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
       $scope.songs.push data
     refreshStatus()
 
+  $scope.try = (data)->
+    window.open(imgHost+data.url+'?pfop/avthumb/mp3/ab/64k')
+    return true
+
   $scope.dataGrid =
     data:'list'
     multiSelect:false
@@ -473,8 +494,9 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs)
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
       {field: "handler", displayName: "操作", width:100, cellTemplate: '
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
-                        <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a>
-                        </div></div>'}
+        <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a>
+        <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a>
+      </div></div>'}
     ]
 
   $scope.tags = []
