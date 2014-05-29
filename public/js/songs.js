@@ -211,7 +211,6 @@
     };
     mp3Uploaded = data ? false : true;
     coverUplaoded = data ? true : true;
-    $scope.percent = 50;
     $timeout(function() {
       var uploader;
       uploader = Qiniu.uploader({
@@ -223,8 +222,6 @@
         container: 'c1',
         max_file_size: '100mb',
         flash_swf_url: 'js/plupload/Moxie.swf',
-        dragdrop: true,
-        drop_element: 'c1',
         max_retries: 1,
         auto_start: true,
         init: {
@@ -261,8 +258,10 @@
             }, 500);
           },
           'UploadProgress': function(up, file) {
-            $scope.percent = file.percent;
-            $scope.msg = file.percent + "%";
+            $scope.$apply(function() {
+              $scope.percent = file.percent;
+              return $scope.msg = file.percent + "%";
+            });
             return console.log(file.percent);
           },
           'Error': function(up, err, errTip) {

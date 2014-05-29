@@ -47,9 +47,8 @@
     padding-left: 0px;
     padding-top: 6px;"
 >
-            <progressbar ng-if="percent" class="progress-striped active" max="100" value="$parent.percent" type="success"><i>{{ $parent.msg }}</i></progressbar>
+            <progressbar ng-if="percent" class="progress-striped active" max="100" value="percent" type="success"><i>{{ msg }}</i></progressbar>
         </div>
-        {!<span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>!}
         <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
         <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
     </div>

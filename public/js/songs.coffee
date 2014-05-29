@@ -152,8 +152,6 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
   mp3Uploaded = if data then false else true
   coverUplaoded = if data then true else true
 
-  $scope.percent = 50
-
   $timeout(->
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
@@ -164,8 +162,6 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       container: 'c1'
       max_file_size: '100mb'
       flash_swf_url: 'js/plupload/Moxie.swf'
-      dragdrop:true
-      drop_element:'c1'
       max_retries: 1
       auto_start: true
       init:
@@ -196,8 +192,9 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
                 $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
-          $scope.percent = file.percent
-          $scope.msg = file.percent + "%"
+          $scope.$apply ->
+            $scope.percent = file.percent
+            $scope.msg = file.percent + "%"
           console.log file.percent
         'Error':(up, err, errTip)->
           $scope.msg = err
