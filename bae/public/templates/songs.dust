@@ -20,11 +20,11 @@
         <h3 class="col-md-4">{{ title }}</h3>
     </div>
     <div class="modal-body" id="c2">
-        <div class="input-group" >
+        <div class="input-group">
             <input type="text" class="form-control" placeholder="媒资名称"
                    ng-model="data.name">
             <span id="c1" class="input-group-btn">
-                <button id="p1" class="btn btn-default" type="button">{{ label }}</button>
+                <button id="p1" class="btn btn-default" type="button">上传媒资</button>
             </span>
         </div>
 
@@ -42,7 +42,14 @@
 
     </div>
     <div class="modal-footer">
-        <span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>
+        <div class="col-md-6" style="
+    height: 20px;
+    padding-left: 0px;
+    padding-top: 6px;"
+>
+            <progressbar ng-if="percent" class="progress-striped active" max="100" value="$parent.percent" type="success"><i>{{ $parent.msg }}</i></progressbar>
+        </div>
+        {!<span style="color: darkred; line-height: 34px; float: left">{{ msg }}</span>!}
         <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
         <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
     </div>
