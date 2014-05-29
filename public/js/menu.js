@@ -5,7 +5,7 @@
   menu = angular.module('MenuApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']);
 
   menu.controller('MenuCtrl', function($scope, $http, $modal, $q, $filter) {
-    var listUri, updateStatus, updateStatusUri, validateTime;
+    var getSongs, listUri, updateStatus, updateStatusUri, validateTime;
     $scope.module = 'templates/html/menu/home.html';
     listUri = '/menu/list';
     updateStatusUri = '/menu/update/status';
@@ -77,8 +77,10 @@
     };
     $scope.page = 1;
     $scope.$on('ngGridEventScroll', function() {
-      $scope.page++;
-      return $scope.getList();
+      if ($scope.module === 'templates/html/menu/home.html') {
+        $scope.page++;
+        return $scope.getList();
+      }
     });
     $scope.dataGrid = {
       data: 'list',
@@ -375,6 +377,21 @@
         }
       }), function() {});
     };
+    getSongs = function() {
+      var allsongs, data;
+      allsongs = [];
+      data = $scope.data;
+      if (data.list && data.list.length) {
+        data.list.forEach(function(list) {
+          if (list.songs && list.songs.length) {
+            return list.songs.forEach(function(song) {
+              return allsongs.push(song.song._id);
+            });
+          }
+        });
+      }
+      return allsongs;
+    };
     return $scope.open = function() {
       var modalInstance;
       modalInstance = $modal.open({
@@ -382,6 +399,7 @@
         controller: ModalInstanceCtrl,
         backdrop: 'static',
         resolve: {
+          all: getSongs,
           songs: function() {
             var arr;
             arr = [];
@@ -393,20 +411,19 @@
         }
       });
       return modalInstance.result.then((function(data) {
-        var time;
+        var allsongs, time;
         if (data) {
           time = $scope.time;
           if (!time.songs) {
             time.songs = [];
           }
+          allsongs = getSongs();
           data.forEach(function(s) {
             var has;
             has = false;
-            time.songs.forEach(function(s2) {
-              if (s._id === s2.song._id) {
-                return has = true;
-              }
-            });
+            if (allsongs.indexOf(s._id) !== -1) {
+              has = true;
+            }
             if (!has) {
               return time.songs.push({
                 song: s
@@ -574,7 +591,7 @@
     };
   };
 
-  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter, songs) {
+  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter, songs, all) {
     var choosed, choosedLabel, choosedStyle, listUri, refreshStatus, updateStatusUri;
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
@@ -643,8 +660,16 @@
     });
     refreshStatus = function() {
       return $scope.list.forEach(function(item) {
-        item.style = choosedStyle(item);
-        return item.label = choosedLabel(item);
+        if (all) {
+          if (all.indexOf(item._id) !== -1) {
+            item.choosed = true;
+          }
+        }
+        console.log(all, item._id);
+        if (!item.choosed) {
+          item.style = choosedStyle(item);
+          return item.label = choosedLabel(item);
+        }
       });
     };
     choosed = function(data) {
@@ -686,6 +711,10 @@
       }
       return refreshStatus();
     };
+    $scope["try"] = function(data) {
+      window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k');
+      return true;
+    };
     $scope.dataGrid = {
       data: 'list',
       multiSelect: false,
@@ -702,7 +731,7 @@
           field: "handler",
           displayName: "操作",
           width: 100,
-          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a style="margin-top: 3px" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
+          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
         }
       ]
     };
