@@ -237,7 +237,9 @@
             }, 500);
           },
           'UploadProgress': function(up, file) {
-            $scope.label = file.percent + "%";
+            $scope.$apply(function() {
+              return $scope.label = file.percent + "%";
+            });
             return console.log(file.percent);
           },
           'Error': function(up, err, errTip) {

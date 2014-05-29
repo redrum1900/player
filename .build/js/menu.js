@@ -731,7 +731,7 @@
           field: "handler",
           displayName: "操作",
           width: 100,
-          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a ng-if="!row.entity.choosed" class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
+          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
         }
       ]
     };
