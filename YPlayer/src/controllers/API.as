@@ -141,8 +141,9 @@ package controllers
 										song.playTime = DateUtil.clone(playTime);
 										playTime.seconds+=s.duration;
 										song._id = s._id;
-										song.url = QNService.HOST+s.url+'?avthumb/mp3/ab/'+o.quality+'k';
-										song.cover = QNService.getQNThumbnail(s.cover, 200, 200);
+//										song.url = QNService.HOST+s.url+'?p/1/avthumb/mp3/ab/'+o.quality+'k';
+										song.url = QNService.HOST+s.url;
+//										song.cover = QNService.getQNThumbnail(s.cover, 200, 200);
 										song.name = s.name
 										song.duration = s.duration;
 										arr.push(song);

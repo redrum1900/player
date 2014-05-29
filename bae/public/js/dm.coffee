@@ -179,7 +179,8 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
               $scope.buttonDisabled = false
           , 500)
         'UploadProgress':(up,file)->
-          $scope.label = file.percent + "%"
+          $scope.$apply ->
+            $scope.label = file.percent + "%"
           console.log file.percent
         'Error':(up, err, errTip)->
           $scope.msg = err

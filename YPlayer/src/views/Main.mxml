@@ -20,6 +20,7 @@
 			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
 
+			import flash.net.navigateToURL;
 			import flash.utils.setTimeout;
 
 			import mx.events.FlexEvent;
@@ -100,6 +101,9 @@
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
+
+				initMore();
+
 			}
 
 			private function autoLogin():void
@@ -219,18 +223,29 @@
 				var now:Date = new Date();
 				var has:Boolean;
 				var vo:SongVO;
+				var temp:Number;
 				for(var i:int; i<api.songs.length; i++){
 					vo = api.songs[i];
-					if(vo != song1 && vo.playTime.getTime()+vo.duration*1000-now.getTime()>1000){
-						vo = api.songs[i];
-						playingIndex = i;
-						has = true;
-						if(i!= api.songs.length-1)
-							song2 = api.songs[i+1];
-						else
-							song2 = null
-						song1 = vo;
-						break;
+					var result:Number = vo.playTime.getTime()+vo.duration*1000-now.getTime()
+					trace(result, vo.duration);
+					if(temp){
+						result-=temp;
+						temp=0;
+					}
+					if(result >1000 && result < vo.duration*1000){
+						if(vo != song1){
+							vo = api.songs[i];
+							playingIndex = i;
+							has = true;
+							if(i!= api.songs.length-1)
+								song2 = api.songs[i+1];
+							else
+								song2 = null
+							song1 = vo;
+							break;
+						}else{
+							temp = result;
+						}
 					}
 				}
 				if(!has){
@@ -431,6 +446,61 @@
 //				}
 			}
 
+			protected function more_clickHandler(event:MouseEvent):void
+			{
+				moreMenu.display(this.stage, event.stageX, event.stageY);
+			}
+
+			private var moreMenu:NativeMenu
+			private const CLOSE:String = 'CLOSE';
+			private const CONTACT_US:String = 'CONTACT_US';
+			private const ABOUT_US:String = 'ABOUT_US';
+			private const CLEAR_CACHE:String = 'CLEAR_CACHE';
+			private const FEEDBACK:String = 'FEEDBACK';
+
+			private function initMore():void
+			{
+				moreMenu = new NativeMenu();
+				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
+				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
+				moreMenu.addItem(getNMI('清空缓存', CLEAR_CACHE));
+				moreMenu.addItem(getNMI('','', true));
+				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
+				moreMenu.addItem(getNMI('关闭程序', CLOSE));
+			}
+
+			private function getNMI(label:String, data:Object, isSeparator:Boolean=false):NativeMenuItem{
+				var i:NativeMenuItem = new NativeMenuItem(label, isSeparator);
+				i.data = data
+				i.addEventListener(Event.SELECT, selectedHandler);
+				return i;
+			}
+
+			protected function selectedHandler(event:Event):void
+			{
+				trace(event.target.data);
+				switch(event.target.data)
+				{
+					case CLOSE:
+						NativeApplication.nativeApplication.exit();
+						break;
+					case FEEDBACK:
+					case CONTACT_US:
+					case ABOUT_US:
+						navigateToURL(new URLRequest('http://weibo.com/u/2662098313'));
+						break;
+					case CLEAR_CACHE:
+						var f:File = File.applicationStorageDirectory.resolvePath('assets');
+						if(f.exists){
+							f.deleteDirectoryAsync(true);
+							f.addEventListener(Event.COMPLETE, function(e:Event):void{
+								PAlert.show('您的缓存已清空，请放心使用');						
+							})
+						}
+						break;
+				}
+			}
+
 		]]>
 	</fx:Script>
 
@@ -444,18 +514,6 @@
 			<s:BitmapImage x="1" source="@Embed('/assets/trasBG.png')"/>
 			<s:Label text="{time}" color="0xd9dee3" fontSize="14" left="20" verticalCenter="0"/>
 			<s:HGroup right="20" verticalCenter="0" verticalAlign="middle">
-				<s:ToggleButton id="randomPlay" change="randomPlay_changeHandler(event)" 
-								mouseDown="event.stopImmediatePropagation()"
-								buttonMode="true"
-								skinClass="skins.RandomButton"
-								toolTip="{randomPlay.selected ? '取消随机播放' : '开启随机播放'}"
-								/>
-				<s:ToggleButton skinClass="skins.InsertButton"
-								buttonMode="true"
-								change="insertSong_changeHandler(event)"
-								id="insertSong"
-								toolTip="{insertSong.selected ? '关闭定时插播' : '定时插播'}"
-								/>
 				<s:ToggleButton skinClass="skins.ListButton"
 								buttonMode="true"
 								change="songList_changeHandler(event)"
@@ -468,6 +526,24 @@
 								change="broList_changeHandler(event)"
 								toolTip="{broList.selected ? '关闭广播' : '手动广播'}"
 								/>
+				<s:ToggleButton skinClass="skins.InsertButton"
+								buttonMode="true"
+								change="insertSong_changeHandler(event)"
+								id="insertSong"
+								toolTip="{insertSong.selected ? '关闭定时插播' : '定时插播'}"
+								/>
+				<s:ToggleButton id="randomPlay" change="randomPlay_changeHandler(event)" 
+								mouseDown="event.stopImmediatePropagation()"
+								buttonMode="true"
+								skinClass="skins.RandomButton"
+								toolTip="{randomPlay.selected ? '取消随机播放' : '开启随机播放'}"
+								/>
+				<s:Button id="more" mouseDown="event.stopImmediatePropagation()"
+						  buttonMode="true"
+						  skinClass="skins.MoreButtonSkin"
+						  toolTip="更多"
+						  click="more_clickHandler(event)"
+						  />
 			</s:HGroup>
 		</s:Group>
 		<s:BitmapImage horizontalCenter="0" source="@Embed('/assets/topBG.png')" id="topBG">
@@ -475,7 +551,8 @@
 				<s:DropShadowFilter angle="90" blurX="3" blurY="3" alpha=".1" />
 			</s:filters>
 		</s:BitmapImage>
-		<s:Label text="乐府时代播放器" fontSize="22" color="0xffffff" left="20" verticalCenter="0"/>
+		<s:BitmapImage source="@Embed('/assets/icon/32.png')" left="20" verticalCenter="0"/>
+		<!--<s:Label text="乐府时代播放器" fontSize="22" color="0xffffff" left="20" verticalCenter="0"/>-->
 		<s:HGroup verticalAlign="middle" right="20" verticalCenter="0" gap="13">
 			<s:Image buttonMode="true" toolTip="静音" click="toVolume(0)" source="@Embed('/assets/v1.png')"/>
 			<s:Group height="12" id="volumeGroup" width="102" mouseDown="volumeGroup_mouseDownHandler(event)">
