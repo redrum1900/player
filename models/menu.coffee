@@ -17,6 +17,7 @@ MenuSchema = new Schema
     repeat:Number #重复次数
     playTime:String #播放时间
     interval:Number #间隔时间
+    day:String #星期
   ]
   type:type:Number,index:true
   quality:type:Number,default:64
