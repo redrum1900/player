@@ -21,7 +21,7 @@
     </div>
     <div class="modal-body" id="c2">
         <div class="input-group" >
-            <input type="text" class="form-control" placeholder="DM名称"
+            <input type="text" class="form-control" placeholder="DM或广播"
                    ng-model="data.name">
             <span id="c1" class="input-group-btn">
                 <button id="p1" class="btn btn-default" type="button">{{ label }}</button>
@@ -51,7 +51,7 @@
         <div class="col-md-4">
             <form class="input-group" ng-submit="search()">
               <input type="text" class="form-control" ng-model="searchText"
-                     placeholder="请输入DM名称进行检索">
+                     placeholder="请输入DM或广播进行检索">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
               </span>

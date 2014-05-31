@@ -14,13 +14,76 @@
 {<body}
     <div id="userMDiv" ng-app="UserMApp" ng-controller="UserMCtrl">
 
+    <script type="text/ng-template" id="broadcast.html">
+    <div class="modal-header">
+        <h3>设置用户广播</h3>
+    </div>
+    <div class="modal-body">
+        <tabset>
+            <tab heading="编辑广播">
+                <div class="row" style="margin-top: 15px">
+                    <div class="col-md-12" style="margin-bottom: 5px" ng-repeat="bro in data.broadcasts">
+                        <div class="col-md-4 vcenter" style="padding-left: 0px">
+                            <input type="text" class="form-control input-sm" ng-model="bro.name" tooltip="广播名称">
+                        </div>
+                        <div  style="padding-left: 0px" class="col-md-2 vcenter" tooltip="设置播放时间，比如8:00">
+                            <input type="text" class="form-control input-sm" ng-model="bro.playTime"
+                                    >
+                        </div>
+                        <div  style="padding-left: 0px" class="col-md-2 vcenter" tooltip="设置播放重复次数">
+                            <input type="text" class="form-control input-sm" ng-model="bro.repeat"
+                                    >
+                        </div>
+                        <div  style="padding-left: 0px" class="col-md-2 vcenter" tooltip="设置重复间隔时间(秒)">
+                            <input type="text" class="form-control input-sm" ng-model="bro.interval"
+                                    >
+                        </div>
+                        <a class="btn btn-default btn-xs vcenter" style="margin-right: 5px" ng-click="try(bro)">试听</a>
+                        <a class="btn btn-warning btn-xs vcenter" ng-click="remove(bro)">移除</a>
+                    </div>
+                </div>
+            </tab>
+            <tab heading="选取广播">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form class="input-group" ng-submit="search()">
+                            <input type="text" class="form-control" ng-model="searchText"
+                                   placeholder="请输入DM或广播进行检索">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="search()">搜索</button>
+              </span>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <tags-input ng-model="$parent.s_tags"
+                                    placeholder="标签筛选"
+                                    on-tag-removed="search()"
+                                    on-tag-added="search()"
+                                    min-length="1">
+                            <auto-complete source="loadTags($query)"
+                                           min-length="1"
+                                    ></auto-complete>
+                        </tags-input>
+                    </div>
+                </div>
+                <div style="height: 150px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
+            </tab>
+        </tabset>
+    </div>
+    <div class="modal-footer">
+        <span style="color: darkred; line-height: 34px; float: left">已选取{{ data.broadcasts.length }}广播</span>
+        <button class="btn btn-primary" ng-click="ok()" ng-disabled="buttonDisabled">确认</button>
+        <button class="btn btn-warning" ng-click="cancel()" ng-disabled="buttonDisabled">取消</button>
+    </div>
+    </script>
+
     <script type="text/ng-template" id="modal.html">
     <div class="modal-header">
         <h3>{{ title }}</h3>
     </div>
     <div class="modal-body">
         <div class="row" style="padding-bottom: 15px">
-            <h5 style="color: #444444; padding-bottom: 10px" class="col-md-8">如果是属于客户的门店则需要选择客户总部，可以为客户设置标签进行分组</h5>
+            <h5 style="color: #444444; padding-bottom: 10px" class="col-md-12">如果是属于客户的门店则需要选择客户总部，可以为客户设置标签进行分组</h5>
         </div>
         <div class="row">
             <div class="col-md-4">

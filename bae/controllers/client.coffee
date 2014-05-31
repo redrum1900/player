@@ -21,7 +21,7 @@ module.exports = (app) ->
       if err
         Error err, res
       else
-        res.json status:true, results:result.id
+        res.json status:true, results:id:result.id,broadcasts:result.broadcasts
 
   app.post '/api/user/code', (req, res)->
     data = req.body

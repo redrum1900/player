@@ -39,7 +39,10 @@
         } else {
           return res.json({
             status: true,
-            results: result.id
+            results: {
+              id: result.id,
+              broadcasts: result.broadcasts
+            }
           });
         }
       });

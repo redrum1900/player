@@ -64,7 +64,7 @@
           label: '歌单推送'
         }, {
           href: '/dm',
-          label: 'DM管理'
+          label: 'DM和广播'
         }, {
           href: '/dm_menu',
           label: 'DM推送'

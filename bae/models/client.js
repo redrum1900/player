@@ -44,6 +44,16 @@
       type: [String],
       index: true
     },
+    broadcasts: [
+      {
+        name: String,
+        playTime: String,
+        url: String,
+        repeat: Number,
+        interval: Number,
+        duration: Number
+      }
+    ],
     man: String,
     man_info: String,
     loginAttempts: {

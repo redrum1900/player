@@ -112,7 +112,7 @@
       ]
     };
     $scope["try"] = function(data) {
-      return $window.open(imgHost + data.url + '?avthumb/mp3/ab/64k', '_blank');
+      return $window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k', '_blank');
     };
     $scope.edit = function(data) {
       $scope.data = data;
@@ -179,13 +179,13 @@
     $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
-    $scope.label = '上传DM';
+    $scope.label = '上传DM或广播';
     if (data._id) {
       $scope.update = true;
-      $scope.title = '编辑DM';
+      $scope.title = '编辑DM或广播';
       $scope.cover = imgHost + $scope.data.cover + '?imageView2/1/w/200/h/200';
     } else {
-      $scope.title = '新增DM';
+      $scope.title = '新增DM或广播';
     }
     $scope.loadTags = function(query) {
       var deffered;
