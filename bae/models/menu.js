@@ -41,7 +41,8 @@
         },
         repeat: Number,
         playTime: String,
-        interval: Number
+        interval: Number,
+        day: String
       }
     ],
     type: {

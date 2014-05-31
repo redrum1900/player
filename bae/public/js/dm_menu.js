@@ -155,6 +155,10 @@
           displayName: "间隔时间（秒）",
           cellTemplate: textCellTemplate
         }, {
+          field: "day",
+          displayName: "星期",
+          cellTemplate: textCellTemplate
+        }, {
           field: "handler",
           displayName: "操作",
           width: 100,
@@ -250,12 +254,26 @@
       }
       if (menu.dm_list) {
         menu.dm_list.forEach(function(dm) {
-          var playTime;
+          var arr, c, days, i, playTime;
           playTime = validateTime(dm.playTime);
           if (!playTime) {
             wrong = '播放时间格式不对，必须是10:10这样的格式，注意冒号';
-            console.log(wrong);
             return false;
+          }
+          if (dm.day) {
+            i = 0;
+            days = ['1', '2', '3', '4', '5', '6', '0'];
+            arr = [];
+            while (i < dm.day.length) {
+              c = dm.day.charAt(i);
+              i++;
+              console.log(c);
+              if (arr.indexOf(c) !== -1 || days.indexOf(c) === -1) {
+                wrong = '星期的格式不对，只能为0-6之间的数字且不能重复，012代表限制在周日、一、二播放';
+                return false;
+              }
+              arr.push(c);
+            }
           }
         });
       }

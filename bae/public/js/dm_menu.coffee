@@ -90,6 +90,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "dm.duration", displayName:"时长（秒）", cellTemplate: textCellTemplate}
       {field: "repeat", displayName:"重复次数", cellTemplate: textCellTemplate}
       {field: "interval", displayName:"间隔时间（秒）", cellTemplate: textCellTemplate}
+      {field: "day", displayName:"星期", cellTemplate: textCellTemplate}
       {field: "handler", displayName: "操作", width:100, cellTemplate: '
       <div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 3px">
@@ -165,8 +166,19 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
         playTime = validateTime(dm.playTime)
         if !playTime
           wrong = '播放时间格式不对，必须是10:10这样的格式，注意冒号'
-          console.log wrong
           return false
+        if dm.day
+          i = 0
+          days = ['1', '2', '3', '4', '5', '6', '0']
+          arr = []
+          while i<dm.day.length
+            c = dm.day.charAt(i)
+            i++
+            console.log c
+            if arr.indexOf(c) != -1 || days.indexOf(c) == -1
+              wrong = '星期的格式不对，只能为0-6之间的数字且不能重复，012代表限制在周日、一、二播放'
+              return false
+            arr.push c
     if wrong
       return confirm(1, '保存失败', wrong)
     else
