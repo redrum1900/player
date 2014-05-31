@@ -11,6 +11,7 @@ ClientSchema = new Schema
   email:type:String, index:{unique:true,sparse:true}
   mobile:type:Number, index:{unique:true,sparse:true}
   tags:type:[String], index:true
+  broadcasts:[name:String,playTime:String,url:String,repeat:Number,interval:Number,duration:Number]
   man:String #联系人姓名
   man_info:String #联系人信息
   loginAttempts:type:Number,default:0

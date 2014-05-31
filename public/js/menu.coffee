@@ -270,7 +270,8 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
         songs: ->
           arr = []
           $scope.time.songs.forEach (s)->
-            arr.push s.song
+            if s.song.duration
+              arr.push s.song
           return arr
     )
     modalInstance.result.then ((data) ->

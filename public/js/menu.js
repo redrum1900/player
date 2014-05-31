@@ -406,7 +406,9 @@
             var arr;
             arr = [];
             $scope.time.songs.forEach(function(s) {
-              return arr.push(s.song);
+              if (s.song.duration) {
+                return arr.push(s.song);
+              }
             });
             return arr;
           }
