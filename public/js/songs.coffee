@@ -63,12 +63,11 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window) ->
     rowHeight:40
     columnDefs:[
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
+      {field: "duration", displayName:"时长", cellTemplate: textCellTemplate}
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
       {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
       {field: "published_at", displayName:"发布时间", cellTemplate: dateCellTemplate}
-      {field: "creator.username", width:88, displayName:"创建者", cellTemplate: textCellTemplate}
-      {field: "created_at", width:100, displayName:"创建时间", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
         <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a>

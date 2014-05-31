@@ -191,7 +191,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     $scope.time.end = time.format('HH:mm')
 
   $scope.saveMenu = ->
-    $scope.handling = false
     menu = angular.copy $scope.data
     if !menu.name
       wrong = '歌单名称不能为空'
@@ -215,17 +214,20 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
             tags.push(tag.text)
       menu.tags = tags
       menu.type = 1
+      $scope.handling = true
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
           console.log 'save menu3', result
           showAlert result.error unless result.status
           $scope.data = result.results
+          $scope.handling = false
           confirm(2, '保存成功', '继续编辑或返回歌单列表', (value)->
             if(!value)
               $scope.back()
           , '继续编辑', '返回列表')
       else
         $http.post('/menu/update',menu).success (result) ->
+          $scope.handling = false
           showAlert result.error unless result.status
           confirm(2, '保存成功', '继续编辑或返回歌单列表', (value)->
             if(!value)
