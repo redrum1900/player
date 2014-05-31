@@ -91,6 +91,10 @@
           displayName: "名称",
           cellTemplate: textCellTemplate
         }, {
+          field: "duration",
+          displayName: "时长",
+          cellTemplate: textCellTemplate
+        }, {
           field: "tags",
           displayName: "标签",
           cellTemplate: textCellTemplate
@@ -105,16 +109,6 @@
         }, {
           field: "published_at",
           displayName: "发布时间",
-          cellTemplate: dateCellTemplate
-        }, {
-          field: "creator.username",
-          width: 88,
-          displayName: "创建者",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "created_at",
-          width: 100,
-          displayName: "创建时间",
           cellTemplate: dateCellTemplate
         }, {
           field: "handler",
