@@ -281,7 +281,7 @@ BroadModalInstanceCtrl = ($scope, $timeout, $http, $modalInstance, $q, $filter, 
   $scope.ok = ->
     wrong = false
     data.broadcasts.forEach (item)->
-      if item.playTime && !validateTime(item.playTime)
+      unless validateTime(item.playTime)
         wrong = true
         return false
     if wrong

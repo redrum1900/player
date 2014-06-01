@@ -392,7 +392,7 @@
       var wrong;
       wrong = false;
       data.broadcasts.forEach(function(item) {
-        if (item.playTime && !validateTime(item.playTime)) {
+        if (!validateTime(item.playTime)) {
           wrong = true;
           return false;
         }
