@@ -155,7 +155,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     return deffered.promise
 
   $scope.saveMenu = ->
-    $scope.handling = false
+    $scope.handling = true
     menu = angular.copy $scope.data
     if !menu.name
       wrong = 'DM列表名称不能为空'
@@ -199,12 +199,14 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           showAlert result.error unless result.status
           $scope.data = result.results
           $scope.data.dm_list = temp_list
+          $scope.handling = false
           confirm(2, '保存成功', '继续编辑或返回DM列表', (value)->
             if(!value)
               $scope.back()
           , '继续编辑', '返回列表')
       else
         $http.post('/menu/update',menu).success (result) ->
+          $scope.handling = false
           showAlert result.error unless result.status
           confirm(2, '保存成功', '继续编辑或返回DM列表', (value)->
             if(!value)
