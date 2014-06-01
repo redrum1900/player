@@ -28,8 +28,9 @@ module.exports = (app)->
 
   saveMenu = (id, callback)->
     Menu.findById(id)
-    .select('name list begin_date end_date quality')
-    .populate('list.songs.song', 'name cover url duration')
+    .select('name list begin_date end_date quality dm_list')
+    .populate('list.songs.song', 'name url duration')
+    .populate('dm_list.dm', 'name url duration')
     .exec (err, result)->
       console.log result
       extra = new qiniu.io.PutExtra()
