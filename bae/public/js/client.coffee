@@ -280,10 +280,11 @@ BroadModalInstanceCtrl = ($scope, $timeout, $http, $modalInstance, $q, $filter, 
   $scope.ok = ->
     wrong = false
     data.broadcasts.forEach (item)->
-      unless validateTime(item.playTime)
-        confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的')
+      if item.playTime && !validateTime(item.playTime)
+        wrong = true
         return false
     if wrong
+      confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的，广播时间可以留空')
       return
     $http.post('/user/update', {_id:data._id,broadcasts:data.broadcasts}).success((result) ->
       confirm(1, '更新失败', result.result) unless result.status
