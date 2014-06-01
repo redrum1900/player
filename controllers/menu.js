@@ -50,7 +50,7 @@
       });
     });
     saveMenu = function(id, callback) {
-      return Menu.findById(id).select('name list begin_date end_date quality').populate('list.songs.song', 'name cover url duration').exec(function(err, result) {
+      return Menu.findById(id).select('name list begin_date end_date quality dm_list').populate('list.songs.song', 'name url duration').populate('dm_list.dm', 'name url duration').exec(function(err, result) {
         var extra, putPolicy, token;
         console.log(result);
         extra = new qiniu.io.PutExtra();
