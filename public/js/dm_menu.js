@@ -242,7 +242,7 @@
     };
     $scope.saveMenu = function() {
       var list, tags, temp_list, wrong;
-      $scope.handling = false;
+      $scope.handling = true;
       menu = angular.copy($scope.data);
       if (!menu.name) {
         wrong = 'DM列表名称不能为空';
@@ -303,6 +303,7 @@
             }
             $scope.data = result.results;
             $scope.data.dm_list = temp_list;
+            $scope.handling = false;
             return confirm(2, '保存成功', '继续编辑或返回DM列表', function(value) {
               if (!value) {
                 return $scope.back();
@@ -311,6 +312,7 @@
           });
         } else {
           return $http.post('/menu/update', menu).success(function(result) {
+            $scope.handling = false;
             if (!result.status) {
               showAlert(result.error);
             }
