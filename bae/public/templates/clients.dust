@@ -26,7 +26,7 @@
                         <div class="col-md-4 vcenter" style="padding-left: 0px">
                             <input type="text" class="form-control input-sm" ng-model="bro.name" tooltip="广播名称">
                         </div>
-                        <div  style="padding-left: 0px" class="col-md-2 vcenter" tooltip="设置播放时间，比如8:00">
+                        <div  style="padding-left: 0px" class="col-md-2 vcenter" tooltip="设置播放时间后会自动播放广播，同时也可以手动播放，比如8:00">
                             <input type="text" class="form-control input-sm" ng-model="bro.playTime"
                                     >
                         </div>
