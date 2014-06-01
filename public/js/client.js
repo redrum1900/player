@@ -382,7 +382,6 @@
         }
       }
       if (wrong) {
-        confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的');
         return false;
       } else {
         return true;
@@ -393,7 +392,7 @@
       wrong = false;
       data.broadcasts.forEach(function(item) {
         if (!validateTime(item.playTime)) {
-          wrong = true;
+          confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的');
           return false;
         }
       });

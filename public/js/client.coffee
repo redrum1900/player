@@ -273,7 +273,6 @@ BroadModalInstanceCtrl = ($scope, $timeout, $http, $modalInstance, $q, $filter, 
           if !time.isValid()
             wrong = true
     if wrong
-      confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的')
       return false
     else
       return true
@@ -282,7 +281,7 @@ BroadModalInstanceCtrl = ($scope, $timeout, $http, $modalInstance, $q, $filter, 
     wrong = false
     data.broadcasts.forEach (item)->
       unless validateTime(item.playTime)
-        wrong = true
+        confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的')
         return false
     if wrong
       return
