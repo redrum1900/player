@@ -174,7 +174,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           while i<dm.day.length
             c = dm.day.charAt(i)
             i++
-            console.log c
             if arr.indexOf(c) != -1 || days.indexOf(c) == -1
               wrong = '星期的格式不对，只能为0-6之间的数字且不能重复，012代表限制在周日、一、二播放'
               return false
