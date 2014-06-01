@@ -18,7 +18,7 @@ module.exports = (app)->
     query.clients = id
     query.end_date = $gt:new Date()
     Menu.find(query)
-    .select('_id updated_at end_date quality')
+    .select('_id updated_at end_date quality type')
     .sort(end_date:1)
     .exec (err, result)->
       if err
@@ -28,7 +28,7 @@ module.exports = (app)->
 
   saveMenu = (id, callback)->
     Menu.findById(id)
-    .select('name list begin_date end_date quality dm_list')
+    .select('name list begin_date end_date quality dm_list type')
     .populate('list.songs.song', 'name url duration')
     .populate('dm_list.dm', 'name url duration')
     .exec (err, result)->

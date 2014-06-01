@@ -36,7 +36,7 @@
       query.end_date = {
         $gt: new Date()
       };
-      return Menu.find(query).select('_id updated_at end_date quality').sort({
+      return Menu.find(query).select('_id updated_at end_date quality type').sort({
         end_date: 1
       }).exec(function(err, result) {
         if (err) {
@@ -50,7 +50,7 @@
       });
     });
     saveMenu = function(id, callback) {
-      return Menu.findById(id).select('name list begin_date end_date quality dm_list').populate('list.songs.song', 'name url duration').populate('dm_list.dm', 'name url duration').exec(function(err, result) {
+      return Menu.findById(id).select('name list begin_date end_date quality dm_list type').populate('list.songs.song', 'name url duration').populate('dm_list.dm', 'name url duration').exec(function(err, result) {
         var extra, putPolicy, token;
         console.log(result);
         extra = new qiniu.io.PutExtra();
