@@ -70,7 +70,6 @@ ClientSchema.statics =
       query.mobile = usernameOrMobileOrEmail
     else
       query.username = usernameOrMobileOrEmail
-    console.log query
     this.findOne query, (err, result)->
       if err
         return callback err

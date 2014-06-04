@@ -4,8 +4,8 @@
 
   songs = angular.module('SongApp', ['ngGrid', 'ngRoute', 'ngTagsInput', 'ui.bootstrap']);
 
-  songs.controller('SongCtrl', function($scope, $http, $modal, $q, $filter, $window) {
-    var listUri, updateStatus, updateStatusUri;
+  songs.controller('SongCtrl', function($scope, $http, $modal, $q, $filter, $window, $timeout) {
+    var choosedFiles, data, done, fileDic, listUri, objectUrl, parseFiles, parseIndex, postSong, updateStatus, updateStatusUri, uploaded, uploader;
     listUri = '/song/list';
     updateStatusUri = '/song/update/status';
     configScopeForNgGrid($scope);
@@ -104,17 +104,13 @@
           cellTemplate: textCellTemplate
         }, {
           field: "published_at",
-          displayName: "发布时间",
+          width: 96,
+          displayName: "发行时间",
           cellTemplate: dateCellTemplate
         }, {
-          field: "creator.username",
-          width: 88,
-          displayName: "创建者",
-          cellTemplate: textCellTemplate
-        }, {
-          field: "created_at",
-          width: 100,
-          displayName: "创建时间",
+          field: "right_date",
+          width: 96,
+          displayName: "版权到期",
           cellTemplate: dateCellTemplate
         }, {
           field: "handler",
@@ -125,14 +121,254 @@
       ]
     };
     $scope["try"] = function(data) {
-      $window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k');
+      $window.open(imgHost + data.url + '?p/1/avthumb/mp3/ab/64k');
       return true;
     };
     $scope.edit = function(data) {
       $scope.data = data;
       return $scope.open();
     };
-    $scope.addMulti = function() {};
+    $scope.multiGrid = {
+      data: 'tobeUploadedFiles',
+      multiSelect: false,
+      enableRowSelection: false,
+      enableSorting: false,
+      enableHighlighting: true,
+      rowHeight: 40,
+      columnDefs: [
+        {
+          field: "name",
+          displayName: "名称",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "duration",
+          displayName: "时长",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "tags",
+          displayName: "标签",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "artist",
+          displayName: "歌手",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "album",
+          displayName: "专辑",
+          cellTemplate: textCellTemplate
+        }, {
+          field: "published_at",
+          width: 96,
+          displayName: "发行时间",
+          cellTemplate: dateCellTemplate
+        }, {
+          field: "right_date",
+          width: 96,
+          displayName: "版权到期",
+          cellTemplate: dateCellTemplate
+        }, {
+          field: "percent",
+          width: 60,
+          displayName: "进度",
+          cellTemplate: textCellTemplate
+        }
+      ]
+    };
+    data = '';
+    choosedFiles = '';
+    objectUrl = '';
+    parseIndex = 0;
+    done = 2;
+    fileDic = {};
+    $("#audio2").on("canplaythrough", function(e) {
+      data.duration = e.currentTarget.duration;
+      URL.revokeObjectURL(objectUrl);
+      done++;
+      return $scope.$apply(function() {
+        return parseFiles();
+      });
+    });
+    parseFiles = function() {
+      var File, file;
+      if (done === 2 && data) {
+        $scope.tobeUploadedFiles.push(data);
+      }
+      if (parseIndex === choosedFiles.length || done !== 2) {
+        if (parseIndex === choosedFiles.length && done === 2) {
+          console.log($scope.tobeUploadedFiles.length, 'ok', parseIndex, choosedFiles.length, done);
+        }
+        return;
+      }
+      done = 0;
+      data = {};
+      file = choosedFiles[parseIndex];
+      fileDic[file.name] = data;
+      parseIndex++;
+      File = file.getSource().getSource();
+      objectUrl = URL.createObjectURL(File);
+      $("#audio2").prop("src", objectUrl);
+      return ID3.loadTags(file.name, function() {
+        var arr, comment, tags;
+        tags = ID3.getAllTags(file.name);
+        data.name = tags.title;
+        data.artist = tags.artist;
+        data.album = tags.album;
+        data.published_at = tags.year;
+        data.size = file.size;
+        if (tags.comment) {
+          comment = tags.comment.text;
+        }
+        if (comment) {
+          arr = comment.split('|');
+          arr.forEach(function(o) {
+            var a2, key, value;
+            a2 = o.split('=');
+            if (a2.length === 2) {
+              key = a2[0];
+              value = a2[1];
+              switch (key) {
+                case 'c':
+                  return data.company = value;
+                case 't':
+                  return data.tags = value.split(',');
+                case 'ci':
+                  return data.writer = value;
+                case 'qu':
+                  return data.composer = value;
+                case 'r':
+                  return data.right_date = value;
+              }
+            }
+          });
+        }
+        done++;
+        return $scope.$apply(function() {
+          return parseFiles();
+        });
+      }, {
+        tags: ["artist", "title", "album", "year", "comment", "track", "genre", "lyrics", "picture"],
+        dataReader: FileAPIReader(File)
+      });
+    };
+    $scope.tobeUploadedFiles = [];
+    $scope.startUpload = function() {
+      if (choosedFiles && choosedFiles.length) {
+        $scope.buttonDisabled = true;
+        return uploader.start();
+      }
+    };
+    uploader = '';
+    uploaded = 0;
+    $scope.addMulti = function() {
+      $scope.module = 'templates/html/song/multi.html';
+      return $timeout(function() {
+        return uploader = Qiniu.uploader({
+          runtimes: 'html5,flash,html4',
+          browse_button: 'p11',
+          uptoken_url: '/upload/token/mp3',
+          unique_names: true,
+          max_retries: 3,
+          chunk_size: '4mb',
+          filters: {
+            mime_types: [
+              {
+                title: 'mp3媒资',
+                extensions: 'mp3'
+              }
+            ]
+          },
+          unique_names: true,
+          domain: imgHost,
+          container: 'c11',
+          max_file_size: '100mb',
+          flash_swf_url: 'js/plupload/Moxie.swf',
+          max_retries: 1,
+          auto_start: false,
+          init: {
+            'FilesAdded': function(up, files) {
+              var has, temp;
+              if (choosedFiles && choosedFiles.length) {
+                choosedFiles.forEach(function(file) {
+                  return uploader.removeFile(file);
+                });
+              }
+              console.log('cf', files.length, choosedFiles);
+              choosedFiles = files;
+              temp = {};
+              has = false;
+              files.forEach(function(file) {
+                if (temp[file.name]) {
+                  confirm(1, '出错', '上传文件名称不能存在相同的');
+                  has = true;
+                } else {
+                  return temp[file.name] = true;
+                }
+              });
+              if (!has) {
+                return $scope.$apply(function() {
+                  data = '';
+                  parseIndex = 0;
+                  uploaded = 0;
+                  $scope.tobeUploadedFiles.length = 0;
+                  parseFiles();
+                  return $scope.msg = '选择了 ' + choosedFiles.length + ' 文件';
+                });
+              }
+            },
+            'UploadComplete': function() {
+              return $scope.$apply(function() {
+                $scope.buttonDisabled = false;
+                choosedFiles = null;
+                console.log('all uploaded');
+                return $scope.msg = '全部上传完毕，共计' + uploaded;
+              });
+            },
+            'FileUploaded': function(up, file, info) {
+              data = fileDic[file.name];
+              info = angular.fromJson(info);
+              return $scope.$apply(function() {
+                data.url = info.key;
+                console.log('uploaded', file.name, data);
+                return postSong(data);
+              });
+            },
+            'UploadProgress': function(up, file) {
+              console.log('uploading', file.name, file.percent);
+              data = fileDic[file.name];
+              return $scope.$apply(function() {
+                return data.percent = file.percent + '%';
+              });
+            },
+            'Error': function(up, err, errTip) {
+              $scope.msg = err;
+              return $scope.buttonDisabled = false;
+            }
+          }
+        });
+      }, 500);
+    };
+    postSong = function(data) {
+      return $http.post('/song/add', data).success(function(result) {
+        if (!result.status) {
+          confirm(1, '添加到服务器出错', result.error);
+          $scope.buttonDisabled = false;
+          $scope.msg = '点击开始再试试';
+          return uploader.stop();
+        } else {
+          uploaded++;
+          return $scope.msg = '已上传 ' + uploaded + '/' + parseIndex + ' ';
+        }
+      }).error(function(error) {
+        confirm(1, '添加到服务器出错', result.error);
+        $scope.buttonDisabled = false;
+        $scope.msg = '点击开始再试试';
+        return uploader.stop();
+      });
+    };
+    $scope.back = function() {
+      $scope.module = 'templates/html/song/home.html';
+      return $scope.search();
+    };
     $scope.add = function() {
       $scope.data = {};
       $scope.open();
@@ -191,7 +427,7 @@
   });
 
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, tags, http, $q, $filter) {
-    var coverUplaoded, mp3Uploaded;
+    var coverUplaoded, mp3Uploaded, objectUrl;
     $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
@@ -211,12 +447,27 @@
     };
     mp3Uploaded = data ? false : true;
     coverUplaoded = data ? true : true;
+    objectUrl = '';
+    $("#audio").on("canplaythrough", function(e) {
+      $scope.data.duration = e.currentTarget.duration;
+      console.log($scope.data.duration);
+      return URL.revokeObjectURL(objectUrl);
+    });
     $timeout(function() {
       var uploader;
       uploader = Qiniu.uploader({
         runtimes: 'html5,flash,html4',
         browse_button: 'p1',
         uptoken_url: '/upload/token/mp3',
+        prevent_duplicates: true,
+        filters: {
+          mime_types: [
+            {
+              title: 'mp3媒资',
+              extensions: 'mp3'
+            }
+          ]
+        },
         unique_names: true,
         domain: imgHost,
         container: 'c1',
@@ -225,36 +476,65 @@
         max_retries: 1,
         auto_start: true,
         init: {
-          'BeforeUpload': function(up, file) {
-            return $scope.buttonDisabled = true;
+          'FilesAdded': function(up, files) {
+            var File, file;
+            file = files[0];
+            $scope.buttonDisabled = true;
+            data = $scope.data;
+            File = file.getSource().getSource();
+            objectUrl = URL.createObjectURL(File);
+            $("#audio").prop("src", objectUrl);
+            return ID3.loadTags(file.name, function() {
+              var arr, comment;
+              tags = ID3.getAllTags(file.name);
+              console.log(tags);
+              data.name = tags.title;
+              data.artist = tags.artist;
+              data.album = tags.album;
+              data.published_at = tags.year;
+              data.size = file.size;
+              if (tags.comment) {
+                comment = tags.comment.text;
+              }
+              if (comment) {
+                arr = comment.split('|');
+                return arr.forEach(function(o) {
+                  var a2, key, value;
+                  a2 = o.split('=');
+                  if (a2.length === 2) {
+                    key = a2[0];
+                    value = a2[1];
+                    switch (key) {
+                      case 'c':
+                        return data.company = value;
+                      case 't':
+                        return data.tags = value.split(',');
+                      case 'ci':
+                        return data.writer = value;
+                      case 'qu':
+                        return data.composer = value;
+                      case 'r':
+                        return data.right_date = value;
+                    }
+                  }
+                });
+              }
+            }, {
+              tags: ["artist", "title", "album", "year", "comment", "track", "genre", "lyrics", "picture"],
+              dataReader: FileAPIReader(File)
+            });
           },
           'FileUploaded': function(up, file, info) {
             data = angular.fromJson(info);
             console.log(data);
             return $timeout(function() {
               $scope.data.url = data.key;
-              $scope.data.size = file.size;
-              $scope.msg = '上传成功，解析音频信息';
-              return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
-                var format;
-                format = result.format;
-                data = $scope.data;
-                data.duration = format.duration;
-                if (format.tags) {
-                  format = format.tags;
-                  data.name = format.title;
-                  data.artist = format.artist;
-                  data.album = format.album;
-                  data.published_at = format.TYER;
-                }
-                $scope.msg = '解析完成，可以添加';
-                $scope.percent = 0;
-                console.log(format);
-                mp3Uploaded = true;
-                if (coverUplaoded) {
-                  return $scope.buttonDisabled = false;
-                }
-              });
+              $scope.msg = '上传成功';
+              $scope.percent = 0;
+              mp3Uploaded = true;
+              if (coverUplaoded) {
+                return $scope.buttonDisabled = false;
+              }
             }, 500);
           },
           'UploadProgress': function(up, file) {

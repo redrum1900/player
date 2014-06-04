@@ -70,12 +70,14 @@
         </div>
         <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="add()">新增</button>
     </div>
+    <audio id="audio" style="display: none"></audio>
 
     <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="dataGrid" ></div>
 
     </div>
     <script src="../components/angular-route/angular-route.min.js"></script>
     <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="../components/id3-minimized.js"></script>
     <script src="../components/qiniu.js"></script>
     <script src="../components/plupload.full.min.js"></script>
     <script src="js/dm.js"></script>

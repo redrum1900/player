@@ -334,7 +334,7 @@
       ]
     };
     $scope["try"] = function(data) {
-      window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k', '_blank');
+      window.open(imgHost + data.url + '?p/1/avthumb/mp3/ab/64k', '_blank');
     };
     $scope.tags = [];
     getDict($http, 'DMTags', function(result) {

@@ -238,7 +238,7 @@ BroadModalInstanceCtrl = ($scope, $timeout, $http, $modalInstance, $q, $filter, 
     ]
 
   $scope.try = (data)->
-    window.open imgHost+data.url+'?pfop/avthumb/mp3/ab/64k','_blank'
+    window.open imgHost+data.url+'?p/1/avthumb/mp3/ab/64k','_blank'
     return
 
   $scope.tags = []

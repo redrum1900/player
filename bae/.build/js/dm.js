@@ -112,7 +112,7 @@
       ]
     };
     $scope["try"] = function(data) {
-      return $window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k', '_blank');
+      return $window.open(imgHost + data.url + '?p/1/avthumb/mp3/ab/64k', '_blank');
     };
     $scope.edit = function(data) {
       $scope.data = data;

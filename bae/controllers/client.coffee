@@ -7,6 +7,8 @@ Redis = require '../lib/database/redis'
 SMS = require '../lib/sms'
 EventProxy = require 'eventproxy'
 updateTags = models.updateTags
+logger = require('log4js').getDefaultLogger()
+Log = models.Log
 
 module.exports = (app) ->
 
@@ -23,57 +25,19 @@ module.exports = (app) ->
       else
         res.json status:true, results:id:result.id,broadcasts:result.broadcasts
 
-  app.post '/api/user/code', (req, res)->
-    data = req.body
-    if !data.mobile || !data.udid
-      return res.json status:false, result:'手机号或设备号不能为空'
-    Redis.getCode data.mobile, (result)->
-      if result
-        return res.json status:false, result:'需要60秒后才能再试'
-      else
-        ep = new EventProxy()
-        code = Math.ceil(Math.random() * 899999)+100000;
-        ep.once 'send', ->
-          SMS.send data.mobile, '联想移动用户体验验证码：'+code, (result)->
-          if result.status
-            Redis.setCode data.mobile, code
-            res.json status:true
-          else
-            res.json status:false
-        User.findOne mobile:data.mobile, (err, result)->
-          if err
-            reply err, result, res
-          else if result
-            result.password = code
-            result.save (err, result)->
-              if err
-                res.json status:false
-              else
-                ep.emit 'send'
-          else
-            User.findOne uidi:data.udid, (err, result)->
-              if err
-                reply err, result, res
-              else if result
-                unless result.mobile or result.mobile == data.mobile
-                  result.password = code
-                  result.mobile = data.mobile
-                  result.save (err, result)->
-                    if err
-                      reply err, result, res
-                    else
-                      ep.emit 'send'
-                else
-                  user = new User data
-                  user.come_from = 'app'
-                  user.password = code
-                  user.save (err, result)->
-                    if err
-                      reply err, result, res
-                    else
-                      ep.emit 'send'
-              else
-                res.json status:false, result:'用户设备尚未初始化'
+  app.get '/api/refresh', (req, res)->
+    data = req.query
+    if !data.id
+      logger.warn 'no id to refresh', req.ip
+      return res.json status:false
+
+    ep = new EventProxy()
+    ep.all 'log','bro','menu',(log, bro, menu)->
+
+    ep.fail (err)->
+      Error err, res
+
+    Log.findOneAndUpdate()
 
   app.get '/user/list', auth.isAuthenticated(), (req, res) ->
     data = req.query

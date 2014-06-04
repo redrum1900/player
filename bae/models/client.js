@@ -162,7 +162,6 @@
       } else {
         query.username = usernameOrMobileOrEmail;
       }
-      console.log(query);
       return this.findOne(query, function(err, result) {
         if (err) {
           return callback(err);

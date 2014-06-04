@@ -72,7 +72,7 @@ dm.controller 'DMCtrl', ($scope, $http, $modal, $q, $filter, $window) ->
     ]
 
   $scope.try = (data)->
-    $window.open imgHost+data.url+'?pfop/avthumb/mp3/ab/64k','_blank'
+    $window.open imgHost+data.url+'?p/1/avthumb/mp3/ab/64k','_blank'
 
   $scope.edit = (data) ->
     $scope.data = data
@@ -141,6 +141,10 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     deffered.resolve $filter('filter') $scope.tags, query
     return deffered.promise
 
+  $("#audio").on "canplaythrough", (e)->
+    $scope.data.duration = e.currentTarget.duration
+    URL.revokeObjectURL(objectUrl);
+
   $timeout(->
     uploader = Qiniu.uploader(
       runtimes: 'html5,flash,html4'
@@ -148,6 +152,9 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       uptoken_url:'/upload/token/mp3'
       unique_names: true
       domain: imgHost
+      prevent_duplicates:true
+      filters:
+        mime_types:[title:'mp3格式的DM', extensions:'mp3']
       container: 'c1'
       max_file_size: '100mb'
       flash_swf_url: 'js/plupload/Moxie.swf'
@@ -156,27 +163,36 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
       max_retries: 1
       auto_start: true
       init:
+        'FilesAdded': (up, files)->
+          file = files[0]
+          $scope.buttonDisabled = true
+          data = $scope.data
+          File = file.getSource().getSource()
+          objectUrl = URL.createObjectURL(File)
+          $("#audio").prop("src", objectUrl)
         'BeforeUpload': (up, file)->
           $scope.buttonDisabled = true
         'FileUploaded':(up, file, info)->
           data = angular.fromJson info
           console.log data
+          $scope.buttonDisabled = false
           $timeout(->
             $scope.data.url = data.key
             $scope.data.size = file.size
+            data = $scope.data
+            data.name = file.name
             $scope.label = '上传成功'
-            http.get('http://yfcdn.qiniudn.com/'+data.key+'?avinfo').success (result)->
-              format = result.format
-              data = $scope.data
-              data.duration = format.duration
-              if format.tags
-                format = format.tags
-                data.name = format.title
-                data.artist = format.artist
-                data.album = format.album
-                data.published_at = format.TYER
-              console.log format
-              $scope.buttonDisabled = false
+#            http.get('http://yfcdn.qiniudn.com/'+data.key+'?avinfo').success (result)->
+#              format = result.format
+#              data.duration = format.duration
+#              if format.tags
+#                format = format.tags
+#                data.name = format.title
+#                data.artist = format.artist
+#                data.album = format.album
+#                data.published_at = format.TYER
+#              console.log format
+
           , 500)
         'UploadProgress':(up,file)->
           $scope.$apply ->

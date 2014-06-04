@@ -289,7 +289,6 @@
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
-      $scope.handling = false;
       menu = angular.copy($scope.data);
       if (!menu.name) {
         wrong = '歌单名称不能为空';
@@ -324,6 +323,7 @@
         }
         menu.tags = tags;
         menu.type = 1;
+        $scope.handling = true;
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
             console.log('save menu3', result);
@@ -331,6 +331,7 @@
               showAlert(result.error);
             }
             $scope.data = result.results;
+            $scope.handling = false;
             return confirm(2, '保存成功', '继续编辑或返回歌单列表', function(value) {
               if (!value) {
                 return $scope.back();
@@ -339,6 +340,7 @@
           });
         } else {
           return $http.post('/menu/update', menu).success(function(result) {
+            $scope.handling = false;
             if (!result.status) {
               showAlert(result.error);
             }
@@ -404,7 +406,9 @@
             var arr;
             arr = [];
             $scope.time.songs.forEach(function(s) {
-              return arr.push(s.song);
+              if (s.song.duration) {
+                return arr.push(s.song);
+              }
             });
             return arr;
           }
@@ -712,7 +716,7 @@
       return refreshStatus();
     };
     $scope["try"] = function(data) {
-      window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k');
+      window.open(imgHost + data.url + '?p/1/avthumb/mp3/ab/64k');
       return true;
     };
     $scope.dataGrid = {

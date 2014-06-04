@@ -22,6 +22,10 @@
     },
     artist: String,
     album: String,
+    company: String,
+    writer: String,
+    composer: String,
+    right_date: String,
     published_at: Date,
     disabled: {
       type: Boolean,

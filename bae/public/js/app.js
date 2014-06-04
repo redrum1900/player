@@ -1,6 +1,7 @@
 'use strict';
 var imgHost = 'http://yfcdn.qiniudn.com/';
 var uploadHost = 'http://up.qiniu.com/';
+var URL = window.URL = window.URL || window.webkitURL;
 
 var getDict = function(http, key, callback){
     http.get('/dict/get', {params: {key: key}}).success(function (result) {
