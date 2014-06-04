@@ -483,7 +483,7 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
     refreshStatus()
 
   $scope.try = (data)->
-    window.open(imgHost+data.url+'?pfop/avthumb/mp3/ab/64k')
+    window.open(imgHost+data.url+'?p/1/avthumb/mp3/ab/64k')
     return true
 
   $scope.dataGrid =

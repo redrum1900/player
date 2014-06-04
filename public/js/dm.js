@@ -112,7 +112,7 @@
       ]
     };
     $scope["try"] = function(data) {
-      return $window.open(imgHost + data.url + '?pfop/avthumb/mp3/ab/64k', '_blank');
+      return $window.open(imgHost + data.url + '?p/1/avthumb/mp3/ab/64k', '_blank');
     };
     $scope.edit = function(data) {
       $scope.data = data;
@@ -193,6 +193,10 @@
       deffered.resolve($filter('filter')($scope.tags, query));
       return deffered.promise;
     };
+    $("#audio").on("canplaythrough", function(e) {
+      $scope.data.duration = e.currentTarget.duration;
+      return URL.revokeObjectURL(objectUrl);
+    });
     $timeout(function() {
       var uploader;
       return uploader = Qiniu.uploader({
@@ -201,6 +205,15 @@
         uptoken_url: '/upload/token/mp3',
         unique_names: true,
         domain: imgHost,
+        prevent_duplicates: true,
+        filters: {
+          mime_types: [
+            {
+              title: 'mp3格式的DM',
+              extensions: 'mp3'
+            }
+          ]
+        },
         container: 'c1',
         max_file_size: '100mb',
         flash_swf_url: 'js/plupload/Moxie.swf',
@@ -209,31 +222,28 @@
         max_retries: 1,
         auto_start: true,
         init: {
+          'FilesAdded': function(up, files) {
+            var File, file, objectUrl;
+            file = files[0];
+            $scope.buttonDisabled = true;
+            data = $scope.data;
+            File = file.getSource().getSource();
+            objectUrl = URL.createObjectURL(File);
+            return $("#audio").prop("src", objectUrl);
+          },
           'BeforeUpload': function(up, file) {
             return $scope.buttonDisabled = true;
           },
           'FileUploaded': function(up, file, info) {
             data = angular.fromJson(info);
             console.log(data);
+            $scope.buttonDisabled = false;
             return $timeout(function() {
               $scope.data.url = data.key;
               $scope.data.size = file.size;
-              $scope.label = '上传成功';
-              return http.get('http://yfcdn.qiniudn.com/' + data.key + '?avinfo').success(function(result) {
-                var format;
-                format = result.format;
-                data = $scope.data;
-                data.duration = format.duration;
-                if (format.tags) {
-                  format = format.tags;
-                  data.name = format.title;
-                  data.artist = format.artist;
-                  data.album = format.album;
-                  data.published_at = format.TYER;
-                }
-                console.log(format);
-                return $scope.buttonDisabled = false;
-              });
+              data = $scope.data;
+              data.name = file.name;
+              return $scope.label = '上传成功';
             }, 500);
           },
           'UploadProgress': function(up, file) {

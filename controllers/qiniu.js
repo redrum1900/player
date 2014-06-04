@@ -24,6 +24,7 @@
       putPolicy = new qiniu.rs.PutPolicy('yfcdn');
       putPolicy.expires = 3600;
       putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k';
+      putPolicy.persistentNotifyUrl = 'http://m.yuefu.com/notify';
       return res.json({
         uptoken: putPolicy.token()
       });
@@ -41,7 +42,7 @@
       });
     });
     app.post('/notify', function(req, res) {
-      logger.trace(JSON.stringify(req.body));
+      logger.trace('notify:' + JSON.stringify(req.body));
       return res.json({
         status: true,
         data: req.body

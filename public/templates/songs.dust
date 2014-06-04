@@ -54,6 +54,9 @@
     </div>
     </script>
 
+    <audio id="audio" style="display: none"></audio>
+    <audio id="audio2" style="display: none"></audio>
+
     <div ng-include="module">
     </div>
 
@@ -61,6 +64,7 @@
 
     <script src="../components/angular-route/angular-route.min.js"></script>
     <script src="components/ng-tags-input/ng-tags-input.min.js"></script>
+    <script src="../components/id3-minimized.js"></script>
     <script src="../components/qiniu.js"></script>
     <script src="../components/plupload.full.min.js"></script>
     <script src="js/songs.js"></script>

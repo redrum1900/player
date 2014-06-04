@@ -2,7 +2,6 @@ Redis = require '../database/redis'
 
 module.exports = ->
   routes = [
-    '/api/menu/get'
   ]
   return (req, res, next)->
     path = req._parsedUrl.pathname

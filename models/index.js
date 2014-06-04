@@ -18,6 +18,8 @@
 
   require('./dm');
 
+  require('./log');
+
   module.exports = {
     SMS: Mongoose.model("SMS"),
     Manager: Mongoose.model("Manager"),
@@ -26,6 +28,7 @@
     Song: Mongoose.model('Song'),
     Menu: Mongoose.model('Menu'),
     DM: Mongoose.model('DM'),
+    Log: Mongoose.model('Log'),
     updateTags: function(key, tags) {
       var Dict;
       if (tags) {

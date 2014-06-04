@@ -15,6 +15,7 @@ module.exports = (app)->
     putPolicy = new qiniu.rs.PutPolicy('yfcdn')
     putPolicy.expires = 3600
     putPolicy.persistentOps = 'avthumb/mp3/ab/192k;avthumb/mp3/ab/64k'
+    putPolicy.persistentNotifyUrl = 'http://m.yuefu.com/notify'
     res.json uptoken:putPolicy.token()
 
   app.get '/upload/token/mp3/auto', auth.isAuthenticated(), (req, res)->
@@ -27,7 +28,7 @@ module.exports = (app)->
     res.json uptoken:putPolicy.token()
 
   app.post '/notify', (req, res)->
-    logger.trace JSON.stringify(req.body)
+    logger.trace 'notify:'+JSON.stringify(req.body)
     res.json status:true, data:req.body
 
   app.post '/callback', (req, res)->
