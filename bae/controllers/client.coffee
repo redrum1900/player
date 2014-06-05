@@ -1,5 +1,6 @@
 models = require('../models')
 User = models.Client
+Menu = models.Menu
 auth = require '../lib/auth'
 Error = require '../lib/error'
 UpdateObject = require('../lib/utils').updateObject
@@ -9,6 +10,7 @@ EventProxy = require 'eventproxy'
 updateTags = models.updateTags
 logger = require('log4js').getDefaultLogger()
 Log = models.Log
+moment = require 'moment'
 
 module.exports = (app) ->
 
@@ -33,11 +35,24 @@ module.exports = (app) ->
 
     ep = new EventProxy()
     ep.all 'log','bro','menu',(log, bro, menu)->
+      res.json status:true,results:bros:bro.broadcasts,menus:menu
 
     ep.fail (err)->
       Error err, res
 
-    Log.findOneAndUpdate()
+    Log.findOneAndUpdate
+      client:data.id
+      created_at:moment().format("YYYY-MM-DD")
+    ,
+      $inc:count:1
+    ,
+      upsert:true
+    , ep.done('log')
+
+    User.findById(data.id).select('broadcasts').exec ep.done('bro')
+
+    Menu.find(disabled:false,clients:data.id,end_date:$gt:new Date()).select('_id updated_at end_date quality type').sort(end_date:1).exec ep.done('menu')
+
 
   app.get '/user/list', auth.isAuthenticated(), (req, res) ->
     data = req.query
