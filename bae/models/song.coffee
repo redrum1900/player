@@ -14,7 +14,7 @@ SongSchema = new Schema
   writer:String   #词作者
   composer:String #曲作者
   right_date:String #版权到期
-  published_at:Date
+  published_at:String #发行年份
   disabled:type:Boolean,default:false
   creator:type:Schema.Types.ObjectId,ref:"Manager"
   updator:type:Schema.Types.ObjectId,ref:"Manager"

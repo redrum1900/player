@@ -26,7 +26,7 @@
     writer: String,
     composer: String,
     right_date: String,
-    published_at: Date,
+    published_at: String,
     disabled: {
       type: Boolean,
       "default": false
