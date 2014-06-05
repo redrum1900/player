@@ -153,10 +153,15 @@
           displayName: "是否允许随机播放",
           cellTemplate: textCellTemplate
         }, {
+          field: "index",
+          displayName: "排序",
+          width: 55,
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <input style="width: 40px;margin-right: 8px" tooltip-append-to-body="true" ng-model="row.entity.index" tooltip="排序，值越小越靠前"> </div></div>'
+        }, {
           field: "handler",
           displayName: "操作",
-          width: 180,
-          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <input type="checkbox" style="margin-top: 7px; margin-right: 8px" ng-checked="row.entity.allow_circle" tooltip="允许随机循环" tooltip-append-to-body="true" ng-model="row.entity.allow_circle"> <input style="width: 40px;margin-right: 8px" tooltip-append-to-body="true" ng-model="row.entity.index" tooltip="排序，值越小越靠前"> <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a> </div></div>'
+          width: 120,
+          cellTemplate: '<div class="row" ng-style="{height: rowHeight}"> <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <input type="checkbox" style="margin-top: 7px; margin-right: 8px" ng-checked="row.entity.allow_circle" tooltip="允许随机循环" tooltip-append-to-body="true" ng-model="row.entity.allow_circle"> <a class="btn btn-warning btn-xs" ng-click="removeSong(row.entity)">移除</a> </div></div>'
         }
       ]
     };
@@ -260,7 +265,8 @@
     };
     $scope.refreshSongList = function() {
       var begin, h, i, m, song, songs, time;
-      songs = $scope.time.songs;
+      songs = angular.copy($scope.time.songs);
+      $scope.time.songs = null;
       begin = $scope.time.begin;
       if (!begin) {
         return;
@@ -285,6 +291,7 @@
         i++;
       }
       time.add('m', 1);
+      $scope.time.songs = songs;
       return $scope.time.end = time.format('HH:mm');
     };
     $scope.saveMenu = function() {
