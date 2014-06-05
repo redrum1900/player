@@ -66,7 +66,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window, $timeo
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
       {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
-      {field: "published_at", width:96, displayName:"发行时间", cellTemplate: dateCellTemplate}
+      {field: "published_at", width:96, displayName:"发行时间", cellTemplate: textCellTemplate}
       {field: "right_date", width:96, displayName:"版权到期", cellTemplate: dateCellTemplate}
       {field: "handler", displayName: "操作", width:150, cellTemplate: '<div class="row" ng-style="{height: rowHeight}">
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
@@ -95,7 +95,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window, $timeo
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
       {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
-      {field: "published_at", width:96, displayName:"发行时间", cellTemplate: dateCellTemplate}
+      {field: "published_at", width:96, displayName:"发行时间", cellTemplate: textCellTemplate}
       {field: "right_date", width:96, displayName:"版权到期", cellTemplate: dateCellTemplate}
       {field: "percent", width:60, displayName:"进度", cellTemplate: textCellTemplate}
     ]
