@@ -5,5 +5,9 @@ qiniu.conf.SECRET_KEY = 'bJSwo1--7pa-HD3g7fFHaI6e_TOYP1NCk3Z7XM7G';
 
 client = new qiniu.rs.Client()
 
-client.stat 'yfcdn', 'temp/1.mp3', (err, result)->
-  console.log err, result
+moment = require 'moment'
+
+console.log moment().format("YYYY-MM-DD")
+
+#client.stat 'yfcdn', 'temp/1.mp3', (err, result)->
+#  console.log err, result
