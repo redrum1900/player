@@ -85,11 +85,12 @@ module.exports = (app)->
             time.add 's', song.duration
           else
             song.duration = 0
-          song.artist = '' unless song.artist
           m = moment(second:song.duration).minutes()
           m = '0'+m if m<10
           s = moment(second:song.duration).seconds()
           s = '0'+s if s<10
+          song.name = '' unless song.name
+          song.artist = '' unless song.artist
           data.push([song.time, song.name, song.artist, m+':'+s, allow])
           i++
       buffer = xlsx.build
