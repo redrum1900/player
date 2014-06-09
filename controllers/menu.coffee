@@ -56,7 +56,7 @@ module.exports = (app)->
       return res.json status:false, result:'名称不对'
     Menu.findById(id)
     .select('name list begin_date end_date')
-    .populate('list.songs.song', 'name duration')
+    .populate('list.songs.song', 'name artist duration')
     .exec (err, result)->
       data = []
       data.push(['歌单名称','开始日期', '结束日期'])
@@ -93,7 +93,7 @@ module.exports = (app)->
         buffer = xlsx.build
           worksheets:["name":result.name, "data":data]
           defaultFontName: 'Arial',defaultFontSize: 12
-        res.send data
+        res.json data:data, l:data.length
 
   updateTags = (tags)->
     if tags

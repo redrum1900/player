@@ -10,6 +10,8 @@ fs = require 'fs'
 client = new qiniu.rs.Client()
 moment = require 'moment'
 
+data =
+
 Menu.findById("53908926fc534a1955a3d960")
 .select('name list begin_date end_date')
 .populate('list.songs.song', 'name duration')
