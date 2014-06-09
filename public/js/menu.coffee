@@ -133,6 +133,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     $scope.data.list.push time
 
   $scope.export = ->
+    data = $scope.data
     window.open('/menu/report/'+data._id+'/'+data.name+'.xlsx', '_blank')
     return
 

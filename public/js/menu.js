@@ -207,6 +207,8 @@
       return $scope.data.list.push(time);
     };
     $scope["export"] = function() {
+      var data;
+      data = $scope.data;
       window.open('/menu/report/' + data._id + '/' + data.name + '.xlsx', '_blank');
     };
     validateTime = function(time) {
