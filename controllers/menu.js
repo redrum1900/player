@@ -117,9 +117,6 @@
             } else {
               song.duration = 0;
             }
-            if (!song.artist) {
-              song.artist = '';
-            }
             m = moment({
               second: song.duration
             }).minutes();
@@ -131,6 +128,12 @@
             }).seconds();
             if (s < 10) {
               s = '0' + s;
+            }
+            if (!song.name) {
+              song.name = '';
+            }
+            if (!song.artist) {
+              song.artist = '';
             }
             data.push([song.time, song.name, song.artist, m + ':' + s, allow]);
             _results.push(i++);
