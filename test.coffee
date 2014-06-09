@@ -10,8 +10,6 @@ fs = require 'fs'
 client = new qiniu.rs.Client()
 moment = require 'moment'
 
-data =
-
 Menu.findById("53908926fc534a1955a3d960")
 .select('name list begin_date end_date')
 .populate('list.songs.song', 'name duration')
@@ -48,9 +46,9 @@ Menu.findById("53908926fc534a1955a3d960")
       s = moment(second:song.duration).seconds()
       data.push([song.time, song.name, song.artist, m+':'+s, allow])
       i++
-    buffer = xlsx.build
-      worksheets:["name":result.name, "data":data]
-      defaultFontName: 'Arial',defaultFontSize: 12
-    fs.writeFile(__dirname+'/test.xlsx',buffer, 'utf-8', (err)->
-      console.log 'saved',err, data.length
-    )
+  buffer = xlsx.build
+    worksheets:["name":result.name, "data":data]
+    defaultFontName: 'Arial',defaultFontSize: 12
+  fs.writeFile(__dirname+'/test.xlsx',buffer, 'utf-8', (err)->
+    console.log 'saved',err, data.length
+  )

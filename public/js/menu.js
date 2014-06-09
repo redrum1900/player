@@ -191,6 +191,7 @@
     };
     $scope.changeTime = function(time) {
       $scope.time = time;
+      console.log(time);
       return $scope.refreshSongList();
     };
     $scope.back = function() {
@@ -416,11 +417,14 @@
           songs: function() {
             var arr;
             arr = [];
-            $scope.time.songs.forEach(function(s) {
-              if (s.song.duration) {
-                return arr.push(s.song);
-              }
-            });
+            console.log($scope.time);
+            if ($scope.time.songs) {
+              $scope.time.songs.forEach(function(s) {
+                if (s.song.duration) {
+                  return arr.push(s.song);
+                }
+              });
+            }
             return arr;
           }
         }

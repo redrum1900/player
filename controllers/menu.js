@@ -85,13 +85,13 @@
         });
       }
       return Menu.findById(id).select('name list begin_date end_date').populate('list.songs.song', 'name artist duration').exec(function(err, result) {
-        var data;
+        var buffer, data;
         data = [];
         data.push(['歌单名称', '开始日期', '结束日期']);
         data.push([result.name, moment(result.begin_date).format('YYYY-MM-DD'), moment(result.end_date).format('YYYY-MM-DD')]);
         data.push([]);
-        return result.list.forEach(function(list) {
-          var allow, begin, buffer, h, i, m, s, song, songs, time;
+        result.list.forEach(function(list) {
+          var allow, begin, h, i, m, s, song, songs, time, _results;
           data.push(['时段名称', '开始时间', '结束时间']);
           data.push([list.name, list.begin, list.end]);
           data.push(['播放时间', '曲目名称', '歌手名称', '播放时长', '允许循环']);
@@ -107,6 +107,7 @@
             hour: parseInt(h),
             minute: parseInt(m)
           });
+          _results = [];
           while (i < songs.length) {
             allow = songs[i].allow_circle;
             song = songs[i].song;
@@ -122,27 +123,31 @@
             m = moment({
               second: song.duration
             }).minutes();
+            if (m < 10) {
+              m = '0' + m;
+            }
             s = moment({
               second: song.duration
             }).seconds();
+            if (s < 10) {
+              s = '0' + s;
+            }
             data.push([song.time, song.name, song.artist, m + ':' + s, allow]);
-            i++;
+            _results.push(i++);
           }
-          buffer = xlsx.build({
-            worksheets: [
-              {
-                "name": result.name,
-                "data": data
-              }
-            ],
-            defaultFontName: 'Arial',
-            defaultFontSize: 12
-          });
-          return res.json({
-            data: data,
-            l: data.length
-          });
+          return _results;
         });
+        buffer = xlsx.build({
+          worksheets: [
+            {
+              "name": result.name,
+              "data": data
+            }
+          ],
+          defaultFontName: 'Arial',
+          defaultFontSize: 12
+        });
+        return res.send(buffer);
       });
     });
     updateTags = function(tags) {
