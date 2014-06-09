@@ -533,13 +533,15 @@
 			private const ABOUT_US:String = 'ABOUT_US';
 			private const CLEAR_CACHE:String = 'CLEAR_CACHE';
 			private const FEEDBACK:String = 'FEEDBACK';
+			private const REMOTE_ACCOUNT:String = 'REMOTE_ACCOUNT';
 
 			private function initMore():void
 			{
 				moreMenu = new NativeMenu();
 				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
 //				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
-//				moreMenu.addItem(getNMI('清空缓存', CLEAR_CACHE));
+				moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
+				moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
 //				moreMenu.addItem(getNMI('','', true));
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
@@ -566,13 +568,27 @@
 						navigateToURL(new URLRequest('http://weibo.com/u/2662098313'));
 						break;
 					case CLEAR_CACHE:
-						var f:File = File.applicationStorageDirectory.resolvePath('assets');
-						if(f.exists){
-							f.deleteDirectoryAsync(true);
-							f.addEventListener(Event.COMPLETE, function(e:Event):void{
-								PAlert.show('您的缓存已清空，请放心使用');						
-							})
-						}
+						PAlert.show('您确认清空缓存文件吗？', '提示', null, function(value:String):void{
+							if(value == PAlert.YES){
+								var f:File = new File(FileManager.savedDir)
+								if(f.exists){
+									f.deleteDirectoryAsync(true);
+									f.addEventListener(Event.COMPLETE, function(e:Event):void{
+										PAlert.show('您的缓存已清空，请放心使用');						
+									})
+								}
+							}
+						},PAlert.YESNO);
+						break;
+					case REMOTE_ACCOUNT:
+						PAlert.show('您确认注销账户并退出吗？退出后再次使用需要重新登录', '提示', null, function(value:String):void{
+							if(value == PAlert.YES){
+								var so:SharedObject = SharedObject.getLocal('yp');
+								so.clear();
+								so.flush();
+								NativeApplication.nativeApplication.exit();
+							}
+						},PAlert.YESNO);
 						break;
 				}
 			}

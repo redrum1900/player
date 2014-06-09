@@ -121,6 +121,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
 
   $scope.changeTime = (time)->
     $scope.time = time
+    console.log time
     $scope.refreshSongList()
 
   $scope.back = ->
@@ -279,9 +280,11 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
         all:getSongs
         songs: ->
           arr = []
-          $scope.time.songs.forEach (s)->
-            if s.song.duration
-              arr.push s.song
+          console.log $scope.time
+          if $scope.time.songs
+            $scope.time.songs.forEach (s)->
+              if s.song.duration
+                arr.push s.song
           return arr
     )
     modalInstance.result.then ((data) ->

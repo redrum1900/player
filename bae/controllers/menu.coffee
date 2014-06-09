@@ -87,13 +87,15 @@ module.exports = (app)->
             song.duration = 0
           song.artist = '' unless song.artist
           m = moment(second:song.duration).minutes()
+          m = '0'+m if m<10
           s = moment(second:song.duration).seconds()
+          s = '0'+s if s<10
           data.push([song.time, song.name, song.artist, m+':'+s, allow])
           i++
-        buffer = xlsx.build
-          worksheets:["name":result.name, "data":data]
-          defaultFontName: 'Arial',defaultFontSize: 12
-        res.json data:data, l:data.length
+      buffer = xlsx.build
+        worksheets:["name":result.name, "data":data]
+        defaultFontName: 'Arial',defaultFontSize: 12
+      res.send buffer
 
   updateTags = (tags)->
     if tags
