@@ -84,7 +84,7 @@
           result: '名称不对'
         });
       }
-      return Menu.findById(id).select('name list begin_date end_date').populate('list.songs.song', 'name duration').exec(function(err, result) {
+      return Menu.findById(id).select('name list begin_date end_date').populate('list.songs.song', 'name artist duration').exec(function(err, result) {
         var data;
         data = [];
         data.push(['歌单名称', '开始日期', '结束日期']);
@@ -138,7 +138,10 @@
             defaultFontName: 'Arial',
             defaultFontSize: 12
           });
-          return res.send(data);
+          return res.json({
+            data: data,
+            l: data.length
+          });
         });
       });
     });
