@@ -242,7 +242,7 @@
     };
     $scope.saveMenu = function() {
       var list, tags, temp_list, wrong;
-      $scope.handling = false;
+      $scope.handling = true;
       menu = angular.copy($scope.data);
       if (!menu.name) {
         wrong = 'DM列表名称不能为空';
@@ -267,7 +267,6 @@
             while (i < dm.day.length) {
               c = dm.day.charAt(i);
               i++;
-              console.log(c);
               if (arr.indexOf(c) !== -1 || days.indexOf(c) === -1) {
                 wrong = '星期的格式不对，只能为0-6之间的数字且不能重复，012代表限制在周日、一、二播放';
                 return false;
@@ -304,6 +303,7 @@
             }
             $scope.data = result.results;
             $scope.data.dm_list = temp_list;
+            $scope.handling = false;
             return confirm(2, '保存成功', '继续编辑或返回DM列表', function(value) {
               if (!value) {
                 return $scope.back();
@@ -312,6 +312,7 @@
           });
         } else {
           return $http.post('/menu/update', menu).success(function(result) {
+            $scope.handling = false;
             if (!result.status) {
               showAlert(result.error);
             }

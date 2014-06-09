@@ -84,6 +84,7 @@
     <button ng-disabled="$parent.handling" class="btn btn-default" style="float: right;margin-right: 15px;" ng-click="back()">返回</button>
     <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存歌单</button>
     <button ng-disabled="$parent.handling" class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addTime()">新增时段</button>
+    <button ng-disabled="$parent.handling" ng-if="$parent.data._id" class="btn btn-info" style="float: right;margin-right: 15px;" ng-click="export()">导出</button>
 </div>
 
 <div class="row">

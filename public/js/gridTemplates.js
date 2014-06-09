@@ -7,6 +7,9 @@ var textCellTemplate = '<div class="ngCellText" style="padding: 0px; padding-lef
 var questionTypeTemplate = '<div class="ngCellText" style="padding: 0px; padding-left: 10px;" ng-class="col.colIndex()">' +
     '<span ng-cell-text style="line-height:{{rowHeight}}px">{{getQuestionType(row.getProperty(col.field))}}</span></div>';
 
+var durationTemplate = '<div class="ngCellText" style="padding: 0px; padding-left: 10px;" ng-class="col.colIndex()">' +
+    '<span ng-cell-text style="line-height:{{rowHeight}}px">{{getDuration(row.getProperty(col.field))}}</span></div>';
+
 var dateCellTemplate = '<div class="ngCellText" style="padding: 0px; padding-left: 10px;" ng-class="col.colIndex()">' +
     '<span tooltip-append-to-body="true" tooltip="{{getDateDetail(row.getProperty(col.field))}}" ng-cell-text style="line-height:{{rowHeight}}px">{{getDate(row.getProperty(col.field))}}</span></div>';
 
@@ -28,6 +31,15 @@ var configScopeForNgGrid = function($scope){
 
     $scope.getButtonStyle = function(value){
         return value ? 'btn-success' : 'btn-warning';
+    }
+
+    $scope.getDuration = function(value){
+        if(!value){
+            return ''
+        }else{
+            var m = moment({second:value})
+            return m.minutes()+':'+ m.seconds();
+        }
     }
 }
 

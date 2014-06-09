@@ -146,8 +146,8 @@
           cellTemplate: textCellTemplate
         }, {
           field: "song.duration",
-          displayName: "时长（秒）",
-          cellTemplate: textCellTemplate
+          displayName: "时长",
+          cellTemplate: durationTemplate
         }, {
           field: "allow_circle",
           displayName: "是否允许随机播放",
@@ -205,6 +205,9 @@
         songs: []
       };
       return $scope.data.list.push(time);
+    };
+    $scope["export"] = function() {
+      window.open('/menu/report/' + data._id + '/' + data.name + '.xlsx', '_blank');
     };
     validateTime = function(time) {
       var arr, h, m, wrong;
@@ -333,7 +336,6 @@
         $scope.handling = true;
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
-            console.log('save menu3', result);
             if (!result.status) {
               showAlert(result.error);
             }
@@ -609,7 +611,6 @@
     configScopeForNgGrid($scope);
     $scope.title = '插入媒资';
     $scope.songs = angular.copy(songs);
-    console.log($scope.songs);
     $scope.search = function() {
       $scope.page = 1;
       $scope.list = null;
@@ -676,7 +677,6 @@
             item.choosed = true;
           }
         }
-        console.log(all, item._id);
         if (!item.choosed) {
           item.style = choosedStyle(item);
           return item.label = choosedLabel(item);

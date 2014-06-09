@@ -88,7 +88,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     columnDefs:[
       {field: "song.name", displayName:"名称", cellTemplate: textCellTemplate}
       {field: "time", displayName:"播放时间", cellTemplate: textCellTemplate}
-      {field: "song.duration", displayName:"时长（秒）", cellTemplate: textCellTemplate}
+      {field: "song.duration", displayName:"时长", cellTemplate: durationTemplate}
       {field: "allow_circle", displayName:"是否允许随机播放", cellTemplate: textCellTemplate}
       {field: "index", displayName:"排序", width:55, cellTemplate: '
             <div class="row" ng-style="{height: rowHeight}">
@@ -131,6 +131,10 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
   $scope.addTime = ->
     time = name:'新增时段',songs:[]
     $scope.data.list.push time
+
+  $scope.export = ->
+    window.open('/menu/report/'+data._id+'/'+data.name+'.xlsx', '_blank')
+    return
 
   validateTime = (time)->
     if !time
@@ -223,7 +227,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       $scope.handling = true
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
-          console.log 'save menu3', result
           showAlert result.error unless result.status
           $scope.data = result.results
           $scope.handling = false
@@ -411,7 +414,6 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
 
   $scope.title = '插入媒资'
   $scope.songs = angular.copy songs
-  console.log $scope.songs
 
   $scope.search = ->
     $scope.page = 1
@@ -459,7 +461,6 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
       if all
         if all.indexOf(item._id) != -1
           item.choosed = true
-      console.log all, item._id
       if !item.choosed
         item.style = choosedStyle(item)
         item.label = choosedLabel(item)
