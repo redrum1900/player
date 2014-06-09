@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
-					   xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   creationComplete="inited(event)"
 					   preinitialize="pre(event)"
 					   showStatusBar="false"
 					   skinClass="skins.AppSkin"
-					   preloader="views.preloaders.CustomPreloader" 
+					   preloader="views.preloaders.CustomPreloader"
 					   mouseDown="nativeWindow.startMove()"
-					   xmlns:nativeApplicationUpdater="com.youli.nativeApplicationUpdater.*" xmlns:views="views.*">
+					   xmlns:nativeApplicationUpdater="com.youli.nativeApplicationUpdater.*"
+					   xmlns:views="views.*">
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
@@ -23,37 +24,38 @@
 			import air.update.events.StatusUpdateEvent;
 			import air.update.events.UpdateEvent;
 
-			import controllers.AC;
+			import controllers.AA;
+			import controllers.API;
 
 			[Bindable]
-			private var updateURL:String = 'http://yfcdn.qiniudn.com/file/update.xml';
+			private var updateURL:String='http://yfcdn.qiniudn.com/file/update.xml';
 
 			protected function inited(event:FlexEvent):void
 			{
-				var l:LMouseData = new LMouseData();
+				var l:LMouseData=new LMouseData();
 				Mouse.registerCursor('busy', l.mouseCursorData);
 
-				if(AC.i.isMac)
+				if (AA.i.isMac)
 					enter();
 				else
 					TweenLite.delayedCall(3, enter);
 
-				if(NativeApplication.supportsStartAtLogin && !Capabilities.isDebugger)
-					nativeApplication.startAtLogin = true;
+				if (NativeApplication.supportsStartAtLogin && !Capabilities.isDebugger)
+					nativeApplication.startAtLogin=true;
 
 				nativeWindow.orderToFront();
 			}
 
 			protected function pre(event:FlexEvent):void
 			{
-				updateURL+='?'+Math.random();
-				AC.centerWindow(nativeWindow);
+				updateURL+='?' + Math.random();
+				AA.centerWindow(nativeWindow);
 				updater.initialize();
 				ToolTipManager.showEffect=fadeIn;
 				ToolTipManager.hideEffect=fadeOut;
 				ToolTipManager.showDelay=0;
-				PAlert.PARENT = this
-				PopupBoxManager.PARENT = this
+				PAlert.PARENT=this
+				PopupBoxManager.PARENT=this
 			}
 
 			protected function updater_initializedHandler(event:UpdateEvent):void
@@ -63,9 +65,13 @@
 
 			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
 			{
-				if(event.available && !Capabilities.isDebugger){
-					updater.downloadUpdate();
-				}else{
+				if (event.available && !Capabilities.isDebugger)
+				{
+					API.instance.updatable=true;
+					API.instance.updater=updater;
+				}
+				else
+				{
 					trace('软件最新');
 				}
 			}
@@ -77,7 +83,7 @@
 
 			protected function updater_downloadCompleteHandler(event:UpdateEvent):void
 			{
-				updater.installUpdate();				
+				updater.installUpdate();
 			}
 
 			private function enter():void
@@ -85,6 +91,11 @@
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
 			}
 
+			protected function updater_checkForUpdateHandler(event:UpdateEvent):void
+			{
+				event.preventDefault();
+				updater.checkForUpdate();
+			}
 		]]>
 	</fx:Script>
 
@@ -97,7 +108,7 @@
 		@namespace components "com.pamakids.components.*";
 		global
 		{
-			fontFamily:"DSF";
+			fontFamily:"Microsoft YaHei";
 			focusThickness:0;
 			focusAlpha:0;
 		}
@@ -134,14 +145,17 @@
 														   updateURL="{updateURL}"
 														   initialized="updater_initializedHandler(event)"
 														   updateStatus="updater_updateStatusHandler(event)"
+														   checkForUpdate="updater_checkForUpdateHandler(event)"
 														   error="updater_errorHandler(event)"
 														   downloadError="updater_errorHandler(event)"
 														   downloadComplete="updater_downloadCompleteHandler(event)"
-														   updateError="updater_errorHandler(event)"
-														   />
+														   updateError="updater_errorHandler(event)"/>
 	</fx:Declarations>
 
-	<s:Rect left="2" right="2" top="1" bottom="2">
+	<s:Rect left="2"
+			right="2"
+			top="1"
+			bottom="2">
 		<s:fill>
 			<s:SolidColor color="0x30373e"/>
 		</s:fill>
@@ -150,6 +164,6 @@
 		</s:filters>
 	</s:Rect>
 
-	<views:Main />
+	<views:Main/>
 
 </s:WindowedApplication>

@@ -8,6 +8,7 @@ package models
 
 		public var name:String;
 		public var list:Array;
+		public var dm_list:Array;
 		public var end_date:Date;
 		public var _id:String;
 		public var updated_at:Date;

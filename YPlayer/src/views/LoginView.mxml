@@ -20,11 +20,12 @@
 			{
 				API.instance.login(username.text, password.text, function(vo:ResultVO):void{
 					if(vo.status){
-						ServiceBase.id = vo.results+'';
+						ServiceBase.id = vo.results.id+'';
 						var so:SharedObject = SharedObject.getLocal('yp');
 						so.data.username = username.text;
 						so.data.password = password.text;
 						so.data.id = ServiceBase.id;
+						so.data.broadcasts = vo.results.broadcasts;
 						so.flush();
 						close();
 					}

@@ -11,9 +11,10 @@ package models
 
 		public var url:String;
 		public var name:String;
-		public var playTime:String;
+		public var playTime:Date;
 		public var repeat:int;
 		public var interval:int;
+		public var duration:Number;
 	}
 }
 

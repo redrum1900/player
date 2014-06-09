@@ -3,12 +3,19 @@
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				mouseEnabled="false" mouseChildren="false"
-				autoDrawBackground="false" >
+				autoDrawBackground="false" creationComplete="itemrenderer1_creationCompleteHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
+			import com.pamakids.events.ODataEvent;
 			import com.pamakids.utils.DateUtil;
 
+			import mx.events.FlexEvent;
+
+			import controllers.AA;
+			import controllers.API;
+
+			import models.InsertVO;
 			import models.SongVO;
 
 			[Bindable]
@@ -27,13 +34,25 @@
 			{
 				if(data){
 					if(data is SongVO){
-						l = DateUtil.getHMS(data.playTime as Date)+' '+data.name;
-						c = 0xffffff;
+						l = DateUtil.getHMS(data.playTime as Date)+'   '+data.name;
+						c = data != API.instance.playingSong ? 0xd9dee3 : 0x2E80D5;
 					}else{
 						c = 0xE19440;
-						l = data.playTime + ' 将插播 '+data.name + '  单次插播时长：'+data.time+' 重复次数：'+data.repeat+' 间隔时间：'+data.interval+'秒'
+						var ivo:InsertVO = data as InsertVO;
+						l = DateUtil.getHMS(ivo.playTime as Date) + '   将插播 '+ivo.name + '  单次插播时长：'+Math.round(ivo.duration)+'秒 重复次数：'+ivo.repeat+' 间隔时间：'+ivo.interval+'秒'
 					}
 				}
+			}
+
+			protected function itemrenderer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				AA.listen('play', function(e:Event):void{
+					if(API.instance.playingSong == data){
+						c = 0x2E80D5;
+					}else if(data is SongVO){
+						c = 0xd9dee3;
+					}
+				});
 			}
 
 		]]>
