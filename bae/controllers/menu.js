@@ -138,7 +138,7 @@
             defaultFontName: 'Arial',
             defaultFontSize: 12
           });
-          return res.send(buffer);
+          return res.send(data);
         });
       });
     });
