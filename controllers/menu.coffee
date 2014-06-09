@@ -93,7 +93,7 @@ module.exports = (app)->
         buffer = xlsx.build
           worksheets:["name":result.name, "data":data]
           defaultFontName: 'Arial',defaultFontSize: 12
-        res.send buffer
+        res.send data
 
   updateTags = (tags)->
     if tags
