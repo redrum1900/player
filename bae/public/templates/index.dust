@@ -45,7 +45,7 @@
                 </div>
                 <label class="checkbox">记住登录
                     <input id="rememberme" type="checkbox">
-                    <a href="/forget" style="padding-left: 175px;">忘记密码</a>
+                    <a href="/forget" style="float: right">忘记密码</a>
                 </label>
                 <br>
                 <button type="submit" class="btn btn-success" name="action" value="login" onclick="login()">登录</button>

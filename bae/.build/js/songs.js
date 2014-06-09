@@ -106,7 +106,7 @@
           field: "published_at",
           width: 96,
           displayName: "发行时间",
-          cellTemplate: dateCellTemplate
+          cellTemplate: textCellTemplate
         }, {
           field: "right_date",
           width: 96,
@@ -160,7 +160,7 @@
           field: "published_at",
           width: 96,
           displayName: "发行时间",
-          cellTemplate: dateCellTemplate
+          cellTemplate: textCellTemplate
         }, {
           field: "right_date",
           width: 96,
