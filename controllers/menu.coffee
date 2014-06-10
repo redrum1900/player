@@ -56,7 +56,7 @@ module.exports = (app)->
       return res.json status:false, result:'名称不对'
     Menu.findById(id)
     .select('name list begin_date end_date')
-    .populate('list.songs.song', 'name artist duration')
+    .populate('list.songs.song', 'name artist duration tags')
     .exec (err, result)->
       data = []
       data.push(['歌单名称','开始日期', '结束日期'])
