@@ -25,7 +25,7 @@
 
   moment = require('moment');
 
-  Menu.findById("53908926fc534a1955a3d960").select('name list begin_date end_date').populate('list.songs.song', 'name duration').exec(function(err, result) {
+  Menu.findById("53908926fc534a1955a3d960").select('name list begin_date end_date').populate('list.songs.song', 'name duration tags').exec(function(err, result) {
     var buffer, data;
     data = [];
     data.push(['歌单名称', '开始日期', '结束日期']);
@@ -35,7 +35,7 @@
       var allow, begin, h, i, m, s, song, songs, time, _results;
       data.push(['时段名称', '开始时间', '结束时间']);
       data.push([list.name, list.begin, list.end]);
-      data.push(['播放时间', '曲目名称', '歌手名称', '播放时长', '允许循环']);
+      data.push(['播放时间', '曲目名称', '歌手名称', '播放时长', '风格标签', '允许循环']);
       songs = list.songs;
       begin = list.begin;
       if (!begin) {
@@ -67,7 +67,10 @@
         s = moment({
           second: song.duration
         }).seconds();
-        data.push([song.time, song.name, song.artist, m + ':' + s, allow]);
+        if (!song.tags) {
+          song.tags = [];
+        }
+        data.push([song.time, song.name, song.artist, m + ':' + s, song.tags.join(','), allow]);
         _results.push(i++);
       }
       return _results;
