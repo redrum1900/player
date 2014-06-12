@@ -91,7 +91,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window, $timeo
     rowHeight:40
     columnDefs:[
       {field: "name", displayName:"名称", cellTemplate: textCellTemplate}
-      {field: "duration", displayName:"时长", cellTemplate: textCellTemplate}
+      {field: "duration", displayName:"时长", cellTemplate: durationTemplate}
       {field: "tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "artist", displayName:"歌手", cellTemplate: textCellTemplate}
       {field: "album", displayName:"专辑", cellTemplate: textCellTemplate}
@@ -107,7 +107,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window, $timeo
   done = 2
   fileDic = {}
   $("#audio2").on "canplaythrough", (e)->
-    data.duration = e.currentTarget.duration
+    data.duration = Math.round(e.currentTarget.duration)
     URL.revokeObjectURL(objectUrl);
     done++
     $scope.$apply ->

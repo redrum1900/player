@@ -143,7 +143,7 @@
         }, {
           field: "duration",
           displayName: "时长",
-          cellTemplate: textCellTemplate
+          cellTemplate: durationTemplate
         }, {
           field: "tags",
           displayName: "标签",
@@ -181,7 +181,7 @@
     done = 2;
     fileDic = {};
     $("#audio2").on("canplaythrough", function(e) {
-      data.duration = e.currentTarget.duration;
+      data.duration = Math.round(e.currentTarget.duration);
       URL.revokeObjectURL(objectUrl);
       done++;
       return $scope.$apply(function() {

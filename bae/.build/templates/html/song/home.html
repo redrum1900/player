@@ -13,6 +13,8 @@
                     placeholder="标签筛选"
                     on-tag-removed="search()"
                     on-tag-added="search()"
+                    add-from-autocomplete-only="true"
+                    replace-spaces-with-dashes="false"
                     min-length="1">
             <auto-complete source="loadTags($query)"
                            min-length="1"

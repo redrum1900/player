@@ -16,6 +16,8 @@
             <div class="col-md-6">
                 <tags-input ng-model="$parent.s_tags"
                             placeholder="标签筛选"
+                            add-from-autocomplete-only="true"
+                            replace-spaces-with-dashes="false"
                             on-tag-removed="search()"
                             on-tag-added="search()"
                             min-length="1">

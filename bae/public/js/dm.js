@@ -176,6 +176,7 @@
   });
 
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, tags, http, $q, $filter) {
+    var objectUrl;
     $scope.data = angular.copy(data);
     $scope.buttonDisabled = false;
     $scope.tags = tags;
@@ -193,9 +194,11 @@
       deffered.resolve($filter('filter')($scope.tags, query));
       return deffered.promise;
     };
+    objectUrl = '';
     $("#audio").on("canplaythrough", function(e) {
       $scope.data.duration = e.currentTarget.duration;
-      return URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(objectUrl);
+      return console.log($scope.data.duration);
     });
     $timeout(function() {
       var uploader;
@@ -223,7 +226,7 @@
         auto_start: true,
         init: {
           'FilesAdded': function(up, files) {
-            var File, file, objectUrl;
+            var File, file;
             file = files[0];
             $scope.buttonDisabled = true;
             data = $scope.data;

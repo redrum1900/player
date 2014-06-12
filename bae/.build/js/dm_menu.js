@@ -356,17 +356,7 @@
       modalInstance = $modal.open({
         templateUrl: 'modal.html',
         controller: ModalInstanceCtrl,
-        backdrop: 'static',
-        resolve: {
-          songs: function() {
-            var arr;
-            arr = [];
-            $scope.data.dm_list.forEach(function(s) {
-              return arr.push(s.dm);
-            });
-            return arr;
-          }
-        }
+        backdrop: 'static'
       });
       return modalInstance.result.then((function(data) {
         var dm_menu;
@@ -547,13 +537,12 @@
     };
   };
 
-  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter, songs) {
+  ModalInstanceCtrl = function($scope, $http, $timeout, $modalInstance, $q, $filter) {
     var choosed, choosedLabel, choosedStyle, listUri, refreshStatus;
     listUri = '/dm/list';
     configScopeForNgGrid($scope);
     $scope.title = '插入DM，单个DM可选择多次';
-    $scope.songs = angular.copy(songs);
-    console.log($scope.songs);
+    $scope.songs = [];
     $scope.search = function() {
       $scope.page = 1;
       $scope.list = null;

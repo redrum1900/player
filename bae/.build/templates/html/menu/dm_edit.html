@@ -83,7 +83,7 @@
 
     <button ng-disabled="$parent.handling" class="btn btn-default" style="float: right;margin-right: 15px;" ng-click="back()">返回</button>
     <button ng-disabled="$parent.handling" class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="saveMenu()">保存DM列表</button>
-    <button class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addSong()">插入DM</button>
+    <button ng-disabled="$parent.handling" class="btn btn-success" style="float: right;margin-right: 15px;" ng-click="addSong()">插入DM</button>
 </div>
 
 <div class="row">
@@ -97,7 +97,7 @@
         </tags-input>
     </div>
     <div class="col-md-8">
-        直接双击文字编辑DM属性，时长不要改动，单个DM可重复存在<br>星期栏如果设定后则只在指定星期播放，为空则不限制，0代表周日，1代表周一，01表示限定在周日、一播放
+        直接双击文字编辑DM属性，时长不要改动，单个DM可重复存在<span style="color: red">播放时间不可重叠</span><br>星期栏如果设定后则只在指定星期播放，为空则不限制，0代表周日，1代表周一
     </div>
 </div>
 

@@ -234,12 +234,6 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       templateUrl:'modal.html'
       controller:ModalInstanceCtrl
       backdrop:'static'
-      resolve:
-        songs: ->
-          arr = []
-          $scope.data.dm_list.forEach (s)->
-            arr.push s.dm
-          return arr
     )
     modalInstance.result.then ((data) ->
       if data
@@ -363,14 +357,13 @@ ClientsModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter,
             <a class="btn btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)" ng-disabled="updating">{{ row.entity.label }}</a></div></div>'}
     ]
 
-ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs) ->
+ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter) ->
 
   listUri = '/dm/list'
   configScopeForNgGrid $scope
 
   $scope.title = '插入DM，单个DM可选择多次'
-  $scope.songs = angular.copy songs
-  console.log $scope.songs
+  $scope.songs = []
 
   $scope.search = ->
     $scope.page = 1

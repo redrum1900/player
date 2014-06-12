@@ -141,9 +141,12 @@ ModalInstanceCtrl = ($scope, $timeout, $modalInstance, data, tags, http,$q, $fil
     deffered.resolve $filter('filter') $scope.tags, query
     return deffered.promise
 
+  objectUrl = ''
+
   $("#audio").on "canplaythrough", (e)->
     $scope.data.duration = e.currentTarget.duration
     URL.revokeObjectURL(objectUrl);
+    console.log $scope.data.duration
 
   $timeout(->
     uploader = Qiniu.uploader(
