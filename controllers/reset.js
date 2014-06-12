@@ -23,6 +23,7 @@ module.exports = function (app) {
                     result.reset_token = '';
                     result.lockUntil = 0;
                     result.save(function(err, result){
+                        console.log(result);
                         if(result){
                             res.render('index', {message:'重置密码成功'});
                         }else{
