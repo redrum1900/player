@@ -35,7 +35,7 @@
     setUser: function(user, next) {
       return client.setex(user.id, LOGIN_EXPIRE_TIME, JSON.stringify(user), function(err, result) {
         if (err) {
-          logger.error("Set User Error", err);
+          logger.error("Set User Error:" + err);
         }
         if (result) {
           return next(result);
@@ -47,7 +47,7 @@
     getUser: function(id, next) {
       return client.get(id, function(err, result) {
         if (err) {
-          logger.error("Get Item Error:", err);
+          logger.error("Get Item Error:" + err);
         }
         if (result) {
           if (next) {
@@ -62,7 +62,7 @@
     setCode: function(mobile, code, next) {
       return client.setex(mobile, CODE_EXPIRE_TIME, code, function(err, result) {
         if (err) {
-          logger.error("Set Code Error", err);
+          logger.error("Set Code Error:" + err);
         }
         if (result && next) {
           return next(result);
