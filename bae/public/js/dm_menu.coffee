@@ -193,6 +193,8 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
           else
             tags.push(tag.text)
       menu.tags = tags
+      menu.quality = parseInt(menu.quality)
+      menu.quality = 64 if menu.quality != 192
       menu.type = 2
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->

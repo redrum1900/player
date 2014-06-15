@@ -20,7 +20,10 @@
 
   require('./log');
 
+  require('./error_log');
+
   module.exports = {
+    ErrorLog: Mongoose.model("ErrorLog"),
     SMS: Mongoose.model("SMS"),
     Manager: Mongoose.model("Manager"),
     Dict: Mongoose.model('Dict'),
