@@ -28,7 +28,7 @@
       putPolicy = new qiniu.rs.PutPolicy('yflog');
       putPolicy.expires = 3600;
       putPolicy.callbackUrl = 'http://m.yuefu.com/logged';
-      putPolicy.callbackBody = 'name=${key}&uploader=' + req.query.id;
+      putPolicy.callbackBody = 'name=${key}';
       return res.json({
         uptoken: putPolicy.token()
       });
@@ -70,11 +70,11 @@
       });
     });
     return app.post('/logged', function(req, res) {
-      var data, log, uploader;
-      data = req.body;
-      uploader = data.uploader;
+      var log, uploader, url;
+      url = req.body.name;
+      uploader = url.split('-')[0];
       log = new ErrorLog({
-        url: data.name,
+        url: url,
         client: uploader
       });
       return log.save(function(err, result) {

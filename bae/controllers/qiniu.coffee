@@ -17,7 +17,7 @@ module.exports = (app)->
     putPolicy = new qiniu.rs.PutPolicy('yflog')
     putPolicy.expires = 3600
     putPolicy.callbackUrl = 'http://m.yuefu.com/logged'
-    putPolicy.callbackBody = 'name=${key}&uploader='+req.query.id
+    putPolicy.callbackBody = 'name=${key}'
     res.json uptoken:putPolicy.token()
 
   app.get '/upload/token/mp3', auth.isAuthenticated(), (req, res)->
@@ -45,9 +45,9 @@ module.exports = (app)->
     res.json status:true, data:req.body
 
   app.post '/logged', (req, res)->
-    data = req.body
-    uploader = data.uploader
-    log = new ErrorLog(url:data.name,client:uploader)
+    url = req.body.name
+    uploader = url.split('-')[0]
+    log = new ErrorLog(url:url,client:uploader)
     log.save (err, result)->
       if err
         Error err, res
