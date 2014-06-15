@@ -71,6 +71,7 @@
     });
     return app.post('/logged', function(req, res) {
       var log, uploader, url;
+      logger.log('logged:' + req.body.name);
       url = req.body.name;
       uploader = url.split('-')[0];
       log = new ErrorLog({

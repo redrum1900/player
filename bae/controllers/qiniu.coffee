@@ -45,6 +45,7 @@ module.exports = (app)->
     res.json status:true, data:req.body
 
   app.post '/logged', (req, res)->
+    logger.log 'logged:'+req.body.name
     url = req.body.name
     uploader = url.split('-')[0]
     log = new ErrorLog(url:url,client:uploader)
