@@ -92,10 +92,22 @@
         data.push([]);
         result.list.forEach(function(list) {
           var allow, begin, h, i, m, s, song, songs, time, _results;
+          songs = list.songs;
+          if (!songs || !songs.lengt) {
+            return false;
+          }
           data.push(['时段名称', '开始时间', '结束时间']);
+          if (!list.name) {
+            list.name = '';
+          }
+          if (!list.begin) {
+            list.begin = '';
+          }
+          if (!list.end) {
+            list.end = '';
+          }
           data.push([list.name, list.begin, list.end]);
           data.push(['播放时间', '曲目名称', '歌手名称', '播放时长', '风格标签', '允许循环']);
-          songs = list.songs;
           begin = list.begin;
           if (!begin) {
             return;
