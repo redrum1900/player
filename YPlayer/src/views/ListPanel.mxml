@@ -14,17 +14,20 @@
 			import com.pamakids.utils.URLUtil;
 
 			import mx.collections.ArrayCollection;
+			import mx.controls.Menu;
 			import mx.events.FlexEvent;
 
 			import spark.components.Button;
+			import spark.components.Menu;
+			import spark.events.IndexChangeEvent;
 
 			import controllers.AA;
 			import controllers.API;
 
 			import models.MenuVO;
+			import models.TimeVO;
 
 			import skins.buttons.PrimaryButtonSkin;
-			import skins.datagrid.list.ScrollSkin;
 
 			[Bindable]
 			private var label:String;
@@ -66,7 +69,20 @@
 				API.instance.addEventListener('PLAY', function():void
 				{
 					menu=API.instance.menu;
-					label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date)
+					var dmMenu:Object=API.instance.dmMenu;
+					songItems=new ArrayCollection(API.instance.songs);
+					label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date);
+					var ac:ArrayCollection=new ArrayCollection();
+					ac.addItem({name: '完整列表', type: 1});
+					if (dmMenu && dmMenu.dm_list && dmMenu.dm_list.length)
+					{
+						ac.addItem({name: 'DM列表', type: 2});
+					}
+					for each (var m:TimeVO in menu.list)
+					{
+						ac.addItem(m);
+					}
+					bb.dataProvider=ac;
 				});
 				API.instance.addEventListener('bros', function():void
 				{
@@ -190,6 +206,30 @@
 					trace('all bro loaded', loaded);
 				}
 			}
+
+			protected function bb_changeHandler(event:IndexChangeEvent):void
+			{
+				trace(bb.selectedItem.name);
+				var o:Object=bb.selectedItem;
+				if (o is TimeVO)
+				{
+					songItems=new ArrayCollection(o.songs);
+				}
+				else
+				{
+					if (o.type == 1)
+					{
+						songItems=new ArrayCollection(API.instance.songs);
+					}
+					else if (o.type == 2)
+					{
+						songItems=new ArrayCollection(API.instance.dmMenu.dm_list);
+					}
+				}
+			}
+
+			[Bindable]
+			private var songItems:ArrayCollection;
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"
@@ -219,6 +259,14 @@
 				 fontSize="14"
 				 text="{label}"/>
 		<s:Spacer height="18"/>
+		<s:ButtonBar id="bb"
+					 requireSelection="true"
+					 color="0x303941"
+					 selectedIndex="0"
+					 change="bb_changeHandler(event)"
+					 labelField="name"
+					 skinClass="skins.buttons.DefaultButtonBarSkin"/>
+		<s:Spacer height="8"/>
 		<s:Label color="0xd9dee3"
 				 fontSize="14"
 				 text="播放时间   曲目名称"
@@ -227,7 +275,7 @@
 				skinClass="skins.SongListSkin"
 				width="100%"
 				height="100%"
-				dataProvider="{new ArrayCollection(API.instance.songs)}"
+				dataProvider="{songItems}"
 				itemRenderer="views.components.SongRenderer"
 				id="songs">
 		</s:List>

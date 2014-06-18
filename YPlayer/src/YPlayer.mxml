@@ -8,6 +8,7 @@
 					   skinClass="skins.AppSkin"
 					   preloader="views.preloaders.CustomPreloader"
 					   mouseDown="nativeWindow.startMove()"
+					   applicationComplete="windowedapplication1_applicationCompleteHandler(event)"
 					   xmlns:nativeApplicationUpdater="com.youli.nativeApplicationUpdater.*"
 					   xmlns:views="views.*">
 	<fx:Script>
@@ -15,6 +16,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.utils.DateUtil;
 			import com.youli.components.LMouseData;
 			import com.youli.messengers.PreloaderMessenger;
 
@@ -44,6 +46,7 @@
 					nativeApplication.startAtLogin=true;
 
 				nativeWindow.orderToFront();
+
 			}
 
 			protected function pre(event:FlexEvent):void
@@ -95,6 +98,46 @@
 			{
 				event.preventDefault();
 				updater.checkForUpdate();
+			}
+
+			protected function handler(event:UncaughtErrorEvent):void
+			{
+				var path:String='log/' + DateUtil.getYMD(new Date(), 0, '_') + '.log';
+				var file:File;
+				if (path.charAt(0) == '/')
+					path=path.substr(1);
+				var fs:FileStream=new FileStream();
+				createDirectory(path);
+				file=File.applicationStorageDirectory.resolvePath(path);
+				try
+				{
+					fs.open(file, FileMode.APPEND);
+					fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + event.toString() + '\n');
+					fs.close();
+				}
+				catch (error:Error)
+				{
+					trace('save file error', error);
+				}
+			}
+
+			private function createDirectory(path:String):void
+			{
+				var arr:Array=path.match(new RegExp('.*(?=/)'));
+				if (!arr || !arr.length)
+					return;
+				var directory:String=arr[0]; //a
+				var file:Object=File.applicationStorageDirectory.resolvePath(directory);
+				if (!file.exists)
+				{
+					trace("FileCache - Directory not found, create it !");
+					file.createDirectory();
+				}
+			}
+
+			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
+			{
+				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handler);
 			}
 		]]>
 	</fx:Script>

@@ -98,6 +98,8 @@
 				panelGroup.width = width-4;
 
 				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void{
+					if(api.local)
+						return;
 					if(autoLoading && !retried){
 						retried = true;
 						LoadManager.instance.load(autoLoading.url.split('?')[0], function():void{
@@ -105,7 +107,11 @@
 							retried = false;
 							loaded++;
 							autoLoad();
-						}, URLUtil.getCachePath(autoLoading.url));
+							if(!player1.playing)
+								play();
+						}, URLUtil.getCachePath(autoLoading.url),null, function(percent:Number):void{
+							time = '第一次播放 '+autoLoading.name+' ，请稍候，加载进度 '+Math.round(percent*100)+'%';
+						});
 					}else if(autoLoading){
 						retried = false;
 						PAlert.show('媒资 '+autoLoading.name+' 加载出错，请确保网络连接正常，如果仍有问题请联系我们','加载失败',null, function():void{
@@ -131,6 +137,10 @@
 
 			private function autoLogin():void
 			{
+				if(api.local){
+					api.getMenuList();
+					return;
+				}
 				var so:SharedObject = SharedObject.getLocal('yp');
 				if(so.data.username && so.data.password){
 					if(api.online){
@@ -189,7 +199,7 @@
 			{
 				if(brodcasting || playingDM)
 					return;
-				var dms:Array = api.dms;
+				var dms:Array = api.dmMenu.dm_list;
 				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
 				var tt:int = Math.ceil(player.soundLength/1000);
 				time = randomPlay.selected ? '[随机播放] ':''; 
@@ -237,14 +247,15 @@
 
 			private var player2:SoundPlayer;
 			private var songs:Array;
+			
+			private var playerDic:Dictionary = new Dictionary();
 
 			private function initPlayer():void
 			{
 				player1 = getPlayer();
-				player2 = getPlayer();
+				player2 = getPlayer2();
 				player = player1;
 				player1.volume = volume/100;
-				player2.volume = volume/100;
 				player1.addEventListener("playing", playingHandler);
 				player1.addEventListener("playComplete", player1PlayedHandler);
 				API.instance.addEventListener('PLAY', function(e:Event):void{
@@ -252,6 +263,15 @@
 					song2 = null;
 					play();
 				});
+			}
+			
+			private function getPlayer2():SoundPlayer
+			{
+				var p:SoundPlayer = new SoundPlayer(1000);
+				p.addEventListener("playing", player2PlayingHandler);
+				p.volume = 1;
+				p.autoPlay = true;
+				return p;
 			}
 
 			private var playingIndex:int;
@@ -303,6 +323,12 @@
 								}
 							}
 						}
+						if(api.isCurrentTimeLoop){
+							song1 = api.songs[0];
+							if(api.songs.length>1)
+								song2 = api.songs[1];
+							has = true;
+						}
 					}else{
 						has = true;
 						if(song2){
@@ -315,8 +341,15 @@
 										break;
 								}
 							}
-							else
+							else if(api.isCurrentTimeLoop){
+								song2 = api.songs[0];
+							}else{
 								song2 = null;
+							}
+						}else if(api.isCurrentTimeLoop){
+							song1 = api.songs[0];
+							if(api.songs.length>1)
+								song2 = api.songs[1];
 						}
 					}
 				}else{
@@ -358,13 +391,16 @@
 					var s:Number = now.getTime()-vo.playTime.getTime();
 					trace(DateUtil.getHMS(vo.playTime), s, DateUtil.getHMS(now));
 					if(f.exists){
-						player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url
-						player.currentPosition = s;
+						player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url;
+						if(!api.isCurrentTimeLoop)
+							player.currentPosition = s;
 						autoLoad();
 					}else{
+						autoLoading = vo;
 						LoadManager.instance.load(vo.url, function():void{
-							player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url
-							player.currentPosition = s;
+							player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url;
+							if(!api.isCurrentTimeLoop)
+								player.currentPosition = s;
 							autoLoad();
 						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void{
 							time = '第一次播放 '+vo.name+' ，请稍候，加载进度 '+Math.round(percent*100)+'%';
@@ -473,8 +509,12 @@
 			{
 				if(brodcasting)
 					return;
-				brodcasting = true;
-				insertBroOrDM(event.data as InsertVO);
+				PAlert.show('请问是否确认播放 '+event.data.name, '提示', null, function(value:String):void{
+					if(value == PAlert.YES){
+						brodcasting = true;
+						insertBroOrDM(event.data as InsertVO, true);
+					}
+				}, PAlert.YESNO);
 			}
 
 			public var loaded:int=0;
@@ -487,9 +527,9 @@
 					return
 				var vo:Object;
 				var file:File;
-				if(playingIndex < songs.length-1){
-					playingIndex++;
+				if(playingIndex <= songs.length-1){
 					vo = songs[playingIndex];
+					playingIndex++;
 					file = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url));
 					if(!file.exists){
 						autoLoading = vo;
@@ -619,44 +659,88 @@
 					percent = Math.round(percent*100);
 					updateButton.label = '更新进度'+percent+'%';
 				});
-//				api.update();
+				api.updater.downloadUpdate();
 			}
 			
-			private function insertBroOrDM(data:InsertVO):void
+			private var dmPlayers:Dictionary = new Dictionary();
+			
+			private function insertBroOrDM(data:InsertVO, isBro:Boolean=false):void
 			{
 				var bro:InsertVO = data;
 				var naiveURL:String = FileManager.savedDir+URLUtil.getCachePath(bro.url);
 				var url:String = new File(naiveURL).url;
-				time = data.playTime ? '开始插播DM：' : '开始广播：';
+				
+				time = data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
 				time += bro.name;
 				if(bro.repeat){
 					time += ' '+bro.repeat +' 次';
 				}else{
-					time += ' 1 次';
+					time += '';
 				}
 				if(bro.interval){
 					time += ' 每次间隔 '+bro.repeat+ ' 秒';
 				}
 				player1.muted = true;
 				setTimeout(function():void{
-					if(bro.repeat){
-						player2.repeat = true;
-						player2.repeatTimes = bro.repeat;
-						player2.repeatInterval = bro.interval;
-						player2.addEventListener("playRepeatComplete", function(e:Event):void{
-							player1.muted = false;
-							brodcasting = false;
-							playingDM = false;
-						});
+					player2Time = time;
+					if(isBro){
+						for each(var sp:SoundPlayer in dmPlayers)
+						{
+							sp.muted = true;
+						}
+						if(bro.repeat){
+							player2.repeat = true;
+							player2.repeatTimes = bro.repeat;
+							player2.repeatInterval = bro.interval;
+							player2.addEventListener("playRepeatComplete", function(e:Event):void{
+								player1.muted = false;
+								brodcasting = false;
+								playingDM = false;
+							});
+						}else{
+							player2.repeat = false;
+							player2.addEventListener("playComplete", function(e:Event):void{
+								player1.muted = false;
+								brodcasting = false;
+								playingDM = false;
+								for each(var sp:SoundPlayer in dmPlayers)
+								{
+									sp.muted = false;
+								}
+							});
+						}
+						player2.url = url;
 					}else{
-						player2.repeat = false;
-						player2.addEventListener("playComplete", function(e:Event):void{
-							player1.muted = false;
-							brodcasting = false;
-							playingDM = false;
-						});
+						var sp:SoundPlayer = dmPlayers[url] as SoundPlayer;
+						if(!sp){
+							sp = getPlayer2();
+							dmPlayers[url] = sp;
+							if(bro.repeat){
+								sp.repeat = true;
+								sp.repeatTimes = bro.repeat;
+								sp.repeatInterval = bro.interval;
+								sp.addEventListener("playRepeatComplete", function(e:Event):void{
+									if(!brodcasting){
+										player1.muted = false;
+										brodcasting = false;
+										playingDM = false;
+									}
+									delete dmPlayers[url];
+								});
+							}else{
+								sp.repeat = false;
+								sp.addEventListener("playComplete", function(e:Event):void{
+									if(!brodcasting){
+										player1.muted = false;
+										brodcasting = false;
+										playingDM = false;
+									}
+									delete dmPlayers[url];
+								});
+							}
+							sp.url = url;
+						}
 					}
-					player2.url = url;
 				}, 800)				
 			}
 			
@@ -664,6 +748,24 @@
 			{
 				if(!song1)
 					play();
+			}
+			
+			protected function bro_clickHandler(event:MouseEvent):void
+			{
+				var av:AddBroView = new AddBroView();
+				PopupBoxManager.popup(av, function():void
+				{
+					api.initBroadcasts();
+				});
+			}
+			
+			private var player2Time:String;
+			
+			protected function player2PlayingHandler(event:DataEvent):void
+			{
+				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
+				var tt:int = Math.ceil(player2.soundLength/1000);
+				time = player2Time+' '+DateUtil.formateTime(tt-pt) +' 后结束'
 			}
 			
 		]]>
@@ -753,6 +855,7 @@
 			</s:VGroup>
 			<s:Spacer width="100%"/>
 			<s:Button fontSize="14" id="updateButton" color="0x191C1E" skinClass="skins.buttons.DefaultButtonSkin" visible="{API.instance.updatable}" click="button3_clickHandler(event)" label="更新"/>
+			<s:Button fontSize="14" color="0x191C1E" skinClass="skins.buttons.PrimaryButtonSkin" id="bro" includeInLayout="{API.instance.local}" visible="{API.instance.local}" click="bro_clickHandler(event)" label="广播"/>
 			<s:Button fontSize="14" color="0x191C1E" skinClass="skins.buttons.DefaultButtonSkin" click="button2_clickHandler(event)" label="缩小"/>
 			<s:Button fontSize="14" skinClass="skins.buttons.WarningButtonSkin" click="button1_clickHandler(event)" label="退出"/>
 		</s:HGroup>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="添加广播"
+					 creationComplete="popupbox1_creationCompleteHandler(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.utils.FileHelper;
+
+			import mx.events.FlexEvent;
+			import mx.utils.UIDUtil;
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+			}
+
+			private var bros:Array;
+			private var so:SharedObject=SharedObject.getLocal('yp');
+
+			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+//				bros=FileManager.readFile(CONFIG) as Array;
+				bros=so.data.broadcasts;
+			}
+
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+				var nurl:String='bro/' + UIDUtil.createUID() + '.mp3';
+				var path:String=File.applicationDirectory.resolvePath('local/' + nurl).nativePath;
+				selectedFile.copyTo(new File(path), true);
+				var o:Object={};
+				o.name=broName.text;
+				o.url=nurl;
+				if (bros)
+				{
+					bros.push(o);
+				}
+				else
+				{
+					bros=[o];
+				}
+				so.flush();
+				close();
+			}
+
+			protected function choose_clickHandler(event:MouseEvent):void
+			{
+				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择广播声音文件', [new FileFilter('广播声音文件', '*.mp3')]);
+			}
+
+			private var selectedFile:File;
+
+			private function selectedHandler(f:File):void
+			{
+				selectedFile=f;
+				broName.text=f.name.replace('.mp3', '');
+			}
+		]]>
+	</fx:Script>
+
+	<components:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  paddingLeft="40"
+						  paddingRight="40"
+						  paddingBottom="20"
+						  paddingTop="30"
+						  gap="10"/>
+	</components:layout>
+	<s:HGroup id="bg">
+		<s:HGroup verticalAlign="middle"
+				  width="100%">
+			<s:Button id="choose"
+					  click="choose_clickHandler(event)"
+					  skinClass="skins.buttons.PrimaryButtonSkin"
+					  label="选择声音文件"/>
+			<s:TextInput color="0x30373e"
+						 skinClass="skins.textinput.DefaultTextInputSkin"
+						 id="broName"
+						 prompt="请输入广播名称"
+						 toolTip="广播名称"/>
+		</s:HGroup>
+		<s:Button id="toAdd"
+				  color="0x30373e"
+				  click="confirm_clickHandler(event)"
+				  skinClass="skins.buttons.DefaultButtonSkin"
+				  label="新增"/>
+	</s:HGroup>
+</components:PopupBox>
