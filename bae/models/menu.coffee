@@ -7,6 +7,7 @@ MenuSchema = new Schema
     name:String
     begin:String
     end:String
+    loop:Boolean
     songs:[
       song:type:Schema.Types.ObjectId,ref:"Song"
       allow_circle:type:Boolean,default:false

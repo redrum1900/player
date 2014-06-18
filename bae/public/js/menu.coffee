@@ -133,6 +133,14 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     time = name:'新增时段',songs:[]
     $scope.data.list.push time
 
+#  $scope.deleteTime = ->
+#    confirm 2, '提示', '是否确认删除当前时段', (value)->
+#      if value
+#        arr = $scope.data.list
+#        arr = arr.splice arr.indexOf($scope.time), 1
+#        console.log arr
+#        $scope.time = arr[0]
+
   $scope.export = ->
     data = $scope.data
     window.open('/menu/report/'+data._id+'/'+data.name+'.xlsx', '_blank')
@@ -163,7 +171,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
 
   $scope.addSong = ->
     if validateTime($scope.time.begin)
-      $scope.open()
+      $scope.openAddSong()
 
   $scope.tags = []
   getDict $http, 'MenuTags', (result) ->
@@ -200,7 +208,8 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       i++
     time.add 'm', 1
     $scope.time.songs = songs
-    $scope.time.end = time.format('HH:mm')
+    if !$scope.time.loop
+      $scope.time.end = time.format('HH:mm')
 
   $scope.saveMenu = ->
     menu = angular.copy $scope.data
@@ -229,6 +238,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       menu.quality = parseInt(menu.quality)
       menu.quality = 64 if menu.quality != 192
       $scope.handling = true
+      console.log menu
       if !menu._id
         $http.post('/menu/add',menu).success (result) ->
           showAlert result.error unless result.status
@@ -273,7 +283,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
             allsongs.push song.song._id
     return allsongs
 
-  $scope.open = ->
+  $scope.openAddSong = ->
     modalInstance = $modal.open(
       templateUrl:'modal.html'
       controller:ModalInstanceCtrl

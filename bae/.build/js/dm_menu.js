@@ -295,6 +295,10 @@
           });
         }
         menu.tags = tags;
+        menu.quality = parseInt(menu.quality);
+        if (menu.quality !== 192) {
+          menu.quality = 64;
+        }
         menu.type = 2;
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {

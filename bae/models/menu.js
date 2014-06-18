@@ -19,6 +19,7 @@
         name: String,
         begin: String,
         end: String,
+        loop: Boolean,
         songs: [
           {
             song: {

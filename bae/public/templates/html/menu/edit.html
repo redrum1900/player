@@ -61,7 +61,7 @@
                    show-weeks="false"
                     />
                   <span class="input-group-btn">
-                    <button class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
+                    <button class="btn btn-default"><i class="glyphicon glyphicon-calendar"></i>
                     </button>
                   </span>
         </p>
@@ -77,7 +77,7 @@
                    show-weeks="false"
                     />
                   <span class="input-group-btn">
-                    <button class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
+                    <button class="btn btn-default"><i class="glyphicon glyphicon-calendar"></i>
                     </button>
                   </span>
         </p>
@@ -121,10 +121,13 @@
         <input type="text" class="form-control" ng-model="$parent.time.begin"
                 >
     </div>
-    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="结束时间，自动计算">
+    <div  style="margin-left: 15px;float:left;width: 70px" tooltip="结束时间，自动计算，仅在循环播放状态下才手动设置">
         <input type="text" class="form-control" ng-model="$parent.time.end"
-               ng-disabled="true"
                 >
+    </div>
+    <div class="col-md-4" style="margin-top: 7px">
+        时段内所有歌曲自动循环
+        <input type="checkbox" tooltip-append-to-body="true" ng-model="$parent.time.loop">
     </div>
     <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入媒资</button>
     <button class="btn btn-default" style="float: right;margin-right: 15px;" tooltip="用以重新给歌单排序" ng-click="refreshSongList()">刷新歌单</button>

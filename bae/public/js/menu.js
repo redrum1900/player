@@ -246,7 +246,7 @@
     };
     $scope.addSong = function() {
       if (validateTime($scope.time.begin)) {
-        return $scope.open();
+        return $scope.openAddSong();
       }
     };
     $scope.tags = [];
@@ -298,7 +298,9 @@
       }
       time.add('m', 1);
       $scope.time.songs = songs;
-      return $scope.time.end = time.format('HH:mm');
+      if (!$scope.time.loop) {
+        return $scope.time.end = time.format('HH:mm');
+      }
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
@@ -341,6 +343,7 @@
           menu.quality = 64;
         }
         $scope.handling = true;
+        console.log(menu);
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
             if (!result.status) {
@@ -410,7 +413,7 @@
       }
       return allsongs;
     };
-    return $scope.open = function() {
+    return $scope.openAddSong = function() {
       var modalInstance;
       modalInstance = $modal.open({
         templateUrl: 'modal.html',

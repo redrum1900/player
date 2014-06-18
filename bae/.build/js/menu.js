@@ -207,6 +207,17 @@
       };
       return $scope.data.list.push(time);
     };
+    $scope.deleteTime = function() {
+      return confirm(2, '提示', '是否确认删除当前时段', function(value) {
+        var arr;
+        if (value) {
+          arr = $scope.data.list;
+          arr = arr.splice(arr.indexOf($scope.time), 1);
+          console.log(arr);
+          return $scope.time = arr[0];
+        }
+      });
+    };
     $scope["export"] = function() {
       var data;
       data = $scope.data;
@@ -246,7 +257,7 @@
     };
     $scope.addSong = function() {
       if (validateTime($scope.time.begin)) {
-        return $scope.open();
+        return $scope.openAddSong();
       }
     };
     $scope.tags = [];
@@ -298,7 +309,9 @@
       }
       time.add('m', 1);
       $scope.time.songs = songs;
-      return $scope.time.end = time.format('HH:mm');
+      if (!$scope.time.loop) {
+        return $scope.time.end = time.format('HH:mm');
+      }
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
@@ -336,7 +349,12 @@
         }
         menu.tags = tags;
         menu.type = 1;
+        menu.quality = parseInt(menu.quality);
+        if (menu.quality !== 192) {
+          menu.quality = 64;
+        }
         $scope.handling = true;
+        console.log(menu);
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
             if (!result.status) {
@@ -406,7 +424,7 @@
       }
       return allsongs;
     };
-    return $scope.open = function() {
+    return $scope.openAddSong = function() {
       var modalInstance;
       modalInstance = $modal.open({
         templateUrl: 'modal.html',
