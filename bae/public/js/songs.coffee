@@ -21,6 +21,7 @@ songs.controller 'SongCtrl', ($scope, $http, $modal, $q, $filter,$window, $timeo
       tags = tags.join ','
     $http.get(listUri, params:name:$scope.searchText,tags:tags,page:$scope.page,perPage:20).success (result) ->
       if(result.status)
+        $scope.count = result.count
         if !$scope.list
           $scope.list = result.results;
         else if result.results and result.results.length

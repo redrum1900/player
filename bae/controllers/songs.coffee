@@ -2,6 +2,7 @@ auth = require '../lib/auth'
 Song = require('../models').Song
 Dict = require('../models').Dict
 UpdateObject = require('../lib/utils').updateObject
+EventProxy = require 'eventproxy'
 
 module.exports = (app)->
 
@@ -31,16 +32,21 @@ module.exports = (app)->
     if tags
       arr = tags.split ','
       query.tags = $all:arr
+
+    ep = new EventProxy()
+    ep.fail (err)->
+      Error err, res
+    ep.all 'songs', 'count', (songs, count)->
+      res.json status:true, results:songs, count:count
+
+    Song.count query, ep.done 'count'
+
     Song.find(query).populate('creator', 'username')
     .populate('updator', 'username')
     .sort('created_at':-1)
     .limit(data.perPage)
     .skip(data.perPage*(data.page-1))
-    .exec (err, result) ->
-      if err
-        Error err, res
-      else
-        res.json status:true, results:result
+    .exec ep.done 'songs'
 
   app.post '/song/update', auth.isAuthenticated(), (req, res) ->
     data = req.body

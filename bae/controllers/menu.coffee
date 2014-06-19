@@ -11,6 +11,7 @@ UpdateObject = require('../lib/utils').updateObject
 qiniu = require 'qiniu'
 logger = require('log4js').getLogger('Menu')
 xlsx = require 'node-xlsx'
+EventProxy = require 'eventproxy'
 
 module.exports = (app)->
 
@@ -128,6 +129,15 @@ module.exports = (app)->
       arr = tags.split ','
       query.tags = $all:arr
     query.type = data.type
+
+    ep = new EventProxy()
+    ep.fail (err)->
+      Error err, res
+
+    ep.all 'menu', 'count', (menu, count)->
+      res.json status:true, results:menu, count:count
+
+    Menu.count query, ep.done 'count'
     Menu.find(query)
     .populate('creator', 'username')
     .populate('updator', 'username')
@@ -136,11 +146,7 @@ module.exports = (app)->
     .sort('created_at':-1)
     .limit(data.perPage)
     .skip(data.perPage*(data.page-1))
-    .exec (err, result) ->
-      if err
-        Error err, res
-      else
-        res.json status:true, results:result
+    .exec ep.done 'menu'
 
   app.post '/menu/update', auth.isAuthenticated(), (req, res) ->
     data = req.body

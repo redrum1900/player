@@ -207,20 +207,6 @@
       };
       return $scope.data.list.push(time);
     };
-<<<<<<< HEAD
-    $scope.deleteTime = function() {
-      return confirm(2, '提示', '是否确认删除当前时段', function(value) {
-        var arr;
-        if (value) {
-          arr = $scope.data.list;
-          arr = arr.splice(arr.indexOf($scope.time), 1);
-          console.log(arr);
-          return $scope.time = arr[0];
-        }
-      });
-    };
-=======
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
     $scope["export"] = function() {
       var data;
       data = $scope.data;
@@ -260,11 +246,7 @@
     };
     $scope.addSong = function() {
       if (validateTime($scope.time.begin)) {
-<<<<<<< HEAD
         return $scope.openAddSong();
-=======
-        return $scope.open();
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
       }
     };
     $scope.tags = [];
@@ -316,13 +298,9 @@
       }
       time.add('m', 1);
       $scope.time.songs = songs;
-<<<<<<< HEAD
       if (!$scope.time.loop) {
         return $scope.time.end = time.format('HH:mm');
       }
-=======
-      return $scope.time.end = time.format('HH:mm');
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
@@ -360,16 +338,12 @@
         }
         menu.tags = tags;
         menu.type = 1;
-<<<<<<< HEAD
         menu.quality = parseInt(menu.quality);
         if (menu.quality !== 192) {
           menu.quality = 64;
         }
         $scope.handling = true;
         console.log(menu);
-=======
-        $scope.handling = true;
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {
             if (!result.status) {
@@ -439,11 +413,7 @@
       }
       return allsongs;
     };
-<<<<<<< HEAD
     return $scope.openAddSong = function() {
-=======
-    return $scope.open = function() {
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
       var modalInstance;
       modalInstance = $modal.open({
         templateUrl: 'modal.html',

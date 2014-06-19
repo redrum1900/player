@@ -34,6 +34,7 @@
         }
       }).success(function(result) {
         if (result.status) {
+          $scope.count = result.count;
           if (!$scope.list) {
             return $scope.list = result.results;
           } else if (result.results && result.results.length) {
