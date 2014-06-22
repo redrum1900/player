@@ -34,7 +34,7 @@
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "passport-remember-me": "0.0.1",
-    "qiniu": "~6.1.1"=
+    "qiniu": "~6.1.1",
     "redis": "~0.10.1",
     "request": "^2.34.0",
     "urllib": "^0.5.11",

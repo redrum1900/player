@@ -12,6 +12,7 @@ package models
 		public var begin:Date;
 		public var end:Date;
 		public var songs:Array;
+		public var loop:Boolean;
 	}
 }
 

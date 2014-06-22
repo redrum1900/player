@@ -23,8 +23,6 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
-	import mx.controls.Menu;
-
 	import models.InsertVO;
 	import models.MenuVO;
 	import models.SongVO;
@@ -37,7 +35,7 @@ package controllers
 		public var online:Boolean=true;
 
 		[Bindable]
-		public var local:Boolean=false;
+		public var local:Boolean=true;
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
@@ -55,7 +53,6 @@ package controllers
 			{
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
-				return;
 			}
 			else
 			{
@@ -81,7 +78,7 @@ package controllers
 
 		protected function refreshHandler(event:TimerEvent):void
 		{
-			if (refreshTimer.currentCount % 60 == 0)
+			if (refreshTimer.currentCount % 60 == 0 && !local)
 			{
 				getSB('/refresh', 'GET').call(function(vo:ResultVO):void
 				{
@@ -172,6 +169,7 @@ package controllers
 			{
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
+				trace('menu changed');
 			}
 			else
 			{
@@ -182,6 +180,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
+						trace('menu changed');
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -366,7 +365,6 @@ package controllers
 			var b:Boolean;
 			for each (var o:Object in times)
 			{
-				trace(o.begin.getTime(), now.getTime(), o.end.getTime());
 				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
 				{
 					b=o.loop;
@@ -511,6 +509,7 @@ package controllers
 
 		public function login(username:String, password:String, callback:Function):void
 		{
+			username=username.replace(' ', '');
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var so:SharedObject=SharedObject.getLocal('yp');

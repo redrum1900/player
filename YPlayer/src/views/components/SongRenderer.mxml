@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
-				xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				mouseEnabled="false" mouseChildren="false"
-				autoDrawBackground="false" creationComplete="itemrenderer1_creationCompleteHandler(event)">
+				mouseEnabled="false"
+				mouseChildren="false"
+				autoDrawBackground="false"
+				creationComplete="itemrenderer1_creationCompleteHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
@@ -22,43 +24,68 @@
 			private var l:String;
 
 			[Bindable]
-			private var c:uint = 0xffffff;
+			private var c:uint=0xffffff;
 
 			override public function set data(value:Object):void
 			{
-				super.data = value;
+				super.data=value;
 				fillData();
 			}
 
 			private function fillData():void
 			{
-				if(data){
-					if(data is SongVO){
-						l = DateUtil.getHMS(data.playTime as Date)+'   '+data.name;
-						c = data != API.instance.playingSong ? 0xd9dee3 : 0x2E80D5;
-					}else{
-						c = 0xE19440;
-						var ivo:InsertVO = data as InsertVO;
-						l = DateUtil.getHMS(ivo.playTime as Date) + '   将插播 '+ivo.name + '  单次插播时长：'+Math.round(ivo.duration)+'秒 重复次数：'+ivo.repeat+' 间隔时间：'+ivo.interval+'秒'
+				if (data)
+				{
+					if (data is SongVO)
+					{
+						if (API.instance.isCurrentTimeLoop)
+						{
+							l=DateUtil.formateTime(data.duration) + '          ' + data.name;
+						}
+						else
+						{
+							l=DateUtil.getHMS(data.playTime as Date) + '   ' + data.name;
+						}
+						checkStatus();
+					}
+					else
+					{
+						c=0xE19440;
+						var ivo:InsertVO=data as InsertVO;
+						if (ivo.repeat)
+							l=DateUtil.getHMS(ivo.playTime as Date) + '   将插播 ' + ivo.name + '  单次时长：' + Math.round(ivo.duration) + '秒 重复次数：' + ivo.repeat + ' 间隔时间：' + ivo.interval + '秒'
+						else
+							l=DateUtil.getHMS(ivo.playTime as Date) + '   将插播 ' + ivo.name;
 					}
 				}
 			}
 
 			protected function itemrenderer1_creationCompleteHandler(event:FlexEvent):void
 			{
-				AA.listen('play', function(e:Event):void{
-					if(API.instance.playingSong == data){
-						c = 0x2E80D5;
-					}else if(data is SongVO){
-						c = 0xd9dee3;
-					}
+				AA.listen('play', function(e:Event):void
+				{
+					checkStatus();
 				});
 			}
 
+			private function checkStatus():void
+			{
+				var s:Object=API.instance.playingSong;
+				if (s == data || (s && s.url == data.url))
+				{
+					c=0x2E80D5;
+				}
+				else if (data is SongVO)
+				{
+					c=0xd9dee3;
+				}
+			}
 		]]>
 	</fx:Script>
 
 
-	<s:Label text="{l}" fontSize="14" color="{c}"/>
+	<s:Label text="{l}"
+			 fontSize="14"
+			 color="{c}"/>
 
 </s:ItemRenderer>

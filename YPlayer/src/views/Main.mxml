@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		 xmlns:s="library://ns.adobe.com/flex/spark"  color="0xffffff"
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
-		 creationComplete="inited(event)" xmlns:views="views.*"
-		 >
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 color="0xffffff"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%"
+		 height="100%"
+		 creationComplete="inited(event)"
+		 xmlns:views="views.*">
 
 	<fx:Script>
 		<![CDATA[
@@ -14,26 +17,27 @@
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
+			import com.pamakids.manager.PopupManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
 			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
-			
+
 			import flash.net.navigateToURL;
 			import flash.utils.setTimeout;
-			
+
 			import mx.events.FlexEvent;
-			
+
 			import controllers.AA;
 			import controllers.API;
-			
+
 			import models.InsertVO;
 			import models.SongVO;
 
 			[Bindable]
-			public var volume:int = 80;
+			public var volume:int=80;
 
 			private var downX:Number;
 			private var player1:SoundPlayer;
@@ -41,10 +45,10 @@
 			protected function thumb_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
-				thumb.startDrag(false, new Rectangle(0,thumb.y,track.width,0));
+				thumb.startDrag(false, new Rectangle(0, thumb.y, track.width, 0));
 				stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
-				downX = event.stageX;
+				downX=event.stageX;
 			}
 
 			protected function mouseUpHandler(event:MouseEvent):void
@@ -56,28 +60,28 @@
 
 			protected function mouseMoveHandler(event:MouseEvent):void
 			{
-				volume = thumb.x*100/track.width
-				player.volume = volume/100;
+				volume=thumb.x * 100 / track.width
+				player.volume=volume / 100;
 			}
 
 			protected function volumeGroup_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
-				var v:int = volumeGroup.globalToLocal(new Point(event.stageX, 0)).x;
+				var v:int=volumeGroup.globalToLocal(new Point(event.stageX, 0)).x;
 				toVolume(v);
 			}
 
 			private function toVolume(v:int):void
 			{
-				TweenLite.to(this, 0.3, {volume:v, ease:Cubic.easeOut});
-				player.volume = v/100;
+				TweenLite.to(this, 0.3, {volume: v, ease: Cubic.easeOut});
+				player.volume=v / 100;
 			}
 
 //			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
 
 			private var player:SoundPlayer;
 //			private var soundVisualizer:SoundVisualizer;
-			
+
 			private var retried:Boolean;
 
 			protected function inited(event:FlexEvent):void
@@ -89,87 +93,110 @@
 				//				});
 				//				updateTime();
 
-				api = API.instance;
+				api=API.instance;
 
 				initPlayer();
-				panelGroup.y = info.y+info.height-3;
-				panelGroup.height = height-57-48;
-				panelGroup.x = 2;
-				panelGroup.width = width-4;
+				panelGroup.y=info.y + info.height - 3;
+				panelGroup.height=height - 57 - 48;
+				panelGroup.x=2;
+				panelGroup.width=width - 4;
 
-				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void{
-					if(api.local)
+				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void
+				{
+					if (api.local)
 						return;
-					if(autoLoading && !retried){
-						retried = true;
-						LoadManager.instance.load(autoLoading.url.split('?')[0], function():void{
-							trace('retry loaded:'+autoLoading.name);
-							retried = false;
+					if (autoLoading && !retried)
+					{
+						retried=true;
+						LoadManager.instance.load(autoLoading.url.split('?')[0], function():void
+						{
+							trace('retry loaded:' + autoLoading.name);
+							retried=false;
+							isAutoloading=false;
 							loaded++;
 							autoLoad();
-							if(!player1.playing)
-								play();
-						}, URLUtil.getCachePath(autoLoading.url),null, function(percent:Number):void{
-							time = '第一次播放 '+autoLoading.name+' ，请稍候，加载进度 '+Math.round(percent*100)+'%';
+						}, URLUtil.getCachePath(autoLoading.url), null, function(percent:Number):void
+						{
+							time='第一次播放 ' + autoLoading.name + ' ，请稍候，加载进度 ' + Math.round(percent * 100) + '%';
 						});
-					}else if(autoLoading){
-						retried = false;
-						PAlert.show('媒资 '+autoLoading.name+' 加载出错，请确保网络连接正常，如果仍有问题请联系我们','加载失败',null, function():void{
+					}
+					else if (autoLoading)
+					{
+						retried=false;
+						PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
+						{
 							autoLoad();
 							AA.say('reload');
 						}, PAlert.CONFIRM, '再试一次', '', true);
 					}
 				});
 
-				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void{
+				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
+				{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
 
 				initMore();
 
 				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
-				
-				autoPlayTimer = new Timer(1000);
+
+				autoPlayTimer=new Timer(1000);
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
 			}
-			
+
 			private var autoPlayTimer:Timer;
 
 			private function autoLogin():void
 			{
-				if(api.local){
+				if (api.local)
+				{
 					api.getMenuList();
 					return;
 				}
-				var so:SharedObject = SharedObject.getLocal('yp');
-				if(so.data.username && so.data.password){
-					if(api.online){
-						api.login(so.data.username, so.data.password, function(vo:ResultVO):void{
-							if(vo.status){
-								so.data.id = ServiceBase.id;
-								so.data.broadcasts = vo.results.broadcasts;
+				var so:SharedObject=SharedObject.getLocal('yp');
+				if (so.data.username && so.data.password)
+				{
+					if (api.online)
+					{
+						api.login(so.data.username, so.data.password, function(vo:ResultVO):void
+						{
+							if (vo.status)
+							{
+								so.data.id=ServiceBase.id;
+								so.data.broadcasts=vo.results.broadcasts;
 								so.flush();
 							}
-							else{
-								if(vo.errCode){
-									api.online = false;
+							else
+							{
+								if (vo.errCode)
+								{
+									api.online=false;
 									api.getMenuList();
-								}else{
-									var l:LoginView = new LoginView();
+								}
+								else
+								{
+									var l:LoginView=new LoginView();
 									PopupBoxManager.popup(l);
 								}
 							}
 						});
-					}else{
+					}
+					else
+					{
 						api.getMenuList();
 					}
-				}else{
-					if(api.online)
+				}
+				else
+				{
+					if (api.online)
 					{
-						var l:LoginView = new LoginView();
+						var l:LoginView=new LoginView();
 						PopupBoxManager.popup(l);
-					}else{
-						PAlert.show('第一次使用需要网络连接，请联网后再试', '网络连接失败', this, function():void{
+					}
+					else
+					{
+						PAlert.show('第一次使用需要网络连接，请联网后再试', '网络连接失败', this, function():void
+						{
 							autoLogin();
 						}, PAlert.CONFIRM, '再试一次', '', true);
 					}
@@ -178,15 +205,15 @@
 
 			private function getPlayer():SoundPlayer
 			{
-				var p:SoundPlayer = new SoundPlayer(1000);
-				p.autoPlay = true;
+				var p:SoundPlayer=new SoundPlayer(1000);
+				p.autoPlay=true;
 				return p;
 			}
 
 			private function updateTime():void
 			{
-				var n:Date = new Date();
-				time = n.getHours()+' : '+n.getMinutes()+' : '+n.getSeconds();
+				var n:Date=new Date();
+				time=n.getHours() + ' : ' + n.getMinutes() + ' : ' + n.getSeconds();
 			}
 
 			[Bindable]
@@ -197,44 +224,55 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-				if(brodcasting || playingDM)
+				if (brodcasting || playingDM)
 					return;
-				var dms:Array = api.dmMenu.dm_list;
-				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
-				var tt:int = Math.ceil(player.soundLength/1000);
-				time = randomPlay.selected ? '[随机播放] ':''; 
-				time = time+'正在播放：'+song1.name;
-				var value:Number = tt-pt; 
-				if(value < 0)
+				var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
+				var pt:Number=Math.ceil(parseFloat(event.data) / 1000);
+				var tt:int=Math.ceil(player.soundLength / 1000);
+				time=randomPlay.selected ? '[随机播放] ' : '';
+				if (song1)
+					time=time + '正在播放：' + song1.name;
+				else
+					trace(song1);
+				var value:Number=tt - pt;
+				if (value < 0)
 					play();
-				else if(dms){
-					var now:Date = new Date();
+				else if (dms)
+				{
+					var now:Date=new Date();
 					var min:Number;
-					for each(var dm:InsertVO in dms){
-						var ns:Number = now.getTime()/1000;
-						if(dm.playTime.date != now.date)
-							dm.playTime.date = now.date;
-						var ds:Number = dm.playTime.getTime()/1000;
-						value = ns-ds;
-						min = min < value ? min : value;
-						if(Math.abs(value) <= 1){
-							playingDM = true;
+					for each (var dm:InsertVO in dms)
+					{
+						var ns:Number=now.getTime() / 1000;
+						if (dm.playTime.date != now.date)
+							dm.playTime.date=now.date;
+						var ds:Number=dm.playTime.getTime() / 1000;
+						value=ns - ds;
+						var absValue:int=Math.abs(value);
+						min=min < absValue ? min : absValue;
+						if (absValue <= 1)
+						{
+							playingDM=true;
 							insertBroOrDM(dm);
 							break;
 						}
 					}
-					value = -min;
-					if(playingDM || (value > 0 && value<60)){
-						time+=' '+DateUtil.formateTime(value)+' 后将插播DM';
-					}else if(song2){
-						value = tt-pt; 
-						time+=' '+DateUtil.formateTime(value)+' 后将播放：'+song2.name;
+					value=min;
+					if (playingDM || (value > 0 && value < 60))
+					{
+						if (value > 1)
+							time+=' ' + DateUtil.formateTime(value) + ' 后将插播DM';
+					}
+					else if (song2)
+					{
+						value=tt - pt;
+						time+=' ' + DateUtil.formateTime(value) + ' 后将播放：' + song2.name;
 					}
 				}
-				else if(song2)
-					time+=' '+DateUtil.formateTime(value)+' 后将播放：'+song2.name;
+				else if (song2)
+					time+=' ' + DateUtil.formateTime(value) + ' 后将播放：' + song2.name;
 				else
-					time+=' '+DateUtil.formateTime(value)+' 后将将结束今天的播放'
+					time+=' ' + DateUtil.formateTime(value) + ' 后将将结束今天的播放'
 			}
 
 			protected function player1PlayedHandler(event:Event):void
@@ -246,164 +284,239 @@
 			private var song2:SongVO;
 
 			private var player2:SoundPlayer;
-			private var songs:Array;
-			
-			private var playerDic:Dictionary = new Dictionary();
+			private var playerDic:Dictionary=new Dictionary();
 
 			private function initPlayer():void
 			{
-				player1 = getPlayer();
-				player2 = getPlayer2();
-				player = player1;
-				player1.volume = volume/100;
+				player1=getPlayer();
+				player2=getPlayer2();
+				player=player1;
+				player1.volume=volume / 100;
 				player1.addEventListener("playing", playingHandler);
 				player1.addEventListener("playComplete", player1PlayedHandler);
-				API.instance.addEventListener('PLAY', function(e:Event):void{
-					song1 = null;
-					song2 = null;
+				API.instance.addEventListener('PLAY', function(e:Event):void
+				{
+					if (!player1.playing)
+					{
+						song1=null;
+						song2=null;
+					}
+					loaded=0;
+					allLoaded=false;
 					play();
 				});
 			}
-			
+
 			private function getPlayer2():SoundPlayer
 			{
-				var p:SoundPlayer = new SoundPlayer(1000);
+				var p:SoundPlayer=new SoundPlayer(1000);
 				p.addEventListener("playing", player2PlayingHandler);
-				p.volume = 1;
-				p.autoPlay = true;
+				p.volume=1;
+				p.autoPlay=true;
 				return p;
 			}
 
 			private var playingIndex:int;
-			
+			private var pv:PrepareView;
+
 			private function play():void
 			{
-				var now:Date = new Date();
+				if (!allLoaded && !pv)
+				{
+					pv=new PrepareView();
+					PopupBoxManager.popup(pv);
+					autoLoad();
+					LoadManager.instance.allLoadingHandler=function(value:Number):void
+					{
+						updatePVInfo(value);
+					}
+					return;
+				}
+				if (player1.playing)
+					return;
+				var now:Date=new Date();
 				var has:Boolean;
 				var vo:SongVO;
 				var temp:Number;
 				var nearestSong:SongVO;
 				var firstSong:SongVO;
-				if(!randomPlay.selected){
-					if(!song1){
-						for(var i:int; i<api.songs.length; i++){
-							vo = api.songs[i] as SongVO;
-							if(!nearestSong)
-								nearestSong = vo;
-							if(!firstSong)
-								firstSong = vo;
-							if(vo){
-								if(vo.playTime.date != now.date)
-									vo.playTime.date = now.date;
-								var result:Number = vo.playTime.getTime()+vo.duration*1000-now.getTime();
-								nearestSong = Math.abs(nearestSong.playTime.getTime()-now.getTime()) > Math.abs(vo.playTime.getTime()-now.getTime()) ? vo : nearestSong;
-								if(temp){
-									result-=temp;
-									temp=0;
-								}
-								if(result >1000 && result < vo.duration*1000){
-									if(vo != song1){
-										vo = api.songs[i];
-										playingIndex = i;
-										has = true;
-										if(i!= api.songs.length-1){
-											for(i++;i<api.songs.length-1;i++){
-												song2 = api.songs[i] as SongVO;
-												if(song2)
-													break;
+				if (!randomPlay.selected)
+				{
+					if (!song1)
+					{
+						if (api.isCurrentTimeLoop)
+						{
+							song1=api.songs[0];
+							if (api.songs.length > 1)
+								song2=api.songs[1] as SongVO;
+							has=true;
+						}
+						else
+						{
+							for (var i:int; i < api.songs.length; i++)
+							{
+								vo=api.songs[i] as SongVO;
+								if (!nearestSong)
+									nearestSong=vo;
+								if (!firstSong)
+									firstSong=vo;
+								if (vo)
+								{
+									if (vo.playTime.date != now.date)
+										vo.playTime.date=now.date;
+									var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
+									nearestSong=Math.abs(nearestSong.playTime.getTime() - now.getTime()) > Math.abs(vo.playTime.getTime() - now.getTime()) ? vo : nearestSong;
+									if (temp)
+									{
+										result-=temp;
+										temp=0;
+									}
+									if (result > 1000 && result < vo.duration * 1000)
+									{
+										if (vo != song1)
+										{
+											vo=api.songs[i];
+											playingIndex=i;
+											has=true;
+											if (i != api.songs.length - 1)
+											{
+												for (i++; i < api.songs.length - 1; i++)
+												{
+													song2=api.songs[i] as SongVO;
+													if (song2)
+														break;
+												}
 											}
+											else
+												song2=null
+											song1=vo;
+											break;
 										}
 										else
-											song2 = null
-										song1 = vo;
-										break;
-									}else{
-										temp = result;
+										{
+											temp=result;
+										}
 									}
 								}
 							}
 						}
-						if(api.isCurrentTimeLoop){
-							song1 = api.songs[0];
-							if(api.songs.length>1)
-								song2 = api.songs[1];
-							has = true;
-						}
-					}else{
-						has = true;
-						if(song2){
-							song1 = song2;
-							var index:int = api.songs.indexOf(song2);
-							if(index != api.songs.length -1){
-								for(index++;i<api.songs.length-1;index++){
-									song2 = api.songs[index] as SongVO;
-									if(song2)
+					}
+					else
+					{
+						has=true;
+						if (song2)
+						{
+							song1=song2;
+							var index:int=api.songs.indexOf(song2);
+							if (index == -1)
+							{
+								song1=null;
+								song2=null;
+								play();
+								return;
+							}
+							if (index != api.songs.length - 1)
+							{
+								for (index++; i < api.songs.length - 1; index++)
+								{
+									song2=api.songs[index] as SongVO;
+									if (song2)
 										break;
 								}
 							}
-							else if(api.isCurrentTimeLoop){
-								song2 = api.songs[0];
-							}else{
-								song2 = null;
+							else if (api.isCurrentTimeLoop)
+							{
+								song2=api.songs[0];
 							}
-						}else if(api.isCurrentTimeLoop){
-							song1 = api.songs[0];
-							if(api.songs.length>1)
-								song2 = api.songs[1];
+							else
+							{
+								song2=null;
+							}
+						}
+						else if (api.isCurrentTimeLoop)
+						{
+							song1=api.songs[0];
+							if (api.songs.length > 1)
+								song2=api.songs[1] as SongVO;
+						}
+						else
+						{
+							song1=null;
+							has=false;
 						}
 					}
-				}else{
-					song1 = api.getRandomSong();
-					if(song1)
-						has = true;
-					else{
+				}
+				else
+				{
+					song1=api.getRandomSong();
+					if (song1)
+						has=true;
+					else
+					{
 						PAlert.show('抱歉，当前时段没有可随机播放的曲目，请取消随机播放或联系我们');
 						randomPlay.selected=false;
 						play();
 						return;
 					}
 				}
-				if(!has){
-					song1 = null;
-					if(player1.playing)
+				if (!has)
+				{
+					if (player1.playing)
 						player1.stop();
-					if(!autoPlayTimer.running)
+					if (!autoPlayTimer.running)
 						autoPlayTimer.start();
-					var value:Number = (nearestSong.playTime.getTime()-now.getTime())/1000;
-					if(value < 0){
-						firstSong.playTime.date++;
-						value = (firstSong.playTime.getTime()-now.getTime())/1000;
+					song1=null;
+					if (nearestSong)
+					{
+						var value:Number=(nearestSong.playTime.getTime() - now.getTime()) / 1000;
+						if (value < 0)
+						{
+							firstSong.playTime.date++;
+							value=(firstSong.playTime.getTime() - now.getTime()) / 1000;
+						}
+						time='当前时段无媒资可播放 ' + DateUtil.formateTime(value) + ' 后将播放 ' + nearestSong.name;
 					}
-					time = '当前时段无媒资可播放 '+ DateUtil.formateTime(value) +' 后将播放 '+nearestSong.name;
-				}else{
-					if(autoPlayTimer.running)
+					else
+					{
+						play();
+					}
+				}
+				else
+				{
+					if (autoPlayTimer.running)
 						autoPlayTimer.stop();
-					vo = song1;
-					api.playingSong = vo;
-					api.playingIndex = api.songs.indexOf(song1);
+					vo=song1;
+					api.playingSong=vo;
+					api.playingIndex=api.songs.indexOf(song1);
 					listPanel.to(api.playingIndex);
 					AA.say('play');
-					time = '准备开始播放 '+vo.name;
-					var path:String = FileManager.savedDir+URLUtil.getCachePath(vo.url);
+					time='准备开始播放 ' + vo.name;
+					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					trace(path);
-					var f:File = new File(path);
-					now = new Date();
-					var s:Number = now.getTime()-vo.playTime.getTime();
+					var f:File=new File(path);
+					now=new Date();
+					var s:Number=now.getTime() - vo.playTime.getTime();
 					trace(DateUtil.getHMS(vo.playTime), s, DateUtil.getHMS(now));
-					if(f.exists){
-						player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url;
-						if(!api.isCurrentTimeLoop)
-							player.currentPosition = s;
+					if (f.exists)
+					{
+						player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
+						if (!api.isCurrentTimeLoop)
+							player.currentPosition=s;
 						autoLoad();
-					}else{
-						autoLoading = vo;
-						LoadManager.instance.load(vo.url, function():void{
-							player.url = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url)).url;
-							if(!api.isCurrentTimeLoop)
-								player.currentPosition = s;
+					}
+					else
+					{
+						autoLoading=vo;
+						LoadManager.instance.load(vo.url, function():void
+						{
+							player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
+							if (!api.isCurrentTimeLoop)
+								player.currentPosition=s;
 							autoLoad();
-						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void{
-							time = '第一次播放 '+vo.name+' ，请稍候，加载进度 '+Math.round(percent*100)+'%';
+						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void
+						{
+							if (!player1.playing)
+								time='第一次播放 ' + vo.name + ' ，请稍候，加载进度 ' + Math.round(percent * 100) + '%';
 						});
 					}
 //					setTimeout(function():void{
@@ -415,7 +528,7 @@
 			protected function randomPlay_changeHandler(event:Event):void
 			{
 //				trace(randomPlay.selected);
-				if(!song1)
+				if (!song1)
 					play();
 			}
 
@@ -485,7 +598,7 @@
 
 			protected function insertSong_changeHandler(event:Event):void
 			{
-				var wait:Number = 0;
+				var wait:Number=0;
 //				if(panel && panel != insertPanel){
 //					hide(panel);
 //					wait = 0.5;
@@ -507,11 +620,13 @@
 
 			protected function playBroHandler(event:ODataEvent):void
 			{
-				if(brodcasting)
+				if (brodcasting)
 					return;
-				PAlert.show('请问是否确认播放 '+event.data.name, '提示', null, function(value:String):void{
-					if(value == PAlert.YES){
-						brodcasting = true;
+				PAlert.show('请问是否确认播放 ' + event.data.name, '提示', null, function(value:String):void
+				{
+					if (value == PAlert.YES)
+					{
+						brodcasting=true;
 						insertBroOrDM(event.data as InsertVO, true);
 					}
 				}, PAlert.YESNO);
@@ -519,34 +634,70 @@
 
 			public var loaded:int=0;
 			public var autoLoading:Object;
+			private var allLoaded:Boolean;
+
+			private var isAutoloading:Boolean;
 
 			private function autoLoad():void
 			{
-				var songs:Array = api.songs;
-				if(!songs)
-					return
+				if (isAutoloading)
+					return;
+				isAutoloading=true;
+				var songs:Array=api.songs.concat();
+				if (!songs)
+					return;
+				if (api.dmMenu && api.dmMenu.dm_list)
+				{
+					for each (var dm:Object in api.dmMenu.dm_list)
+					{
+						if (songs.indexOf(dm) == -1)
+							songs.unshift(dm);
+					}
+				}
+				updatePVInfo();
 				var vo:Object;
 				var file:File;
-				if(playingIndex <= songs.length-1){
-					vo = songs[playingIndex];
+				if (playingIndex <= songs.length - 1)
+				{
+					vo=songs[playingIndex];
 					playingIndex++;
-					file = new File(FileManager.savedDir+URLUtil.getCachePath(vo.url));
-					if(!file.exists){
-						autoLoading = vo;
-						LoadManager.instance.load(vo.url, function():void{
-							trace('loaded:'+vo.name);
+					file=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
+					if (!file.exists)
+					{
+						autoLoading=vo;
+						LoadManager.instance.load(vo.url, function():void
+						{
+							trace('loaded:' + vo.name);
 							loaded++;
+							isAutoloading=false;
 							autoLoad();
 						}, URLUtil.getCachePath(vo.url));
-					}else{
+					}
+					else
+					{
+						isAutoloading=false;
 						loaded++;
 						autoLoad();
 					}
-				}else if (loaded < songs.length){
+				}
+				else if (loaded < songs.length)
+				{
+					isAutoloading=false;
 					playingIndex=0;
 					autoLoad();
-				}else{
-					trace('all loaded');
+				}
+				else
+				{
+					isAutoloading=false;
+					allLoaded=true;
+					if (pv)
+					{
+						PopupManager.removePopup(pv);
+						pv=null;
+					}
+					if (!song1)
+						play();
+					LoadManager.instance.allLoadingHandler=null
 				}
 //				for(var i:int; i<api.songs.length; i++){
 //					vo = api.songs[i];
@@ -568,16 +719,16 @@
 			}
 
 			private var moreMenu:NativeMenu
-			private const CLOSE:String = 'CLOSE';
-			private const CONTACT_US:String = 'CONTACT_US';
-			private const ABOUT_US:String = 'ABOUT_US';
-			private const CLEAR_CACHE:String = 'CLEAR_CACHE';
-			private const FEEDBACK:String = 'FEEDBACK';
-			private const REMOTE_ACCOUNT:String = 'REMOTE_ACCOUNT';
+			private const CLOSE:String='CLOSE';
+			private const CONTACT_US:String='CONTACT_US';
+			private const ABOUT_US:String='ABOUT_US';
+			private const CLEAR_CACHE:String='CLEAR_CACHE';
+			private const FEEDBACK:String='FEEDBACK';
+			private const REMOTE_ACCOUNT:String='REMOTE_ACCOUNT';
 
 			private function initMore():void
 			{
-				moreMenu = new NativeMenu();
+				moreMenu=new NativeMenu();
 				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
 //				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
 				moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
@@ -587,9 +738,10 @@
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
 			}
 
-			private function getNMI(label:String, data:Object, isSeparator:Boolean=false):NativeMenuItem{
-				var i:NativeMenuItem = new NativeMenuItem(label, isSeparator);
-				i.data = data
+			private function getNMI(label:String, data:Object, isSeparator:Boolean=false):NativeMenuItem
+			{
+				var i:NativeMenuItem=new NativeMenuItem(label, isSeparator);
+				i.data=data
 				i.addEventListener(Event.SELECT, selectedHandler);
 				return i;
 			}
@@ -597,7 +749,7 @@
 			protected function selectedHandler(event:Event):void
 			{
 				trace(event.target.data);
-				switch(event.target.data)
+				switch (event.target.data)
 				{
 					case CLOSE:
 						NativeApplication.nativeApplication.exit();
@@ -608,183 +760,262 @@
 						navigateToURL(new URLRequest('http://weibo.com/u/2662098313'));
 						break;
 					case CLEAR_CACHE:
-						PAlert.show('您确认清空缓存文件吗？', '提示', null, function(value:String):void{
-							if(value == PAlert.YES){
-								var f:File = new File(FileManager.savedDir)
-								if(f.exists){
+						PAlert.show('您确认清空缓存文件吗？', '提示', null, function(value:String):void
+						{
+							if (value == PAlert.YES)
+							{
+								var f:File=new File(FileManager.savedDir)
+								if (f.exists)
+								{
 									f.deleteDirectoryAsync(true);
-									f.addEventListener(Event.COMPLETE, function(e:Event):void{
-										PAlert.show('您的缓存已清空，请放心使用');						
+									f.addEventListener(Event.COMPLETE, function(e:Event):void
+									{
+										PAlert.show('您的缓存已清空，请放心使用');
 									})
 								}
 							}
-						},PAlert.YESNO);
+						}, PAlert.YESNO);
 						break;
 					case REMOTE_ACCOUNT:
-						PAlert.show('您确认注销账户并退出吗？退出后再次使用需要重新登录', '提示', null, function(value:String):void{
-							if(value == PAlert.YES){
-								var so:SharedObject = SharedObject.getLocal('yp');
+						PAlert.show('您确认注销账户并退出吗？退出后再次使用需要重新登录', '提示', null, function(value:String):void
+						{
+							if (value == PAlert.YES)
+							{
+								var so:SharedObject=SharedObject.getLocal('yp');
 								so.clear();
 								so.flush();
 								NativeApplication.nativeApplication.exit();
 							}
-						},PAlert.YESNO);
+						}, PAlert.YESNO);
 						break;
 				}
 			}
 
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				PAlert.show('退出后将停止公播', '退出播放', null, function(value:String):void{
-					if(value == PAlert.YES)
+				PAlert.show('退出后将停止公播', '退出播放', null, function(value:String):void
+				{
+					if (value == PAlert.YES)
 						NativeApplication.nativeApplication.exit();
-				},PAlert.YESNO);
+				}, PAlert.YESNO);
 			}
 
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
 				NativeApplication.nativeApplication.activeWindow.minimize()
 			}
-			
+
 			private var updating:Boolean;
 
 			protected function button3_clickHandler(event:MouseEvent):void
 			{
-				if(this.updating)
+				if (this.updating)
 					return;
-				updateButton.label = '下载更新';
-				updating = true;
-				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void{
-					var percent:Number = e.bytesLoaded/e.bytesTotal;
-					percent = Math.round(percent*100);
-					updateButton.label = '更新进度'+percent+'%';
+				updateButton.label='下载更新';
+				updating=true;
+				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
+				{
+					var percent:Number=e.bytesLoaded / e.bytesTotal;
+					percent=Math.round(percent * 100);
+					updateButton.label='更新进度' + percent + '%';
 				});
 				api.updater.downloadUpdate();
 			}
-			
-			private var dmPlayers:Dictionary = new Dictionary();
-			
+
+			private var dmPlayers:Dictionary=new Dictionary();
+			private var broDic:Dictionary=new Dictionary();
+
 			private function insertBroOrDM(data:InsertVO, isBro:Boolean=false):void
 			{
-				var bro:InsertVO = data;
-				var naiveURL:String = FileManager.savedDir+URLUtil.getCachePath(bro.url);
-				var url:String = new File(naiveURL).url;
-				
-				time = data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
-				time += bro.name;
-				if(bro.repeat){
-					time += ' '+bro.repeat +' 次';
-				}else{
-					time += '';
+				var bro:InsertVO=data;
+				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(bro.url);
+				var url:String=new File(naiveURL).url;
+				broDic[url]=bro;
+
+				time=data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
+				time+=bro.name;
+				if (bro.repeat)
+				{
+					time+=' ' + bro.repeat + ' 次';
 				}
-				if(bro.interval){
-					time += ' 每次间隔 '+bro.repeat+ ' 秒';
+				else
+				{
+					time+='';
 				}
-				player1.muted = true;
-				setTimeout(function():void{
-					player2Time = time;
-					if(isBro){
-						for each(var sp:SoundPlayer in dmPlayers)
+				if (bro.interval)
+				{
+					time+=' 每次间隔 ' + bro.repeat + ' 秒';
+				}
+				player1.muted=true;
+				setTimeout(function():void
+				{
+					player2Time=time;
+					var sp:SoundPlayer;
+					if (isBro)
+					{
+						for each (sp in dmPlayers)
 						{
-							sp.muted = true;
+							sp.muted=true;
 						}
-						if(bro.repeat){
-							player2.repeat = true;
-							player2.repeatTimes = bro.repeat;
-							player2.repeatInterval = bro.interval;
-							player2.addEventListener("playRepeatComplete", function(e:Event):void{
-								player1.muted = false;
-								brodcasting = false;
-								playingDM = false;
+						if (bro.repeat)
+						{
+							player2.repeat=true;
+							player2.repeatTimes=bro.repeat;
+							player2.repeatInterval=bro.interval;
+							player2.addEventListener("playRepeatComplete", function(e:Event):void
+							{
+								player1.muted=false;
+								brodcasting=false;
+								playingDM=false;
 							});
-						}else{
-							player2.repeat = false;
-							player2.addEventListener("playComplete", function(e:Event):void{
-								player1.muted = false;
-								brodcasting = false;
-								playingDM = false;
-								for each(var sp:SoundPlayer in dmPlayers)
+						}
+						else
+						{
+							player2.repeat=false;
+							player2.addEventListener("playComplete", function(e:Event):void
+							{
+								var hasDMPlaying:Boolean;
+								for each (var sp:SoundPlayer in dmPlayers)
 								{
-									sp.muted = false;
+									if (sp.playing)
+									{
+										player2Time='开始插播DM：' + broDic[sp.url].name;
+										sp.muted=false;
+										hasDMPlaying=true;
+										break;
+									}
 								}
+								if (!hasDMPlaying)
+								{
+									player1.muted=false;
+									playingDM=false;
+								}
+								brodcasting=false;
 							});
 						}
-						player2.url = url;
-					}else{
-						var sp:SoundPlayer = dmPlayers[url] as SoundPlayer;
-						if(!sp){
-							sp = getPlayer2();
-							dmPlayers[url] = sp;
-							if(bro.repeat){
-								sp.repeat = true;
-								sp.repeatTimes = bro.repeat;
-								sp.repeatInterval = bro.interval;
-								sp.addEventListener("playRepeatComplete", function(e:Event):void{
-									if(!brodcasting){
-										player1.muted = false;
-										brodcasting = false;
-										playingDM = false;
+						setTimeout(function():void
+						{
+							player2.url=url;
+						}, 800);
+					}
+					else
+					{
+						sp=dmPlayers[url] as SoundPlayer;
+						if (!sp)
+						{
+							sp=getPlayer2();
+							dmPlayers[url]=sp;
+							if (bro.repeat)
+							{
+								sp.repeat=true;
+								sp.repeatTimes=bro.repeat;
+								sp.repeatInterval=bro.interval;
+								sp.addEventListener("playRepeatComplete", function(e:Event):void
+								{
+									if (!brodcasting)
+									{
+										player1.muted=false;
+										brodcasting=false;
+										playingDM=false;
 									}
 									delete dmPlayers[url];
-								});
-							}else{
-								sp.repeat = false;
-								sp.addEventListener("playComplete", function(e:Event):void{
-									if(!brodcasting){
-										player1.muted = false;
-										brodcasting = false;
-										playingDM = false;
-									}
-									delete dmPlayers[url];
+									delete broDic[url];
 								});
 							}
-							sp.url = url;
+							else
+							{
+								sp.repeat=false;
+								sp.addEventListener("playComplete", function(e:Event):void
+								{
+									if (!brodcasting)
+									{
+										player1.muted=false;
+										brodcasting=false;
+										playingDM=false;
+									}
+									delete dmPlayers[url];
+									delete broDic[url];
+								});
+							}
+							sp.url=url;
+						}
+						else
+						{
+							if (sp.muted)
+								sp.muted=false;
 						}
 					}
-				}, 800)				
+				}, 800)
 			}
-			
+
 			protected function onTimer(event:TimerEvent):void
 			{
-				if(!song1)
+				if (!song1)
 					play();
 			}
-			
+
 			protected function bro_clickHandler(event:MouseEvent):void
 			{
-				var av:AddBroView = new AddBroView();
+				var av:AddBroView=new AddBroView();
 				PopupBoxManager.popup(av, function():void
 				{
 					api.initBroadcasts();
 				});
 			}
-			
+
 			private var player2Time:String;
-			
+
 			protected function player2PlayingHandler(event:DataEvent):void
 			{
-				var pt:Number = Math.ceil(parseFloat(event.data)/1000);
-				var tt:int = Math.ceil(player2.soundLength/1000);
-				time = player2Time+' '+DateUtil.formateTime(tt-pt) +' 后结束'
+				var sp:SoundPlayer=event.target as SoundPlayer;
+				if (player2.playing && sp != player2)
+					return;
+				var pt:Number=Math.ceil(parseFloat(event.data) / 1000);
+				var tt:int=Math.ceil(sp.soundLength / 1000);
+				time=player2Time + ' ' + DateUtil.formateTime(tt - pt) + ' 后结束'
 			}
-			
+
+			private function updatePVInfo(percent:Number=0):void
+			{
+				var songs:Array=api.songs;
+				if (pv && songs)
+					pv.info='媒资初始化进度：' + loaded + '/' + songs.length + ' 当前进度：' + Math.round(percent * 100) + '%';
+			}
 		]]>
 	</fx:Script>
 
-	<mx:UIComponent id="sv" mouseChildren="false" y="{info.y}" mouseEnabled="false"/>
-	<s:BitmapImage id="background" source="@Embed('/assets/panelBG.jpg')"
-				   width="100%" height="100%"
+	<mx:UIComponent id="sv"
+					mouseChildren="false"
+					y="{info.y}"
+					mouseEnabled="false"/>
+	<s:BitmapImage id="background"
+				   source="@Embed('/assets/panelBG.jpg')"
+				   width="100%"
+				   height="100%"
 				   fillMode="repeat"/>
-	<s:VGroup id="panelGroup" clipAndEnableScrolling="true">
-		<views:ListPanel id="listPanel" width="100%" height="100%" 
-						 />
+	<s:VGroup id="panelGroup"
+			  clipAndEnableScrolling="true">
+		<views:ListPanel id="listPanel"
+						 width="100%"
+						 height="100%"/>
 	</s:VGroup>
 
-	<s:Group height="57" width="100%">
-		<s:Group id="info" y="{topBG.height}" width="100%">
-			<s:BitmapImage x="1" source="@Embed('/assets/trasBG.png')"/>
-			<s:Label text="{time}" color="0xd9dee3" fontSize="14" left="20" width="615" verticalCenter="0"/>
-			<s:HGroup right="20" verticalCenter="0" verticalAlign="middle">
+	<s:Group height="57"
+			 width="100%">
+		<s:Group id="info"
+				 y="{topBG.height}"
+				 width="100%">
+			<s:BitmapImage x="1"
+						   source="@Embed('/assets/trasBG.png')"/>
+			<s:Label text="{time}"
+					 color="0xd9dee3"
+					 fontSize="14"
+					 left="20"
+					 width="615"
+					 verticalCenter="0"/>
+			<s:HGroup right="20"
+					  verticalCenter="0"
+					  verticalAlign="middle">
 				<!--<s:ToggleButton skinClass="skins.ListButton"
 								buttonMode="true"
 								change="songList_changeHandler(event)"
@@ -804,63 +1035,116 @@
 								toolTip="{insertSong.selected ? '关闭定时插播' : '定时插播'}"
 								/>
 						  />-->
-				<s:ToggleButton id="randomPlay" change="randomPlay_changeHandler(event)" 
+				<s:ToggleButton id="randomPlay"
+								change="randomPlay_changeHandler(event)"
 								mouseDown="event.stopImmediatePropagation()"
 								buttonMode="true"
 								skinClass="skins.RandomButton"
-								toolTip="{randomPlay.selected ? '取消随机播放' : '开启随机播放'}"
-								/>
-				<s:Button id="more" mouseDown="event.stopImmediatePropagation()"
+								toolTip="{randomPlay.selected ? '取消随机播放' : '开启随机播放'}"/>
+				<s:Button id="more"
+						  mouseDown="event.stopImmediatePropagation()"
 						  buttonMode="true"
 						  skinClass="skins.MoreButtonSkin"
 						  toolTip="更多"
 						  click="more_clickHandler(event)"/>
 			</s:HGroup>
 		</s:Group>
-		<s:BitmapImage horizontalCenter="0" source="@Embed('/assets/topBG.png')" id="topBG">
+		<s:BitmapImage horizontalCenter="0"
+					   source="@Embed('/assets/topBG.png')"
+					   id="topBG">
 			<s:filters>
-				<s:DropShadowFilter angle="90" blurX="3" blurY="3" alpha=".1" />
+				<s:DropShadowFilter angle="90"
+									blurX="3"
+									blurY="3"
+									alpha=".1"/>
 			</s:filters>
 		</s:BitmapImage>
-		<s:HGroup width="100%" height="100%" verticalAlign="middle" paddingLeft="20" paddingRight="20">
-			<s:BitmapImage source="@Embed('/assets/icon/32.png')" left="20" verticalCenter="0"/>
+		<s:HGroup width="100%"
+				  height="100%"
+				  verticalAlign="middle"
+				  paddingLeft="20"
+				  paddingRight="20">
+			<s:BitmapImage source="@Embed('/assets/icon/32.png')"
+						   left="20"
+						   verticalCenter="0"/>
 			<!--<s:Label text="乐府时代播放器" fontSize="22" color="0xffffff" left="20" verticalCenter="0"/>-->
-			<s:VGroup horizontalAlign="center" paddingLeft="20">
+			<s:VGroup horizontalAlign="center"
+					  paddingLeft="20">
 				<s:Label text="音量调节"/>
-				<s:HGroup verticalAlign="middle" verticalCenter="0" gap="13">
-					<s:Image buttonMode="true" toolTip="静音" click="toVolume(0)" source="@Embed('/assets/v1.png')"/>
-					<s:Group height="12" id="volumeGroup" width="102" mouseDown="volumeGroup_mouseDownHandler(event)">
-						<s:BitmapImage id="track" source="@Embed('/assets/trackBG.png')" y="-2"/>		
+				<s:HGroup verticalAlign="middle"
+						  verticalCenter="0"
+						  gap="13">
+					<s:Image buttonMode="true"
+							 toolTip="静音"
+							 click="toVolume(0)"
+							 source="@Embed('/assets/v1.png')"/>
+					<s:Group height="12"
+							 id="volumeGroup"
+							 width="102"
+							 mouseDown="volumeGroup_mouseDownHandler(event)">
+						<s:BitmapImage id="track"
+									   source="@Embed('/assets/trackBG.png')"
+									   y="-2"/>
 						<s:BitmapImage source="@Embed('/assets/activeBG.png')"
 									   width="100%"
 									   mask="{m}"
-									   y="-2"
-									   />
-						<s:Group width="{volume*track.width/100}" id="m" height="12">
-							<s:Rect width="100%" height="12">
+									   y="-2"/>
+						<s:Group width="{volume*track.width/100}"
+								 id="m"
+								 height="12">
+							<s:Rect width="100%"
+									height="12">
 								<s:fill>
 									<s:SolidColor color="0"/>
 								</s:fill>
 							</s:Rect>
 						</s:Group>
-						<s:Group width="0" height="0" buttonMode="true" id="thumb"
+						<s:Group width="0"
+								 height="0"
+								 buttonMode="true"
+								 id="thumb"
 								 x="{volume*track.width/100}"
 								 verticalCenter="0"
 								 mouseDown="thumb_mouseDownHandler(event)">
-							<s:BitmapImage source="@Embed('/assets/thumbVbtn.png')" x="-12" y="-16"/>
+							<s:BitmapImage source="@Embed('/assets/thumbVbtn.png')"
+										   x="-12"
+										   y="-16"/>
 						</s:Group>
 					</s:Group>
-					<s:Image buttonMode="true" toolTip="最大音" click="toVolume(100)" source="@Embed('/assets/v2.png')"/>
+					<s:Image buttonMode="true"
+							 toolTip="最大音"
+							 click="toVolume(100)"
+							 source="@Embed('/assets/v2.png')"/>
 				</s:HGroup>
 			</s:VGroup>
 			<s:Spacer width="100%"/>
-			<s:Button fontSize="14" id="updateButton" color="0x191C1E" skinClass="skins.buttons.DefaultButtonSkin" visible="{API.instance.updatable}" click="button3_clickHandler(event)" label="更新"/>
-			<s:Button fontSize="14" color="0x191C1E" skinClass="skins.buttons.PrimaryButtonSkin" id="bro" includeInLayout="{API.instance.local}" visible="{API.instance.local}" click="bro_clickHandler(event)" label="广播"/>
-			<s:Button fontSize="14" color="0x191C1E" skinClass="skins.buttons.DefaultButtonSkin" click="button2_clickHandler(event)" label="缩小"/>
-			<s:Button fontSize="14" skinClass="skins.buttons.WarningButtonSkin" click="button1_clickHandler(event)" label="退出"/>
+			<s:Button fontSize="14"
+					  id="updateButton"
+					  color="0x191C1E"
+					  skinClass="skins.buttons.DefaultButtonSkin"
+					  visible="{API.instance.updatable}"
+					  click="button3_clickHandler(event)"
+					  label="更新"/>
+			<s:Button fontSize="14"
+					  color="0x191C1E"
+					  skinClass="skins.buttons.PrimaryButtonSkin"
+					  id="bro"
+					  includeInLayout="{API.instance.local}"
+					  visible="{API.instance.local}"
+					  click="bro_clickHandler(event)"
+					  label="广播"/>
+			<s:Button fontSize="14"
+					  color="0x191C1E"
+					  skinClass="skins.buttons.DefaultButtonSkin"
+					  click="button2_clickHandler(event)"
+					  label="缩小"/>
+			<s:Button fontSize="14"
+					  skinClass="skins.buttons.WarningButtonSkin"
+					  click="button1_clickHandler(event)"
+					  label="退出"/>
 		</s:HGroup>
 	</s:Group>
 
-	
-	
+
+
 </s:Group>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="准备媒资"
+					 disableClose="true">
+
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var info:String;
+		]]>
+	</fx:Script>
+
+	<components:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  paddingLeft="40"
+						  paddingRight="40"
+						  paddingBottom="20"
+						  paddingTop="20"
+						  gap="10"/>
+	</components:layout>
+	<s:Label text="{info}"
+			 fontSize="14"/>
+</components:PopupBox>

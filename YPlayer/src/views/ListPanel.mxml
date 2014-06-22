@@ -14,11 +14,9 @@
 			import com.pamakids.utils.URLUtil;
 
 			import mx.collections.ArrayCollection;
-			import mx.controls.Menu;
 			import mx.events.FlexEvent;
 
 			import spark.components.Button;
-			import spark.components.Menu;
 			import spark.events.IndexChangeEvent;
 
 			import controllers.AA;
@@ -66,6 +64,7 @@
 //					vo.playTime = DateUtil.getHMS(startTime);
 //					ac.addItem(vo);
 				var menu:MenuVO;
+				api=API.instance;
 				API.instance.addEventListener('PLAY', function():void
 				{
 					menu=API.instance.menu;
@@ -82,7 +81,22 @@
 					{
 						ac.addItem(m);
 					}
+					if (api.isCurrentTimeLoop)
+					{
+						listInfo='曲目时长   曲目名称'
+					}
+					else
+					{
+						listInfo='播放时间   曲目名称'
+					}
 					bb.dataProvider=ac;
+					bb.selectedIndex=0;
+					for each (var o:Object in api.songs)
+					{
+
+					}
+					AA.say('play');
+//					to(api.playingIndex);
 				});
 				API.instance.addEventListener('bros', function():void
 				{
@@ -104,10 +118,9 @@
 
 			public function to(index:int):void
 			{
-				trace(index);
 				if (index == -1)
 				{
-					trace('why');
+					trace('to index got -1');
 					return;
 				}
 				TweenLite.delayedCall(0.5, function():void
@@ -179,6 +192,7 @@
 			}
 
 			private var loaded:int;
+			private var api:API;
 
 			private function autoload():void
 			{
@@ -230,6 +244,9 @@
 
 			[Bindable]
 			private var songItems:ArrayCollection;
+
+			[Bindable]
+			private var listInfo:String;
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"
@@ -269,7 +286,7 @@
 		<s:Spacer height="8"/>
 		<s:Label color="0xd9dee3"
 				 fontSize="14"
-				 text="播放时间   曲目名称"
+				 text="{listInfo}"
 				 visible="{label}"/>
 		<s:List mouseDown="event.stopImmediatePropagation()"
 				skinClass="skins.SongListSkin"
