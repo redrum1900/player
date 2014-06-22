@@ -22,6 +22,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       tags = tags.join ','
     $http.get(listUri, params:type:1,name:$scope.menuName,tags:tags,page:$scope.page,perPage:20).success (result) ->
       if(result.status)
+        console.log result
         if !$scope.list
           $scope.list = result.results;
         else if result.results and result.results.length
@@ -89,6 +90,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
       {field: "song.name", displayName:"名称", cellTemplate: textCellTemplate}
       {field: "time", displayName:"播放时间", cellTemplate: textCellTemplate}
       {field: "song.duration", displayName:"时长", cellTemplate: durationTemplate}
+      {field: "song.tags", displayName:"标签", cellTemplate: textCellTemplate}
       {field: "allow_circle", displayName:"是否允许随机播放", cellTemplate: textCellTemplate}
       {field: "index", displayName:"排序", width:55, cellTemplate: '
             <div class="row" ng-style="{height: rowHeight}">
@@ -199,17 +201,77 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
     time = moment(hour:parseInt(h),minute:parseInt(m))
     songs.sort (a, b)->
       return a.index-b.index
+    info = '总数 '+songs.length+'  '
+    dic = {}
+    rule = $scope.time.rule
+    ordered = []
+    console.log rule
+    if rule
+      try
+        arr = rule.split('&')
+        group = 0
+        tagsArr = []
+        while i < arr.length
+          if i==0
+            group = parseInt(arr[i])
+          else
+            arr2 = arr[i].split('=')
+            tagsArr.push [arr2[0], parseInt(arr2[1])]
+          i++
+      catch e
+        console.log e
+        confirm(1, '提示', '排序公式出错，请检查标点符号')
+        return
+      i = 0
+      leftSongs = []
+      counted = {}
+      console.log group, tagsArr
+      while i < songs.length
+        song = songs[i]
+        j = 0
+        has = false
+        before=0
+        while j < tagsArr.length
+          ta = tagsArr[j]
+          tag = ta[0]
+          num = ta[1]
+          if song.song.tags.indexOf(tag) != -1
+            has = true
+            counted[tag] = if counted[tag] then counted[tag]+1 else 1
+            song.index = (Math.ceil(counted[tag]/num)-1)*group+counted[tag]+before
+            ordered.push song
+            j=tagsArr.length
+          else
+            j++
+          before+=num
+        leftSongs.push song unless has
+        i++
+      ordered.sort (a, b)->
+        return a.index-b.index
+      if leftSongs && leftSongs.length
+        leftSongs.forEach (ls)->
+          ls.index = ordered[ordered.length-1].index+1
+          ordered.push ls
+      songs = ordered
+    i = 0
     while i < songs.length
       song = songs[i]
       song.index = i
       song.time = time.format('HH:mm:ss')
+      song.song.tags.forEach (tag)->
+        num = dic[tag]
+        dic[tag] = if num then num+1 else 1
       if song.song.duration
         time.add 's', song.song.duration
       i++
+    for key of dic
+      if key
+        info+=' '+key+' '+dic[key]
     time.add 'm', 1
     $scope.time.songs = songs
     if !$scope.time.loop
       $scope.time.end = time.format('HH:mm')
+    $scope.info  = info
 
   $scope.saveMenu = ->
     menu = angular.copy $scope.data
@@ -225,6 +287,7 @@ menu.controller 'MenuCtrl', ($scope, $http, $modal, $q, $filter) ->
         songs = list.songs
         if songs
           songs.forEach (s)->
+            console.log s.song.name
             s.song = s.song._id
       tags = []
       if menu.tags
@@ -477,9 +540,8 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
       if all
         if all.indexOf(item._id) != -1
           item.choosed = true
-      if !item.choosed
-        item.style = choosedStyle(item)
-        item.label = choosedLabel(item)
+      item.style = choosedStyle(item)
+      item.label = if item.choosed then "再选" else "选取"
 
   choosed = (data)->
     has = false
@@ -495,14 +557,14 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
     return if choosed(data) then '取消' else '选中'
 
   $scope.handle = (data)->
-    if choosed(data)
-      i = 0
-      while i < $scope.songs.length
-        if $scope.songs[i]._id == data._id
-          $scope.songs.splice(i, 1)
-        i++
-    else
-      $scope.songs.push data
+#    if choosed(data)
+#      i = 0
+#      while i < $scope.songs.length
+#        if $scope.songs[i]._id == data._id
+#          $scope.songs.splice(i, 1)
+#        i++
+#    else
+    $scope.songs.push data
     refreshStatus()
 
   $scope.try = (data)->
@@ -521,7 +583,7 @@ ModalInstanceCtrl = ($scope, $http, $timeout, $modalInstance,$q, $filter, songs,
       {field: "handler", displayName: "操作", width:100, cellTemplate: '
       <div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px">
         <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a>
-        <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a>
+        <a class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a>
       </div></div>'}
     ]
 

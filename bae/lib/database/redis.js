@@ -13,6 +13,9 @@
   client = {};
 
   module.exports = {
+    getClient: function() {
+      return client;
+    },
     config: function(conf) {
       var host, options, port;
       host = null;

@@ -1,3 +1,16 @@
+
+global.debug = process.env.USER == 'mani'
+Redis = require './lib/database/redis'
+
+Redis.config()
+Redis.getClient().multi().keys('*', (err, result)->
+  Redis.getClient().mget result, (err, res)->
+    console.log res.length
+).dbsize()
+.exec (err, result)->
+  console.log result
+
+return
 qiniu = require 'qiniu'
 
 qiniu.conf.ACCESS_KEY = 'xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J';

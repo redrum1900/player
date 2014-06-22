@@ -45,9 +45,18 @@
       return Menu.find(query).select('_id updated_at end_date quality type').sort({
         end_date: 1
       }).exec(function(err, result) {
+        var menu;
         if (err) {
           return Error(err, res);
         } else {
+          menu = result;
+          if (menu.list) {
+            menu.list.forEach(function(time) {
+              return time.songs.sort(function(a, b) {
+                return a.index - b.index;
+              });
+            });
+          }
           return res.json({
             status: true,
             results: result
@@ -217,6 +226,13 @@
         return Error(err, res);
       });
       ep.all('menu', 'count', function(menu, count) {
+        if (menu.list) {
+          menu.list.forEach(function(time) {
+            return time.songs.sort(function(a, b) {
+              return a.index - b.index;
+            });
+          });
+        }
         return res.json({
           status: true,
           results: menu,
@@ -224,7 +240,7 @@
         });
       });
       Menu.count(query, ep.done('count'));
-      return Menu.find(query).populate('creator', 'username').populate('updator', 'username').populate('list.songs.song', 'name duration').populate('dm_list.dm', 'name duration').sort({
+      return Menu.find(query).populate('creator', 'username').populate('updator', 'username').populate('list.songs.song', 'name duration tags').populate('dm_list.dm', 'name duration').sort({
         'created_at': -1
       }).limit(data.perPage).skip(data.perPage * (data.page - 1)).exec(ep.done('menu'));
     });
@@ -236,8 +252,8 @@
           return Error(err, res);
         } else {
           UpdateObject(result, data);
-          console.log(data);
           result.updator = req.user;
+          console.log(result.list[0].songs);
           return result.save(function(err, result) {
             if (err) {
               return Error(err, res);

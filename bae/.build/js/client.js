@@ -382,10 +382,6 @@
         }
       }
       if (wrong) {
-<<<<<<< HEAD
-=======
-        confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的');
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
         return false;
       } else {
         return true;
@@ -401,10 +397,7 @@
         }
       });
       if (wrong) {
-<<<<<<< HEAD
         confirm(1, '开始播放的时间格式不对', '注意冒号格式，应该是 8:00或18:00 这样的，广播时间可以留空');
-=======
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
         return;
       }
       return $http.post('/user/update', {

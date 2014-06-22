@@ -125,12 +125,21 @@
         <input type="text" class="form-control" ng-model="$parent.time.end"
                 >
     </div>
-    <div class="col-md-4" style="margin-top: 7px">
+    <div class="col-md-4" style="margin-top: 7px;width:200px">
         时段内所有歌曲自动循环
         <input type="checkbox" tooltip-append-to-body="true" ng-model="$parent.time.loop">
     </div>
     <button class="btn btn-primary" style="float: right;margin-right: 15px;" ng-click="addSong()">插入媒资</button>
     <button class="btn btn-default" style="float: right;margin-right: 15px;" tooltip="用以重新给歌单排序" ng-click="refreshSongList()">刷新歌单</button>
 </div>
-
+<div class="row" style="margin-top: 10px">
+    <div class="col-md-6 ng-binding" style="margin-top: 7px;">
+        {{ info }}
+    </div>
+    <div class="col-md-6" tooltip="5&标签1=2&标签2=3 意思就是5个为一组，标签1两个标签2三个排列">
+        <input type="text" class="form-control" ng-model="$parent.time.rule"
+               placeholder="自动排序公式：5&标签1=2&标签2=3 设定好后点击刷新歌单"
+                >
+    </div>
+</div>
 <div style="height: 500px; border: 1px solid rgb(212,212,212); margin-top: 20px" ng-grid="songGrid" ></div>

@@ -40,13 +40,13 @@ app.configure = function configure(nconf, next) {
     mail.config(nconf.get('email'));
     sms.config(nconf.get('sms'));
 
-    var u1 = new Manager({
-        username: 'admin',
-        password: '666666',
-        email:'mani95lisa@gmail.com',
-        role: 0
-    });
-    u1.save();
+//    var u1 = new Manager({
+//        username: 'admin',
+//        password: '666666',
+//        email:'mani95lisa@gmail.com',
+//        role: 0
+//    });
+//    u1.save();
 
     passport.use(auth.localStrategy());
 

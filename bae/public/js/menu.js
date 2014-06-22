@@ -36,6 +36,7 @@
         }
       }).success(function(result) {
         if (result.status) {
+          console.log(result);
           if (!$scope.list) {
             return $scope.list = result.results;
           } else if (result.results && result.results.length) {
@@ -148,6 +149,10 @@
           field: "song.duration",
           displayName: "时长",
           cellTemplate: durationTemplate
+        }, {
+          field: "song.tags",
+          displayName: "标签",
+          cellTemplate: textCellTemplate
         }, {
           field: "allow_circle",
           displayName: "是否允许随机播放",
@@ -270,7 +275,7 @@
       return deffered.promise;
     };
     $scope.refreshSongList = function() {
-      var begin, h, i, m, song, songs, time;
+      var arr, arr2, before, begin, counted, dic, e, group, h, has, i, info, j, key, leftSongs, m, num, ordered, rule, song, songs, ta, tag, tagsArr, time;
       songs = angular.copy($scope.time.songs);
       $scope.time.songs = null;
       begin = $scope.time.begin;
@@ -287,20 +292,96 @@
       songs.sort(function(a, b) {
         return a.index - b.index;
       });
+      info = '总数 ' + songs.length + '  ';
+      dic = {};
+      rule = $scope.time.rule;
+      ordered = [];
+      console.log(rule);
+      if (rule) {
+        try {
+          arr = rule.split('&');
+          group = 0;
+          tagsArr = [];
+          while (i < arr.length) {
+            if (i === 0) {
+              group = parseInt(arr[i]);
+            } else {
+              arr2 = arr[i].split('=');
+              tagsArr.push([arr2[0], parseInt(arr2[1])]);
+            }
+            i++;
+          }
+        } catch (_error) {
+          e = _error;
+          console.log(e);
+          confirm(1, '提示', '排序公式出错，请检查标点符号');
+          return;
+        }
+        i = 0;
+        leftSongs = [];
+        counted = {};
+        console.log(group, tagsArr);
+        while (i < songs.length) {
+          song = songs[i];
+          j = 0;
+          has = false;
+          before = 0;
+          while (j < tagsArr.length) {
+            ta = tagsArr[j];
+            tag = ta[0];
+            num = ta[1];
+            if (song.song.tags.indexOf(tag) !== -1) {
+              has = true;
+              counted[tag] = counted[tag] ? counted[tag] + 1 : 1;
+              song.index = (Math.ceil(counted[tag] / num) - 1) * group + counted[tag] + before;
+              ordered.push(song);
+              j = tagsArr.length;
+            } else {
+              j++;
+            }
+            before += num;
+          }
+          if (!has) {
+            leftSongs.push(song);
+          }
+          i++;
+        }
+        ordered.sort(function(a, b) {
+          return a.index - b.index;
+        });
+        if (leftSongs && leftSongs.length) {
+          leftSongs.forEach(function(ls) {
+            ls.index = ordered[ordered.length - 1].index + 1;
+            return ordered.push(ls);
+          });
+        }
+        songs = ordered;
+      }
+      i = 0;
       while (i < songs.length) {
         song = songs[i];
         song.index = i;
         song.time = time.format('HH:mm:ss');
+        song.song.tags.forEach(function(tag) {
+          num = dic[tag];
+          return dic[tag] = num ? num + 1 : 1;
+        });
         if (song.song.duration) {
           time.add('s', song.song.duration);
         }
         i++;
       }
+      for (key in dic) {
+        if (key) {
+          info += ' ' + key + ' ' + dic[key];
+        }
+      }
       time.add('m', 1);
       $scope.time.songs = songs;
       if (!$scope.time.loop) {
-        return $scope.time.end = time.format('HH:mm');
+        $scope.time.end = time.format('HH:mm');
       }
+      return $scope.info = info;
     };
     $scope.saveMenu = function() {
       var list, tags, wrong;
@@ -322,6 +403,7 @@
           songs = list.songs;
           if (songs) {
             return songs.forEach(function(s) {
+              console.log(s.song.name);
               return s.song = s.song._id;
             });
           }
@@ -690,10 +772,8 @@
             item.choosed = true;
           }
         }
-        if (!item.choosed) {
-          item.style = choosedStyle(item);
-          return item.label = choosedLabel(item);
-        }
+        item.style = choosedStyle(item);
+        return item.label = item.choosed ? "再选" : "选取";
       });
     };
     choosed = function(data) {
@@ -721,18 +801,7 @@
       }
     };
     $scope.handle = function(data) {
-      var i;
-      if (choosed(data)) {
-        i = 0;
-        while (i < $scope.songs.length) {
-          if ($scope.songs[i]._id === data._id) {
-            $scope.songs.splice(i, 1);
-          }
-          i++;
-        }
-      } else {
-        $scope.songs.push(data);
-      }
+      $scope.songs.push(data);
       return refreshStatus();
     };
     $scope["try"] = function(data) {
@@ -755,7 +824,7 @@
           field: "handler",
           displayName: "操作",
           width: 100,
-          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a ng-if="!row.entity.choosed" class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
+          cellTemplate: '<div class="col-md-12 text-center" style="padding: 0px; display: inline-block; vertical-align: middle; margin-top: 8px"> <a class="btn btn-default btn-xs" ng-click="try(row.entity)">试听</a> <a class="btn btn-success btn-xs" ng-class="row.entity.style" ng-click="handle(row.entity)">{{ row.entity.label }}</a> </div></div>'
         }
       ]
     };

@@ -6,6 +6,8 @@ logger = require('log4js').getLogger('Redis')
 client = {}
 
 module.exports =
+  getClient : ->
+    return client
   config: (conf)->
     host = null
     port = null

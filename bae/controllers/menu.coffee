@@ -27,6 +27,11 @@ module.exports = (app)->
       if err
         Error err, res
       else
+        menu = result
+        if menu.list
+          menu.list.forEach (time)->
+            time.songs.sort (a, b)->
+              return a.index-b.index
         res.json status:true, results:result
 
   saveMenu = (id, callback)->
@@ -135,13 +140,17 @@ module.exports = (app)->
       Error err, res
 
     ep.all 'menu', 'count', (menu, count)->
+      if menu.list
+        menu.list.forEach (time)->
+          time.songs.sort (a, b)->
+            return a.index-b.index
       res.json status:true, results:menu, count:count
 
     Menu.count query, ep.done 'count'
     Menu.find(query)
     .populate('creator', 'username')
     .populate('updator', 'username')
-    .populate('list.songs.song', 'name duration')
+    .populate('list.songs.song', 'name duration tags')
     .populate('dm_list.dm', 'name duration')
     .sort('created_at':-1)
     .limit(data.perPage)
@@ -155,8 +164,8 @@ module.exports = (app)->
         Error err, res
       else
         UpdateObject result, data
-        console.log data
         result.updator = req.user
+        console.log result.list[0].songs
         result.save (err, result) ->
           if err
             Error err, res

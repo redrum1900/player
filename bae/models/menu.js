@@ -31,7 +31,10 @@
               "default": false
             }
           }
-        ]
+        ],
+        index: {
+          type: Number
+        }
       }
     ],
     dm_list: [

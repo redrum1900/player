@@ -295,13 +295,10 @@
           });
         }
         menu.tags = tags;
-<<<<<<< HEAD
         menu.quality = parseInt(menu.quality);
         if (menu.quality !== 192) {
           menu.quality = 64;
         }
-=======
->>>>>>> f506fac3a98c268778a65bf7f219f7cc706be99a
         menu.type = 2;
         if (!menu._id) {
           return $http.post('/menu/add', menu).success(function(result) {

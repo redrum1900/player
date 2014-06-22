@@ -34,7 +34,7 @@
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "passport-remember-me": "0.0.1",
-    "qiniu": "~6.1.1",
+    "qiniu": "~6.1.1"=
     "redis": "~0.10.1",
     "request": "^2.34.0",
     "urllib": "^0.5.11",
@@ -45,6 +45,6 @@
     "xml2js": "^0.4.2",
     "log4js": "0.6.9",
     "thrift": "0.9.1",
-    "node-xlsx": "~0.4.0"
+    "node-xlsx": "git://github.com/mani95lisa/node-xlsx.git#master"
   }
 }

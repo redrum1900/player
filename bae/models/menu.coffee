@@ -12,6 +12,7 @@ MenuSchema = new Schema
       song:type:Schema.Types.ObjectId,ref:"Song"
       allow_circle:type:Boolean,default:false
     ]
+    index:type:Number
   ]
   dm_list:[
     dm:type:Schema.Types.ObjectId,ref:"DM"
