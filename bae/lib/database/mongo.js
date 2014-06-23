@@ -13,7 +13,7 @@ module.exports = {
             url = conf
         }
 
-//        mongoose.set('debug', true);
+        mongoose.set('debug', true);
 
         var db = mongoose.connection;
 
@@ -36,7 +36,7 @@ module.exports = {
         });
         db.on('disconnected', function() {
             console.log('MongoDB disconnected!');
-//            mongoose.connect(url, {server:{auto_reconnect:true}});
+            mongoose.connect(url, {server:{auto_reconnect:true}});
         });
         mongoose.connect(url, {server:{auto_reconnect:true}});
     }
