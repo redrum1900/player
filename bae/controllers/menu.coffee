@@ -12,6 +12,7 @@ qiniu = require 'qiniu'
 logger = require('log4js').getLogger('Menu')
 xlsx = require 'node-xlsx'
 EventProxy = require 'eventproxy'
+mongoose = require 'mongoose'
 
 module.exports = (app)->
 
@@ -24,6 +25,7 @@ module.exports = (app)->
     .select('_id updated_at end_date quality type')
     .sort(end_date:1)
     .exec (err, result)->
+      mongoose.close()
       if err
         Error err, res
       else

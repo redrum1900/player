@@ -11,6 +11,7 @@ updateTags = models.updateTags
 logger = require('log4js').getDefaultLogger()
 Log = models.Log
 moment = require 'moment'
+mongoose = require 'mongoose'
 
 module.exports = (app) ->
 
@@ -22,6 +23,7 @@ module.exports = (app) ->
     if !data.username || !data.password
       return res.json status:false, results:'用户名或密码不能为空'
     User.getAuthenticated data.username, data.password, (err, result)->
+      mongoose.close()
       if err
         Error err, res
       else
@@ -35,6 +37,7 @@ module.exports = (app) ->
 
     ep = new EventProxy()
     ep.all 'log','bro','menu',(log, bro, menu)->
+      mongoose.close()
       res.json status:true,results:bros:bro.broadcasts,menus:menu
 
     ep.fail (err)->
