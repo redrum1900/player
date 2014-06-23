@@ -36,7 +36,7 @@ module.exports = {
         });
         db.on('disconnected', function() {
             console.log('MongoDB disconnected!');
-            mongoose.connect(url, {server:{auto_reconnect:true}});
+//            mongoose.connect(url, {server:{auto_reconnect:true}});
         });
         mongoose.connect(url, {server:{auto_reconnect:true}});
     }
