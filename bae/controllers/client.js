@@ -44,7 +44,7 @@
         });
       }
       return User.getAuthenticated(data.username, data.password, function(err, result) {
-        mongoose.close();
+        mongoose.disconnect();
         if (err) {
           return Error(err, res);
         } else {
@@ -69,7 +69,7 @@
       }
       ep = new EventProxy();
       ep.all('log', 'bro', 'menu', function(log, bro, menu) {
-        mongoose.close();
+        mongoose.disconnect();
         return res.json({
           status: true,
           results: {

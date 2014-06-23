@@ -22,6 +22,7 @@ package controllers
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
+	import flash.utils.setTimeout;
 
 	import models.InsertVO;
 	import models.MenuVO;
@@ -35,13 +36,18 @@ package controllers
 		public var online:Boolean=true;
 
 		[Bindable]
-		public var local:Boolean=true;
+		public var local:Boolean=false;
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
 
 		public function API()
 		{
+//			var so:SharedObject = SharedObject.getLocal('yf');
+//			so.clear();
+//			so.flush();
+//			var file:File=File.applicationStorageDirectory.resolvePath('log');
+//			trace('log dir:' + file.nativePath);
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
@@ -191,56 +197,65 @@ package controllers
 
 		public function getMenuList():void
 		{
-			if (menu)
+			trace('saved_dir', FileManager.savedDir);
+			if (menu || !FileManager.savedDir)
 				return;
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
-			if (online && !local)
+			try
 			{
-				getSB('menu/list', 'GET').call(function(vo:ResultVO):void
+				var menus:Array=FileManager.readFile('menus.yp') as Array;
+
+				if (online && !local)
 				{
-					if (vo.status)
+					getSB('menu/list', 'GET').call(function(vo:ResultVO):void
 					{
-						if (vo.results.length)
+						if (vo.status)
 						{
-							compareMenus(menus, vo.results as Array);
-							initMenu();
-						}
-						else
-						{
-							if (!menus)
+							if (vo.results.length)
 							{
-								PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加', '初始化失败', null, function():void
-								{
-									getMenuList();
-								}, PAlert.CONFIRM, '再试一次', '', true);
+								compareMenus(menus, vo.results as Array);
+								initMenu();
 							}
 							else
 							{
-								initMenu();
+								if (!menus)
+								{
+									PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加', '初始化失败', null, function():void
+									{
+										getMenuList();
+									}, PAlert.CONFIRM, '再试一次', '', true);
+								}
+								else
+								{
+									initMenu();
+								}
 							}
 						}
-					}
-					else
-					{
-						online=false;
-						initMenu();
-					}
-				});
-			}
-			else
-			{
-				if (!menus)
-				{
-					PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败', null, function():void
-					{
-						online=true
-						getMenuList();
-					}, PAlert.CONFIRM, '再试一次', '', true);
+						else
+						{
+							online=false;
+							initMenu();
+						}
+					});
 				}
 				else
 				{
-					initMenu();
+					if (!menus)
+					{
+						PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败', null, function():void
+						{
+							online=true
+							getMenuList();
+						}, PAlert.CONFIRM, '再试一次', '', true);
+					}
+					else
+					{
+						initMenu();
+					}
 				}
+			}
+			catch (e:Event)
+			{
+				PAlert.show(e);
 			}
 		}
 
@@ -320,6 +335,7 @@ package controllers
 				}
 
 				o.end_date=NodeUtil.getLocalDate(o.end_date);
+
 				if (n.getTime() <= o.end_date.getTime())
 				{
 					var songMenu:Object;
@@ -352,6 +368,7 @@ package controllers
 					noPlayList();
 				}
 			}
+
 
 			if (refreshTimer && !refreshTimer.running)
 				refreshTimer.start();
@@ -440,7 +457,7 @@ package controllers
 							arr.push(song);
 							songs.push(song);
 							duration=s.duration;
-							if (dmMenu && dmMenu.dm_list)
+							if (dmMenu && dmMenu.dm_list && !oo.loop)
 							{
 								var t1:Number=playTime.getTime();
 								playTime.seconds+=s.duration;
@@ -470,7 +487,6 @@ package controllers
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			menu=CloneUtil.convertObject(o, MenuVO);
-
 			initBroadcasts();
 			dispatchEvent(new Event('PLAY'));
 		}
@@ -489,8 +505,7 @@ package controllers
 
 		public function initBroadcasts():void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			var bs:Array=so.data.broadcasts;
+			var bs:Array=FileManager.readFile('bros.yp') as Array;
 			if (bs)
 			{
 				for each (var o:Object in bs)
@@ -500,7 +515,21 @@ package controllers
 						o.url=QNService.HOST + o.url;
 				}
 			}
+			else
+			{
+				return
+			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
+			var arr:Array=[];
+			if (broadcasts)
+			{
+				for each (var oo:Object in broadcasts)
+				{
+					if (oo && oo != 'null')
+						arr.push(oo);
+				}
+			}
+			broadcasts=arr;
 			dispatchEvent(new Event('bros'));
 		}
 
@@ -510,6 +539,7 @@ package controllers
 		public function login(username:String, password:String, callback:Function):void
 		{
 			username=username.replace(' ', '');
+			var f:File;
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var so:SharedObject=SharedObject.getLocal('yp');
@@ -519,7 +549,8 @@ package controllers
 				{
 					if (cd)
 					{
-						var f:File=new File(cd);
+						cd=cd.replace(/\\/g, '/');
+						f=new File(cd);
 						exists=f.isDirectory;
 					}
 				}
@@ -528,19 +559,22 @@ package controllers
 				}
 				if (vo.status)
 				{
+					broadcasts=vo.results.broadcasts;
 					ServiceBase.id=vo.results.id + '';
 					if (cd && exists)
 					{
 						FileManager.savedDir=so.data.cacheDir;
+						FileManager.saveFile('bros.yp', broadcasts);
 						getMenuList();
 
 						var file:File=File.applicationStorageDirectory.resolvePath('log');
+						trace('log dir:' + file.nativePath);
 						if (file.exists && file.isDirectory)
 						{
 							var files:Array=file.getDirectoryListing();
 							if (files.length)
 							{
-								var f:File=files.shift();
+								f=files.shift() as File;
 								var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(new Date()) + '-' + f.name;
 								QNService.instance.upload(f, function(r:Object):void
 								{
@@ -552,19 +586,24 @@ package controllers
 						}
 					}
 				}
-				else
+				else if (cd)
 				{
-					FileManager.savedDir=so.data.cacheDir;
+					FileManager.savedDir=cd;
 				}
 				if (!cd || !exists)
 				{
-					var sv:SelectCacheView=new SelectCacheView();
-					PopupBoxManager.popup(sv, function():void
+					if (vo.status)
 					{
-						so=SharedObject.getLocal('yp');
-						FileManager.savedDir=so.data.cacheDir;
-						getMenuList();
-					});
+						var sv:SelectCacheView=new SelectCacheView();
+						PopupBoxManager.popup(sv, function():void
+						{
+							so=SharedObject.getLocal('yp');
+							FileManager.savedDir=so.data.cacheDir;
+							if (broadcasts)
+								FileManager.saveFile('bros.yp', broadcasts);
+							getMenuList();
+						});
+					}
 				}
 				callback(vo);
 			}, {username: username, password: password});

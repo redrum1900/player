@@ -25,7 +25,7 @@ module.exports = (app)->
     .select('_id updated_at end_date quality type')
     .sort(end_date:1)
     .exec (err, result)->
-      mongoose.close()
+      mongoose.disconnect()
       if err
         Error err, res
       else

@@ -7,6 +7,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
+			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
@@ -171,15 +172,17 @@
 
 			private function createButtons():void
 			{
+				if (!bros)
+					return;
 				if (bros && i < bros.length)
 				{
 					getButton(bros[i]);
 					i++;
 				}
-				else
-				{
-					to(API.instance.playingIndex);
-				}
+//				else
+//				{
+//					to(API.instance.playingIndex);
+//				}
 			}
 
 			private var createTime:int=1;
@@ -196,10 +199,15 @@
 
 			private function autoload():void
 			{
+				return
+				var isArr:Boolean=bros is Array;
+				if (!bros)
+					return;
 				if (loaded != bros.length)
 				{
 					var vo:Object=bros[loaded];
-					var f:File=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
+					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
+					var f:File=new File(path);
 					if (f.exists)
 					{
 						loaded++;

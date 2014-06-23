@@ -48,7 +48,7 @@
         end_date: 1
       }).exec(function(err, result) {
         var menu;
-        mongoose.close();
+        mongoose.disconnect();
         if (err) {
           return Error(err, res);
         } else {

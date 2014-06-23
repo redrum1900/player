@@ -163,7 +163,7 @@
 							if (vo.status)
 							{
 								so.data.id=ServiceBase.id;
-								so.data.broadcasts=vo.results.broadcasts;
+//								so.data.broadcasts=vo.results.broadcasts;
 								so.flush();
 							}
 							else
@@ -348,7 +348,14 @@
 						{
 							song1=api.songs[0];
 							if (api.songs.length > 1)
-								song2=api.songs[1] as SongVO;
+							{
+								for (var k:int; k < api.songs.length; k++)
+								{
+									song2=api.songs[k] as SongVO;
+									if (song2)
+										break;
+								}
+							}
 							has=true;
 						}
 						else
@@ -654,6 +661,13 @@
 							songs.unshift(dm);
 					}
 				}
+				if (api.broadcasts)
+				{
+					for each (var bro:Object in api.broadcasts)
+					{
+						songs.push(bro);
+					}
+				}
 				updatePVInfo();
 				var vo:Object;
 				var file:File;
@@ -661,7 +675,9 @@
 				{
 					vo=songs[playingIndex];
 					playingIndex++;
-					file=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
+					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
+					file=new File(s);
+
 					if (!file.exists)
 					{
 						autoLoading=vo;
@@ -677,7 +693,8 @@
 					{
 						isAutoloading=false;
 						loaded++;
-						autoLoad();
+						TweenLite.killDelayedCallsTo(autoLoad);
+						TweenLite.delayedCall(0.1, autoLoad);
 					}
 				}
 				else if (loaded < songs.length)
@@ -978,8 +995,13 @@
 			private function updatePVInfo(percent:Number=0):void
 			{
 				var songs:Array=api.songs;
+				var length:int=songs.length;
+				if (api.dmMenu && api.dmMenu.dm_list)
+				{
+					length+=api.dmMenu.dm_list.length;
+				}
 				if (pv && songs)
-					pv.info='媒资初始化进度：' + loaded + '/' + songs.length + ' 当前进度：' + Math.round(percent * 100) + '%';
+					pv.info='媒资初始化进度：' + loaded + '/' + length + ' 当前进度：' + Math.round(percent * 100) + '%';
 			}
 		]]>
 	</fx:Script>

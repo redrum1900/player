@@ -30,7 +30,7 @@
 			protected function confirm_clickHandler(event:MouseEvent):void
 			{
 				var nurl:String='bro/' + UIDUtil.createUID() + '.mp3';
-				var path:String=File.applicationDirectory.resolvePath('local/' + nurl).nativePath;
+				var path:String=FileManager.savedDir + nurl;
 				selectedFile.copyTo(new File(path), true);
 				var o:Object={};
 				o.name=broName.text;

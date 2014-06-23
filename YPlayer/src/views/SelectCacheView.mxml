@@ -17,7 +17,10 @@
 			{
 				FileHelper.browse(File.desktopDirectory.nativePath, 2, function(f:File):void{
 					trace(f.nativePath);
-					url = f.nativePath+'/';
+					var s:String = f.nativePath;
+					s = s.replace(/\\/g,"/")
+					url = s+'/';
+					trace(s);
 					FileManager.savedDir = url;
 				},'选择缓存文件夹');
 //				API.instance.login(username.text, password.text, function(vo:ResultVO):void{
@@ -48,6 +51,7 @@
 			{
 				var so:SharedObject = SharedObject.getLocal('yp');
 				so.data.cacheDir = url;
+				FileManager.savedDir = url;
 				so.flush();
 				close();
 			}
