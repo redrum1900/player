@@ -2,18 +2,163 @@
 (function() {
   var cs;
 
-  cs = angular.module('ConsoleApp', ['nvd3ChartDirectives']);
+  cs = angular.module('ConsoleApp', ['ui.bootstrap']);
 
   cs.controller('ConsoleCtrl', function($scope, $http) {
-    $scope.data = [
-      {
-        "key": "数据报表",
-        "values": [[1, 0], [2, 10], [3, 120], [4, 130], [5, 140], [6, 1000], [7, 160], [8, 170], [9, 500], [12, 1500], [13, 3000]]
-      }
-    ];
-    return $http.get('/sms/left').success(function(result) {
+    var data, domMain, echarts, fileLocation, getData, getLogs, legends, myChart, option, refresh;
+    $http.get('/sms/left').success(function(result) {
       console.log(result);
       return $scope.smsLeft = result.result;
+    });
+    configDateForScope($scope);
+    $scope.today = new Date();
+    $scope.begin_date = new Date().setDate($scope.today.getDate() - 30);
+    $scope.end_date = new Date();
+    $scope.$watch('begin_date', function() {
+      console.log($scope.begin_date);
+      return getData();
+    });
+    $scope.$watch('status', function() {
+      console.log($scope.status);
+      return getData();
+    });
+    getData = function() {};
+    data = null;
+    getLogs = function() {
+      return $http.get('/logs').success(function(result) {
+        var arr, datas, i, o, series;
+        if (result.status) {
+          data = result.results;
+          arr = [];
+          series = [];
+          datas = [];
+          if (data) {
+            data.forEach(function(d) {
+              var i, _results;
+              arr.push(d.username);
+              i = 0;
+              _results = [];
+              while (i < legends.length) {
+                if (!datas[i]) {
+                  datas[i] = [];
+                }
+                switch (i) {
+                  case 0:
+                    datas[i].push(d.count);
+                    break;
+                  case 1:
+                    datas[i].push(d.dm);
+                    break;
+                  case 2:
+                    datas[i].push(d.received);
+                    break;
+                  case 3:
+                    datas[i].push(d.confirmed);
+                }
+                _results.push(i++);
+              }
+              return _results;
+            });
+          }
+          i = 0;
+          while (i < legends.length) {
+            o = {
+              type: "bar",
+              stack: "总量",
+              itemStyle: {
+                normal: {
+                  label: {
+                    show: true,
+                    position: "inside"
+                  }
+                }
+              }
+            };
+            o.name = legends[i];
+            o.data = datas[i];
+            series.push(o);
+            i++;
+          }
+          option.yAxis[0].data = arr;
+          option.series = series;
+          return refresh();
+        } else {
+          return confirm(1, '获取统计数据失败', result.results);
+        }
+      });
+    };
+    legends = ["在线时长(分钟)", "DM播放(次数)", "消息接收(次数)", "消息确认(次数)"];
+    option = {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow"
+        }
+      },
+      legend: {
+        data: legends
+      },
+      toolbox: {
+        show: true,
+        feature: {
+          mark: {
+            show: false
+          },
+          dataView: {
+            show: false,
+            readOnly: false
+          },
+          magicType: {
+            show: false
+          },
+          restore: {
+            show: false
+          },
+          saveAsImage: {
+            show: true
+          }
+        }
+      },
+      calculable: true,
+      xAxis: [
+        {
+          type: "value"
+        }
+      ],
+      yAxis: [
+        {
+          type: "category"
+        }
+      ]
+    };
+    refresh = function() {
+      var myChart;
+      if (myChart && myChart.dispose) {
+        myChart.dispose();
+      }
+      myChart = echarts.init(domMain);
+      window.onresize = myChart.resize;
+      console.log(option);
+      return myChart.setOption(option, true);
+    };
+    domMain = document.getElementById('main');
+    myChart = null;
+    echarts = null;
+    fileLocation = './components/echart/www/js/echarts';
+    require.config({
+      paths: {
+        echarts: fileLocation,
+        'echarts/chart/pie': fileLocation
+      }
+    });
+    return require(['echarts', 'echarts/chart/pie'], function(ec) {
+      echarts = ec;
+      if (myChart && myChart.dispose) {
+        myChart.dispose();
+      }
+      myChart = echarts.init(domMain);
+      window.onresize = myChart.resize;
+      return getLogs();
     });
   });
 

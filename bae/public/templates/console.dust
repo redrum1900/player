@@ -6,22 +6,75 @@
     控制台
 {/title}
 {<script}
-    <script src="components/d3/d3.js"></script>
-    <script src="components/nvd3/nv.d3.js"></script>
-    <script src="../components/angularjs-nvd3-directives/dist/angularjs-nvd3-directives.min.js"></script>
-    <link rel="stylesheet" href="components/nvd3/nv.d3.css"/>
+    <script src="../components/echart/www/js/esl.js"></script>
+    <style>
+        .main {
+            height: 400px;
+            /*
+            height : 400px !important;
+            width : 800px !important;
+            */
+            overflow: hidden;
+            padding : 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e3e3e3;
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+            -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 {/script}
 {<body}
 	<div id="consoleDiv" ng-app="ConsoleApp" ng-controller="ConsoleCtrl">
-        <div class="bs-callout bs-callout-danger">
-            短信剩余：{{ smsLeft }}
+        <div class="col-md-4" style="padding-left: 0; width: 180px">
+            <p class="input-group" tooltip="开始日期">
+                <input type="text" class="form-control" datepicker-popup="{{ format }}"
+                       ng-model="begin_date"
+                       placeholder="请选开始日期"
+                       datepicker-options="dateOptions"
+                       show-button-bar="false"
+                       show-weeks="false"
+                       max-date="end_date"
+                       is-open="opened"
+                        />
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                  </span>
+            </p>
         </div>
-        <nvd3-line-chart data="data"
-                showXAxis="true"
-                showYAxis="true"
-                tooltips="true"
-                interactive="true">
-        </nvd3-line-chart>
+        <div class="col-md-4" style="padding-left: 0; width: 180px">
+            <p class="input-group" tooltip="截止日期">
+                <input type="text" class="form-control" datepicker-popup="{{ format }}"
+                       ng-model="end_date"
+                       placeholder="请选截止日期"
+                       datepicker-options="dateOptions"
+                       show-button-bar="false"
+                       min-date="begin_date"
+                       max-date="today"
+                       show-weeks="false"
+                       is-open="opened2"
+                        />
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                  </span>
+            </p>
+        </div>
+
+        <div class="btn-group" style="float: left;margin-left: 15px;">
+            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'all'">实时</button>
+            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'not_started'">昨天</button>
+            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'started'">最近一周</button>
+            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'ended'">最近一月</button>
+        </div>
+
+        <div id="main" class="main col-md-12"></div>
 	</div>
 {/body}
+<script src="../components/angular-locale_zh-cn.js"></script>
 <script src="js/console.js"></script>
+{!<script src="../js/echartsExample.js"></script>!}

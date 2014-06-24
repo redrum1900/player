@@ -61,6 +61,19 @@ var configDateForScope = function($scope){
         'year-format': 'yyyy',
         'starting-day': 1
     };
+    $scope.open = function($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+
+        $scope.opened = true;
+    };
+
+    $scope.open2 = function($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+
+        $scope.opened2 = true;
+    };
 }
 
 var enableNGBindModel = function(app){
