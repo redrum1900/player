@@ -69,7 +69,6 @@
     saveMenu = function(id, callback) {
       return Menu.findById(id).select('name list begin_date end_date quality dm_list type').populate('list.songs.song', 'name url duration').populate('dm_list.dm', 'name url duration').exec(function(err, result) {
         var extra, putPolicy, token;
-        console.log(result);
         extra = new qiniu.io.PutExtra();
         putPolicy = new qiniu.rs.PutPolicy('yfcdn:' + id + '.json');
         token = putPolicy.token();
@@ -255,7 +254,6 @@
         } else {
           UpdateObject(result, data);
           result.updator = req.user;
-          console.log(result.list[0].songs);
           return result.save(function(err, result) {
             if (err) {
               return Error(err, res);

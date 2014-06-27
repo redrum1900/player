@@ -41,7 +41,6 @@ module.exports = (app)->
     .populate('list.songs.song', 'name url duration')
     .populate('dm_list.dm', 'name url duration')
     .exec (err, result)->
-      console.log result
       extra = new qiniu.io.PutExtra()
       putPolicy = new qiniu.rs.PutPolicy('yfcdn:'+id+'.json')
       token = putPolicy.token()
@@ -166,7 +165,6 @@ module.exports = (app)->
       else
         UpdateObject result, data
         result.updator = req.user
-        console.log result.list[0].songs
         result.save (err, result) ->
           if err
             Error err, res

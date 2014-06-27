@@ -41,7 +41,7 @@
                        is-open="opened"
                         />
                   <span class="input-group-btn">
-                    <button class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
+                    <bdutton class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
                     </button>
                   </span>
             </p>
