@@ -55,9 +55,10 @@ app.configure = function configure(nconf, next) {
     });
 
     passport.deserializeUser(function (id, done) {
-        Manager.findOne({_id: id}, function (err, user) {
-            done(null, user);
-        });
+        done(null, {_id:id})
+//        Manager.findOne({_id: id}, function (err, user) {
+//            done(null, user);
+//        });
     });
 
     next(null);

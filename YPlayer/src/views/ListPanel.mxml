@@ -7,26 +7,28 @@
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
-			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
+			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.utils.DateUtil;
 			import com.pamakids.utils.URLUtil;
-
+			
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
-
+			
 			import spark.components.Button;
 			import spark.events.IndexChangeEvent;
-
+			
 			import controllers.AA;
 			import controllers.API;
-
+			
+			import models.InsertVO;
 			import models.MenuVO;
 			import models.TimeVO;
-
+			
 			import skins.buttons.PrimaryButtonSkin;
+			import skins.buttons.WarningButtonSkin;
 
 			[Bindable]
 			private var label:String;
@@ -76,7 +78,7 @@
 					ac.addItem({name: '完整列表', type: 1});
 					if (dmMenu && dmMenu.dm_list && dmMenu.dm_list.length)
 					{
-						ac.addItem({name: 'DM列表', type: 2});
+						ac.addItem({name: '插播列表', type: 2});
 					}
 					for each (var m:TimeVO in menu.list)
 					{
@@ -92,10 +94,10 @@
 					}
 					bb.dataProvider=ac;
 					bb.selectedIndex=0;
-					for each (var o:Object in api.songs)
-					{
-
-					}
+//					for each (var o:Object in api.songs)
+//					{
+//
+//					}
 					AA.say('play');
 //					to(api.playingIndex);
 				});
@@ -103,8 +105,8 @@
 				{
 					i=0;
 					loaded=0;
-					buttonsGroup.removeAllElements();
 					bros=API.instance.broadcasts;
+					buttonsGroup.removeAllElements();
 					createButtons();
 					autoload();
 				});
@@ -141,14 +143,21 @@
 			{
 				var b:Button=new Button();
 				dic[b]=o;
-				b.setStyle('skinClass', PrimaryButtonSkin);
+				if(o.type == 1){
+					b.setStyle('skinClass', WarningButtonSkin);
+					var bm:NativeMenu = new NativeMenu();
+					bm.addEventListener(Event.SELECT, navHandler);
+					var ni:NativeMenuItem=new NativeMenuItem('编辑');
+					ni.data=o;
+					bm.addItem(ni);
+					b.contextMenu = bm;
+				}
+				else{
+					b.setStyle('skinClass', PrimaryButtonSkin);
+				}
 				b.label=o.name;
-//				var bm:NativeMenu = new NativeMenu();
-//				bm.addEventListener(Event.SELECT, navHandler);
-				var ni:NativeMenuItem=new NativeMenuItem('删除');
-				ni.data=o;
-//				bm.addItem(ni);
-//				b.contextMenu = bm;
+				trace(o.name);
+
 				b.addEventListener(MouseEvent.CLICK, broHandler);
 				buttonsGroup.addElement(b);
 				b.alpha=0;
@@ -186,12 +195,42 @@
 			}
 
 			private var createTime:int=1;
+			private var rbv:RecordBroView;
 
 			private var dic:Dictionary=new Dictionary();
 
 			protected function broHandler(event:MouseEvent):void
 			{
-				dispatchEvent(new ODataEvent(dic[event.currentTarget]));
+				var o:Object = dic[event.currentTarget];
+				if(o.url){
+					dispatchEvent(new ODataEvent(o));
+				}else{
+					record(o as InsertVO);
+				}
+			}
+			
+			private function record(vo:InsertVO):void
+			{
+				rbv=new RecordBroView();
+				rbv.vo=vo;
+				PopupBoxManager.popup(rbv, function():void
+				{
+					var so:SharedObject = SharedObject.getLocal('yp');
+					var bros:Array = api.broadcasts;
+					var arr:Array = [];
+					for each(var o:Object in bros){
+						if(o.type == 1){
+							arr.push(o);
+						}
+					}
+					trace(vo.name);
+					so.data.records = arr;
+					so.flush();
+					
+					buttonsGroup.removeAllElements();
+					i = 0;
+					createButtons();
+				});
 			}
 
 			private var loaded:int;
@@ -255,6 +294,14 @@
 
 			[Bindable]
 			private var listInfo:String;
+			
+			protected function navHandler(event:Event):void
+			{
+				var nm:NativeMenuItem = event.target as NativeMenuItem;
+				trace(nm.data);
+				record(nm.data as InsertVO);
+			}
+			
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"

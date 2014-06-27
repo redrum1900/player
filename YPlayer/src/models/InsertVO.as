@@ -15,6 +15,7 @@ package models
 		public var repeat:int;
 		public var interval:int;
 		public var duration:Number;
+		public var type:int;
 	}
 }
 

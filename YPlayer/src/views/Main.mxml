@@ -634,7 +634,8 @@
 					if (value == PAlert.YES)
 					{
 						brodcasting=true;
-						insertBroOrDM(event.data as InsertVO, true);
+						var vo:InsertVO=event.data as InsertVO;
+						insertBroOrDM(vo, true);
 					}
 				}, PAlert.YESNO);
 			}
@@ -665,7 +666,8 @@
 				{
 					for each (var bro:Object in api.broadcasts)
 					{
-						songs.push(bro);
+						if (bro.type != 1)
+							songs.push(bro);
 					}
 				}
 				updatePVInfo();
@@ -693,8 +695,9 @@
 					{
 						isAutoloading=false;
 						loaded++;
-						TweenLite.killDelayedCallsTo(autoLoad);
-						TweenLite.delayedCall(0.1, autoLoad);
+						autoLoad();
+//						TweenLite.killDelayedCallsTo(autoLoad);
+//						TweenLite.delayedCall(0.1, autoLoad);
 					}
 				}
 				else if (loaded < songs.length)
@@ -705,16 +708,19 @@
 				}
 				else
 				{
-					isAutoloading=false;
-					allLoaded=true;
-					if (pv)
+					TweenLite.delayedCall(0.1, function():void
 					{
-						PopupManager.removePopup(pv);
-						pv=null;
-					}
-					if (!song1)
-						play();
-					LoadManager.instance.allLoadingHandler=null
+						isAutoloading=false;
+						allLoaded=true;
+						if (pv)
+						{
+							PopupManager.removePopup(pv);
+							pv=null;
+						}
+						if (!song1)
+							play();
+						LoadManager.instance.allLoadingHandler=null
+					});
 				}
 //				for(var i:int; i<api.songs.length; i++){
 //					vo = api.songs[i];
@@ -846,10 +852,9 @@
 			{
 				var bro:InsertVO=data;
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(bro.url);
-				var url:String=new File(naiveURL).url;
+				var url:String=data.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + data.url).url;
 				broDic[url]=bro;
-
-				time=data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
+				time=data.playTime && data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
 				time+=bro.name;
 				if (bro.repeat)
 				{

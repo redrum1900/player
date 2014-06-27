@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="录制广播"
+					 width="300"
+					 disableClose="true"
+					 creationComplete="popupbox1_creationCompleteHandler(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.pamakids.components.PAlert;
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.manager.SoundManager;
+			import com.pamakids.utils.DateUtil;
+
+			import mx.events.FlexEvent;
+			import mx.utils.UIDUtil;
+
+			import fr.kikko.lab.ShineMP3Encoder;
+
+			import models.InsertVO;
+
+			import org.as3wavsound.WavSound;
+			import org.bytearray.micrecorder.MicRecorder;
+			import org.bytearray.micrecorder.encoder.WaveEncoder;
+			import org.bytearray.micrecorder.events.RecordingEvent;
+
+			import skins.buttons.DangerButtonSkin;
+			import skins.buttons.SuccesButtonSkin;
+
+			[Bindable]
+			public function get vo():InsertVO
+			{
+				return _vo;
+			}
+
+			public function set vo(value:InsertVO):void
+			{
+				_vo=value;
+				check();
+			}
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+			}
+
+			private var bros:Array;
+			private var so:SharedObject=SharedObject.getLocal('yp');
+
+			private var _vo:InsertVO;
+
+			private var timer:Timer;
+			private var mic:Microphone;
+			private var waveEncoder:WaveEncoder=new WaveEncoder();
+			private var recorder:MicRecorder=new MicRecorder(waveEncoder);
+
+			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				mic=Microphone.getMicrophone();
+				mic.setSilenceLevel(0);
+				mic.gain=100;
+				mic.rate=44;
+				mic.setLoopBack(false);
+				mic.setUseEchoSuppression(true);
+				Security.showSettings('2');
+				recorder.addEventListener("recording", recordingHandler);
+				recorder.addEventListener(Event.COMPLETE, recordCompletedHandler);
+				timer=new Timer(1000);
+				timer.addEventListener(TimerEvent.TIMER, onTimer);
+				check();
+			}
+
+			private var mp3Encoder:ShineMP3Encoder;
+			[Bindable]
+			private var saving:Boolean;
+
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+				if (recorded)
+				{
+					toAdd.label='保存中';
+					saving=true;
+					recorder.output.position=0;
+					mp3Encoder=new ShineMP3Encoder(recorder.output);
+					mp3Encoder.start();
+					mp3Encoder.addEventListener(Event.COMPLETE, mp3EncodedHandler);
+				}
+				else
+				{
+					vo.name=broName.text;
+					close();
+				}
+			}
+
+			protected function ctl_clickHandler(event:MouseEvent):void
+			{
+				if (!mic)
+				{
+					PAlert.show('您的设备没有麦克风，请检查后再试');
+					return;
+				}
+				if (!recording)
+				{
+					recording=true;
+					recorder.record();
+					ctl.label='停止录音';
+					info='已录制：00:00';
+					ctl.setStyle('skinClass', DangerButtonSkin);
+					timer.reset();
+					timer.start();
+				}
+				else
+				{
+					timer.stop();
+					recording=false;
+					recorder.stop();
+					mic.setLoopBack(false);
+					ctl.label='开始录音';
+					ctl.setStyle('skinClass', SuccesButtonSkin);
+				}
+			}
+
+			[Bindable]
+			private var info:String='';
+
+			protected function play_clickHandler(event:MouseEvent):void
+			{
+				if (!playing)
+				{
+					PAlert.show('请注意，试听时会直接将录制的声音播放出来', '提示', null, function(value:String):void
+					{
+						if (value == PAlert.YES)
+						{
+							play.label='停止';
+							playing=true;
+							if (recorded)
+							{
+								recorded.play();
+							}
+							else if (vo.url)
+							{
+								SoundManager.instance.playUrl(vo.url);
+							}
+							TweenLite.delayedCall(timer.currentCount, function():void
+							{
+								play.label='试听';
+								playing=false;
+							});
+						}
+					}, PAlert.YESNO);
+				}
+				else
+				{
+					playing=false;
+					play.label='试听';
+					if (recorded)
+					{
+						recorded.stop();
+					}
+					else if (vo.url)
+					{
+						SoundManager.instance.stopAll();
+					}
+				}
+			}
+
+			protected function recordingHandler(event:org.bytearray.micrecorder.events.RecordingEvent):void
+			{
+
+			}
+
+			[Bindable]
+			private var playing:Boolean;
+
+			[Bindable]
+			private var recording:Boolean;
+
+			private var recorded:WavSound;
+
+			protected function recordCompletedHandler(event:Event):void
+			{
+				recording=false;
+				recorded=new WavSound(recorder.output);
+				play.visible=true;
+			}
+
+			protected function onTimer(event:TimerEvent):void
+			{
+				info='已录制：' + DateUtil.formateTime(timer.currentCount);
+			}
+
+			private function check():void
+			{
+//				if (vo.url && play)
+//				{
+//					play.visible=true;
+//				}
+			}
+
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+				close();
+			}
+
+			protected function mp3EncodedHandler(event:Event):void
+			{
+				var nurl:String='recorded/' + UIDUtil.createUID() + '.mp3';
+				FileManager.saveFile(nurl, mp3Encoder.mp3Data);
+				vo.url=nurl;
+				vo.name=broName.text;
+				close();
+			}
+		]]>
+	</fx:Script>
+
+	<components:layout>
+		<s:VerticalLayout paddingLeft="25"
+						  paddingRight="25"
+						  paddingBottom="20"
+						  paddingTop="30"
+						  gap="10"/>
+	</components:layout>
+	<s:VGroup id="bg"
+			  horizontalAlign="center">
+		<s:HGroup verticalAlign="middle">
+			<s:Button id="ctl"
+					  label="开始录音"
+					  enabled="{!playing}"
+					  click="ctl_clickHandler(event)"
+					  buttonMode="true"
+					  skinClass="skins.buttons.SuccesButtonSkin"/>
+			<s:Label text="{info}"
+					 width="100%"/>
+			<s:Button id="play"
+					  enabled="{!recording}"
+					  skinClass="skins.buttons.DefaultButtonSkin"
+					  visible="false"
+					  label="试听"
+					  click="play_clickHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle"
+				  width="100%">
+			<s:TextInput color="0x30373e"
+						 text="{vo.name}"
+						 skinClass="skins.textinput.DefaultTextInputSkin"
+						 id="broName"
+						 prompt="请输入广播名称"
+						 toolTip="广播名称"/>
+		</s:HGroup>
+		<s:Spacer height="18"/>
+		<s:HGroup width="100%">
+			<s:Button id="toAdd"
+					  color="0x30373e"
+					  enabled="{!saving &amp;&amp; !playing &amp;&amp; !recording}"
+					  click="confirm_clickHandler(event)"
+					  skinClass="skins.buttons.PrimaryButtonSkin"
+					  label="确认"/>
+			<s:Button id="cancel"
+					  enabled="{!saving &amp;&amp; !playing &amp;&amp; !recording}"
+					  color="0x30373e"
+					  click="cancel_clickHandler(event)"
+					  skinClass="skins.buttons.DefaultButtonSkin"
+					  label="取消"/>
+		</s:HGroup>
+	</s:VGroup>
+</components:PopupBox>

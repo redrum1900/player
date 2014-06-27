@@ -22,7 +22,6 @@ package controllers
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-	import flash.utils.setTimeout;
 
 	import models.InsertVO;
 	import models.MenuVO;
@@ -36,14 +35,16 @@ package controllers
 		public var online:Boolean=true;
 
 		[Bindable]
-		public var local:Boolean=false;
+		public var local:Boolean=true;
+
+		public var enableFunctions:Array=['record'];
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
 
 		public function API()
 		{
-//			var so:SharedObject = SharedObject.getLocal('yf');
+//			var so:SharedObject=SharedObject.getLocal('yf');
 //			so.clear();
 //			so.flush();
 //			var file:File=File.applicationStorageDirectory.resolvePath('log');
@@ -349,6 +350,7 @@ package controllers
 								parseMenu(songMenu, dmMenuO);
 						}, dmMenu._id + '.json', online);
 					}
+					o._id='53a7a07f6c837516f8bfa67c';
 					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void
 					{
 						songMenu=JSON.parse(data);
@@ -518,6 +520,19 @@ package controllers
 			else
 			{
 				return
+			}
+			if (enableFunctions.indexOf('record') != -1)
+			{
+				var so:SharedObject=SharedObject.getLocal('yp');
+				var records:Array=so.data.records;
+				if (!records)
+				{
+					records=[]
+					records.push({name: '定制广播1', type: 1});
+					records.push({name: '定制广播2', type: 1});
+					records.push({name: '定制广播3', type: 1});
+				}
+				bs=bs.concat(records);
 			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
 			var arr:Array=[];
