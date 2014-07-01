@@ -3,6 +3,7 @@ Log = models.Log
 auth = require '../lib/auth'
 Error = require '../lib/error'
 Client = models.Client
+moment = require 'moment'
 
 module.exports = (app)->
 #data = req.query
@@ -66,3 +67,32 @@ module.exports = (app)->
 #    .populate('client', 'username')
 #    .limit(data.perPage)
 #    .skip(data.perPage(data.page-1))
+
+  app.get '/realtime', auth.isAuthenticated(), (req, res)->
+    data = req.query
+    Client.find data, '_id username geo', (err, clients)->
+      if err
+        Error err, res
+      else
+        ids = []
+        clients.forEach (c)->
+          ids.push c._id
+        query =
+          _id:$in:ids
+          created_at:moment().format("YYYY-MM-DD")
+        console.log query
+        Log.find query, 'updated_at', (err, result)->
+          if err
+            Error err, res
+          else
+            arr = []
+            o = {}
+            if result
+              result.forEach (r)->
+                o[r._id] = r.updated_at
+            clients.forEach (c)->
+              result = username:c.username,geo:c.geo
+              result.updated_at = o[c._id]
+              arr.push result
+
+            res.json status:true, result:arr

@@ -67,6 +67,10 @@
       "default": 1
     },
     code: Number,
+    geo: {
+      lng: Number,
+      lat: Number
+    },
     disabled: {
       type: Boolean,
       "default": false

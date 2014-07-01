@@ -5,28 +5,71 @@
   cs = angular.module('ConsoleApp', ['ui.bootstrap']);
 
   cs.controller('ConsoleCtrl', function($scope, $http) {
-    var data, domMain, echarts, fileLocation, getData, getLogs, legends, myChart, option, refresh;
+    var data, domMain, echarts, fileLocation, getData, getLogs, getRealtime, legends, myChart, option, refresh;
     $http.get('/sms/left').success(function(result) {
       console.log(result);
       return $scope.smsLeft = result.result;
     });
-    configDateForScope($scope);
-    $scope.today = new Date();
-    $scope.begin_date = new Date().setDate($scope.today.getDate() - 30);
-    $scope.end_date = new Date();
-    $scope.$watch('begin_date', function() {
-      console.log($scope.begin_date);
-      return getData();
-    });
+    $scope.status = '1';
     $scope.$watch('status', function() {
       console.log($scope.status);
-      return getData();
+      if ($scope.status !== '1') {
+        return getLogs();
+      } else {
+        return getRealtime();
+      }
     });
     getData = function() {};
     data = null;
+    legends = null;
+    option = null;
     getLogs = function() {
       return $http.get('/logs').success(function(result) {
         var arr, datas, i, o, series;
+        legends = ["在线时长(分钟)", "DM播放(次数)", "消息接收(次数)", "消息确认(次数)"];
+        option = {
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow"
+            }
+          },
+          legend: {
+            data: legends
+          },
+          toolbox: {
+            show: true,
+            feature: {
+              mark: {
+                show: false
+              },
+              dataView: {
+                show: false,
+                readOnly: false
+              },
+              magicType: {
+                show: false
+              },
+              restore: {
+                show: false
+              },
+              saveAsImage: {
+                show: true
+              }
+            }
+          },
+          calculable: true,
+          xAxis: [
+            {
+              type: "value"
+            }
+          ],
+          yAxis: [
+            {
+              type: "category"
+            }
+          ]
+        };
         if (result.status) {
           data = result.results;
           arr = [];
@@ -87,49 +130,131 @@
         }
       });
     };
-    legends = ["在线时长(分钟)", "DM播放(次数)", "消息接收(次数)", "消息确认(次数)"];
-    option = {
-      tooltip: {
-        trigger: "axis",
-        axisPointer: {
-          type: "shadow"
-        }
-      },
-      legend: {
-        data: legends
-      },
-      toolbox: {
-        show: true,
-        feature: {
-          mark: {
-            show: false
-          },
-          dataView: {
-            show: false,
-            readOnly: false
-          },
-          magicType: {
-            show: false
-          },
-          restore: {
-            show: false
-          },
-          saveAsImage: {
-            show: true
+    getRealtime = function() {
+      return $http.get('/realtime').success(function(result) {
+        var arr1, arr2, geos, i, name, v, value;
+        arr1 = [];
+        arr2 = [];
+        geos = {};
+        i = 0;
+        while (i < 100) {
+          v = Math.random();
+          value = v > 0.5 ? 0 : Math.round(v * 60);
+          if (value) {
+            arr2.push({
+              name: name,
+              value: value
+            });
           }
+          name = '门店' + i;
+          arr1.push({
+            name: name,
+            value: value
+          });
+          geos[name] = [73 + Math.random() * 60, 21 + Math.random() * 30];
+          i++;
         }
-      },
-      calculable: true,
-      xAxis: [
-        {
-          type: "value"
+        arr2.sort(function(a, b) {
+          return -a.value + b.value;
+        });
+        arr2 = [arr2[0], arr2[1], arr2[2]];
+        option = {
+          title: {
+            text: '集团公播实时监控',
+            subtext: '每10秒更新状态',
+            x: 'center'
+          },
+          tooltip: {
+            trigger: 'item'
+          },
+          legend: {
+            orient: 'vertical',
+            x: 'left',
+            data: ['离线时长']
+          },
+          dataRange: {
+            min: 0,
+            max: 60,
+            calculable: false,
+            color: ['red', 'green']
+          },
+          toolbox: {
+            show: true,
+            orient: 'vertical',
+            x: 'right',
+            y: 'center'
+          },
+          feature: {
+            saveAsImage: {
+              show: true
+            }
+          },
+          series: [
+            {
+              name: '离线时长(分钟)',
+              type: 'map',
+              mapType: 'china',
+              hoverable: false,
+              roam: true,
+              scaleLimit: {
+                min: 0.5,
+                max: 2
+              },
+              data: arr2,
+              markPoint: {
+                symbolSize: 5,
+                itemStyle: {
+                  normal: {
+                    borderColor: '#87cefa',
+                    borderWidth: 1,
+                    label: {
+                      show: false
+                    }
+                  },
+                  emphasis: {
+                    borderColor: '#1e90ff',
+                    borderWidth: 0,
+                    label: {
+                      show: false
+                    }
+                  }
+                },
+                data: arr1
+              },
+              geoCoord: geos
+            }, {
+              name: '离线时长',
+              type: 'map',
+              mapType: 'china',
+              data: [],
+              markPoint: {
+                symbol: "emptyCircle",
+                symbolSize: function(v) {
+                  return 10 + v / 100;
+                },
+                effect: {
+                  show: true,
+                  shadowBlur: 0
+                },
+                itemStyle: {
+                  normal: {
+                    label: {
+                      show: false
+                    }
+                  }
+                },
+                data: arr2
+              }
+            }
+          ]
+        };
+        if (result.status) {
+          data = result.result;
+        } else {
+          showAlert('获取实时监控数据失败');
         }
-      ],
-      yAxis: [
-        {
-          type: "category"
-        }
-      ]
+        return refresh();
+      });
     };
     refresh = function() {
       var myChart;
@@ -144,21 +269,22 @@
     domMain = document.getElementById('main');
     myChart = null;
     echarts = null;
-    fileLocation = './components/echart/www/js/echarts';
+    fileLocation = './components/echart/www/js/echarts-map';
     require.config({
       paths: {
         echarts: fileLocation,
-        'echarts/chart/pie': fileLocation
+        'echarts/chart/pie': fileLocation,
+        'echarts/chart/map': fileLocation
       }
     });
-    return require(['echarts', 'echarts/chart/pie'], function(ec) {
+    return require(['echarts', 'echarts/chart/pie', 'echarts/chart/map'], function(ec) {
       echarts = ec;
       if (myChart && myChart.dispose) {
         myChart.dispose();
       }
       myChart = echarts.init(domMain);
       window.onresize = myChart.resize;
-      return getLogs();
+      return getRealtime();
     });
   });
 

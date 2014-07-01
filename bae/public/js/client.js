@@ -421,6 +421,9 @@
   ModalInstanceCtrl = function($scope, $timeout, $modalInstance, data, http, tags, $q, $filter) {
     var getParents;
     $scope.data = data;
+    if (data.geo) {
+      $scope.data.location = data.geo.lng + ',' + data.geo.lat;
+    }
     $scope.buttonDisabled = false;
     $scope.tags = tags;
     getParents = function() {
@@ -448,7 +451,7 @@
       $scope.selectedType = value;
     };
     return $scope.ok = function() {
-      var msg;
+      var arr, msg;
       data = angular.copy($scope.data);
       if (!data.username) {
         msg = '客户名称必填';
@@ -467,6 +470,25 @@
           });
         }
         data.tags = tags;
+        msg = '';
+        if (data.location) {
+          arr = data.location.split(',');
+          if (arr.length !== 2) {
+            msg = '位置信息不对';
+          } else {
+            data.geo = {
+              lng: parseFloat(arr[0]),
+              lat: parseFloat(arr[1])
+            };
+            if (!data.geo.lng || !data.geo.lat) {
+              msg = '位置信息不对';
+            }
+          }
+          if (msg) {
+            $scope.msg = msg;
+            return;
+          }
+        }
         $scope.buttonDisabled = true;
         if ($scope.update) {
           delete data['parent'];

@@ -19,6 +19,7 @@ ClientSchema = new Schema
   last_login:Date
   signed_in_times:type:Number,default:1
   code:Number #默认生成的验证码作为客户的密码
+  geo:lng:Number,lat:Number
   disabled:type:Boolean,default:false
   parent:type:Schema.Types.ObjectId,ref:'Client'
   creator:type:Schema.Types.ObjectId,ref:"Manager"

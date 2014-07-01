@@ -9,7 +9,7 @@
     <script src="../components/echart/www/js/esl.js"></script>
     <style>
         .main {
-            height: 400px;
+            height: 600px;
             /*
             height : 400px !important;
             width : 800px !important;
@@ -29,48 +29,50 @@
 {/script}
 {<body}
 	<div id="consoleDiv" ng-app="ConsoleApp" ng-controller="ConsoleCtrl">
-        <div class="col-md-4" style="padding-left: 0; width: 180px">
-            <p class="input-group" tooltip="开始日期">
-                <input type="text" class="form-control" datepicker-popup="{{ format }}"
-                       ng-model="begin_date"
-                       placeholder="请选开始日期"
-                       datepicker-options="dateOptions"
-                       show-button-bar="false"
-                       show-weeks="false"
-                       max-date="end_date"
-                       is-open="opened"
-                        />
-                  <span class="input-group-btn">
-                    <bdutton class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                  </span>
-            </p>
-        </div>
-        <div class="col-md-4" style="padding-left: 0; width: 180px">
-            <p class="input-group" tooltip="截止日期">
-                <input type="text" class="form-control" datepicker-popup="{{ format }}"
-                       ng-model="end_date"
-                       placeholder="请选截止日期"
-                       datepicker-options="dateOptions"
-                       show-button-bar="false"
-                       min-date="begin_date"
-                       max-date="today"
-                       show-weeks="false"
-                       is-open="opened2"
-                        />
-                  <span class="input-group-btn">
-                    <button class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                  </span>
-            </p>
-        </div>
+        <div class="text-center" style="margin-bottom: 18px">
 
-        <div class="btn-group" style="float: left;margin-left: 15px;">
-            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'all'">实时</button>
-            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'not_started'">昨天</button>
-            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'started'">最近一周</button>
-            <button type="button" class="btn btn-primary" ng-model="$parent.status" btn-radio="'ended'">最近一月</button>
-        </div>
+        <div class="btn-group" class="text-center">
+            <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'1'">实时</button>
+            <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'2'">昨天</button>
+            <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'3'">最近一周</button>
+            <button type="button" class="btn btn-primary" ng-model="status" btn-radio="'4'">最近一月</button>
+        </div></div>
+
+        {!<div class="col-md-4" style="padding-left: 0; width: 180px">!}
+            {!<p class="input-group" tooltip="开始日期">!}
+                {!<input type="text" class="form-control" datepicker-popup="{{ format }}"!}
+                       {!ng-model="begin_date"!}
+                       {!placeholder="请选开始日期"!}
+                       {!datepicker-options="dateOptions"!}
+                       {!show-button-bar="false"!}
+                       {!show-weeks="false"!}
+                       {!max-date="end_date"!}
+                       {!is-open="opened"!}
+                        {!/>!}
+                  {!<span class="input-group-btn">!}
+                    {!<bdutton class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i>!}
+                        {!</button>!}
+                  {!</span>!}
+            {!</p>!}
+        {!</div>!}
+        {!<div class="col-md-4" style="padding-left: 0; width: 180px">!}
+            {!<p class="input-group" tooltip="截止日期">!}
+                {!<input type="text" class="form-control" datepicker-popup="{{ format }}"!}
+                       {!ng-model="end_date"!}
+                       {!placeholder="请选截止日期"!}
+                       {!datepicker-options="dateOptions"!}
+                       {!show-button-bar="false"!}
+                       {!min-date="begin_date"!}
+                       {!max-date="today"!}
+                       {!show-weeks="false"!}
+                       {!is-open="opened2"!}
+                        {!/>!}
+                  {!<span class="input-group-btn">!}
+                    {!<button class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i>!}
+                    {!</button>!}
+                  {!</span>!}
+            {!</p>!}
+        {!</div>!}
 
         <div id="main" class="main col-md-12"></div>
 	</div>
