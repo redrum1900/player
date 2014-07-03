@@ -239,12 +239,6 @@ cs.controller 'ConsoleCtrl', ($scope, $http, $timeout, $interval)->
     window.onresize = myChart.resize
     myChart.setOption option, true
 
-  $scope.$watch 'status', ->
-    if $scope.status != '1'
-      getLogs()
-    else
-      $timeout getRealtime, 100
-
   $interval ->
     if $scope.status == '1'
       console.log 'run'
@@ -266,6 +260,12 @@ cs.controller 'ConsoleCtrl', ($scope, $http, $timeout, $interval)->
     echarts = ec
     if myChart && myChart.dispose
       myChart.dispose()
+
+    $scope.$watch 'status', ->
+      if $scope.status != '1'
+        getLogs()
+      else
+        $timeout getRealtime, 100
 
 angular.element(document).ready ->
   angular.bootstrap(document.getElementById("consoleDiv"), ['ConsoleApp'])
