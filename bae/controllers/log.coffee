@@ -30,6 +30,9 @@ module.exports = (app)->
 #    Error err, res
 #  else
 #    res.json status:true, result:result
+  app.get '/now', (req, res)->
+    res.send new Date().toString()
+
   app.get '/logs',(req, res)->
     data = req.query
     query = {}
@@ -78,18 +81,19 @@ module.exports = (app)->
         clients.forEach (c)->
           ids.push c._id
         query =
-          _id:$in:ids
+          client:$in:ids
           created_at:moment().format("YYYY-MM-DD")
-        console.log query
-        Log.find query, 'updated_at', (err, result)->
+        Log.find query, 'client updated_at', (err, result)->
           if err
             Error err, res
           else
+            console.log result
             arr = []
             o = {}
             if result
               result.forEach (r)->
-                o[r._id] = r.updated_at
+                o[r.client] = r.updated_at
+            console.log o
             clients.forEach (c)->
               result = username:c.username,geo:c.geo
               result.updated_at = o[c._id]

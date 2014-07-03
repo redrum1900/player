@@ -2,13 +2,21 @@
 global.debug = process.env.USER == 'mani'
 Redis = require './lib/database/redis'
 
-Redis.config()
-Redis.getClient().multi().keys('*', (err, result)->
-  Redis.getClient().mget result, (err, res)->
-    console.log res.length
-).dbsize()
-.exec (err, result)->
-  console.log result
+moment = require 'moment'
+
+now = moment()
+n2 = moment().add('s', 10);
+v = n2.valueOf()-now.valueOf()
+
+console.log v, moment(v).minute()
+
+#Redis.config()
+#Redis.getClient().multi().keys('*', (err, result)->
+#  Redis.getClient().mget result, (err, res)->
+#    console.log res.length
+#).dbsize()
+#.exec (err, result)->
+#  console.log result
 
 return
 qiniu = require 'qiniu'

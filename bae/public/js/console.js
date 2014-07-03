@@ -4,25 +4,23 @@
 
   cs = angular.module('ConsoleApp', ['ui.bootstrap']);
 
-  cs.controller('ConsoleCtrl', function($scope, $http) {
-    var data, domMain, echarts, fileLocation, getData, getLogs, getRealtime, legends, myChart, option, refresh;
+  cs.controller('ConsoleCtrl', function($scope, $http, $timeout, $interval) {
+    var data, domMain, echarts, fileLocation, getData, getLogs, getNow, getRealtime, legends, myChart, now, option, refresh;
     $http.get('/sms/left').success(function(result) {
-      console.log(result);
       return $scope.smsLeft = result.result;
     });
     $scope.status = '1';
-    $scope.$watch('status', function() {
-      console.log($scope.status);
-      if ($scope.status !== '1') {
-        return getLogs();
-      } else {
-        return getRealtime();
-      }
-    });
     getData = function() {};
     data = null;
     legends = null;
     option = null;
+    now = null;
+    getNow = function() {
+      return $http.get('/now').success(function(result) {
+        return now = new Date(result);
+      });
+    };
+    getNow();
     getLogs = function() {
       return $http.get('/logs').success(function(result) {
         var arr, datas, i, o, series;
@@ -132,36 +130,49 @@
     };
     getRealtime = function() {
       return $http.get('/realtime').success(function(result) {
-        var arr1, arr2, geos, i, name, v, value;
+        var arr1, arr2, geos;
         arr1 = [];
         arr2 = [];
         geos = {};
-        i = 0;
-        while (i < 100) {
-          v = Math.random();
-          value = v > 0.5 ? 0 : Math.round(v * 60);
-          if (value) {
-            arr2.push({
-              name: name,
-              value: value
-            });
+        if (result.status) {
+          data = result.result;
+          console.log(data);
+          if (!now) {
+            now = moment();
           }
-          name = '门店' + i;
-          arr1.push({
-            name: name,
-            value: value
+          data.forEach(function(o) {
+            var value;
+            value = 999;
+            if (o.updated_at) {
+              data = now.valueOf() - new Date(o.updated_at).valueOf();
+              value = moment(data).minute();
+              arr1.push({
+                name: o.username,
+                value: value
+              });
+            } else {
+              arr1.push({
+                name: o.username,
+                value: value
+              });
+            }
+            if (value > 5) {
+              arr2.push({
+                name: o.username,
+                value: value
+              });
+            }
+            if (o.geo) {
+              return geos[o.username] = [o.geo.lng, o.geo.lat];
+            }
           });
-          geos[name] = [73 + Math.random() * 60, 21 + Math.random() * 30];
-          i++;
+        } else {
+          showAlert('获取实时监控数据失败');
         }
-        arr2.sort(function(a, b) {
-          return -a.value + b.value;
-        });
-        arr2 = [arr2[0], arr2[1], arr2[2]];
         option = {
           title: {
             text: '集团公播实时监控',
-            subtext: '每10秒更新状态',
+            subtext: '每分钟更新状态',
             x: 'center'
           },
           tooltip: {
@@ -206,7 +217,7 @@
                 itemStyle: {
                   normal: {
                     borderColor: '#87cefa',
-                    borderWidth: 1,
+                    borderWidth: 0,
                     label: {
                       show: false
                     }
@@ -248,11 +259,6 @@
             }
           ]
         };
-        if (result.status) {
-          data = result.result;
-        } else {
-          showAlert('获取实时监控数据失败');
-        }
         return refresh();
       });
     };
@@ -263,9 +269,22 @@
       }
       myChart = echarts.init(domMain);
       window.onresize = myChart.resize;
-      console.log(option);
       return myChart.setOption(option, true);
     };
+    $scope.$watch('status', function() {
+      if ($scope.status !== '1') {
+        return getLogs();
+      } else {
+        return $timeout(getRealtime, 100);
+      }
+    });
+    $interval(function() {
+      if ($scope.status === '1') {
+        console.log('run');
+        return getRealtime();
+      }
+    }, 60000);
+    $interval(getNow, 50000);
     domMain = document.getElementById('main');
     myChart = null;
     echarts = null;
@@ -280,11 +299,8 @@
     return require(['echarts', 'echarts/chart/pie', 'echarts/chart/map'], function(ec) {
       echarts = ec;
       if (myChart && myChart.dispose) {
-        myChart.dispose();
+        return myChart.dispose();
       }
-      myChart = echarts.init(domMain);
-      window.onresize = myChart.resize;
-      return getRealtime();
     });
   });
 

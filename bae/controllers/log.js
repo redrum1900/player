@@ -15,6 +15,9 @@
   moment = require('moment');
 
   module.exports = function(app) {
+    app.get('/now', function(req, res) {
+      return res.send(new Date().toString());
+    });
     app.get('/logs', function(req, res) {
       var data, query;
       data = req.query;
@@ -87,24 +90,25 @@
             return ids.push(c._id);
           });
           query = {
-            _id: {
+            client: {
               $in: ids
             },
             created_at: moment().format("YYYY-MM-DD")
           };
-          console.log(query);
-          return Log.find(query, 'updated_at', function(err, result) {
+          return Log.find(query, 'client updated_at', function(err, result) {
             var arr, o;
             if (err) {
               return Error(err, res);
             } else {
+              console.log(result);
               arr = [];
               o = {};
               if (result) {
                 result.forEach(function(r) {
-                  return o[r._id] = r.updated_at;
+                  return o[r.client] = r.updated_at;
                 });
               }
+              console.log(o);
               clients.forEach(function(c) {
                 result = {
                   username: c.username,

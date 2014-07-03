@@ -69,13 +69,16 @@
       }
       ep = new EventProxy();
       ep.all('log', 'bro', 'menu', function(log, bro, menu) {
-        mongoose.disconnect();
+        var o;
+        console.log(log);
+        o = {};
+        if (bro) {
+          o.bros = bro.broadcasts;
+        }
+        o.menus = menu;
         return res.json({
           status: true,
-          results: {
-            bros: bro.broadcasts,
-            menus: menu
-          }
+          results: o
         });
       });
       ep.fail(function(err) {
@@ -87,6 +90,9 @@
       }, {
         $inc: {
           count: 1
+        },
+        $set: {
+          updated_at: new Date()
         }
       }, {
         upsert: true

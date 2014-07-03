@@ -1,8 +1,7 @@
 cs = angular.module 'ConsoleApp', ['ui.bootstrap']
-cs.controller 'ConsoleCtrl', ($scope, $http)->
+cs.controller 'ConsoleCtrl', ($scope, $http, $timeout, $interval)->
 
   $http.get('/sms/left').success (result)->
-    console.log result
     $scope.smsLeft = result.result
 
 #  configDateForScope $scope
@@ -11,27 +10,25 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
 #  $scope.end_date = new Date()
 
 #  $scope.$watch 'begin_date', ->
-#    console.log $scope.begin_date
 #    getData()
   $scope.status = '1'
 
-  $scope.$watch 'status', ->
-    console.log $scope.status
-    if $scope.status != '1'
-      getLogs()
-    else
-      getRealtime()
 #    getData()
 
   getData = ->
 #    $http.get('/analysis/report', params:type:$scope.status,from:$scope.begin_date,to:$scope.end_date).success((result)->
-#      console.log result
 #    ).error (err)->
-#      console.log err
 
   data = null
   legends = null
   option = null
+  now = null
+
+  getNow = ->
+    $http.get('/now').success (result)->
+      now = new Date(result)
+
+  getNow()
 
   getLogs = ->
     $http.get('/logs').success (result)->
@@ -126,25 +123,46 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
       arr1 = []
       arr2 = []
       geos = {}
-      i = 0
-      while i < 100
-        v = Math.random()
-        value = if v > 0.5 then 0 else Math.round(v*60)
-        if value
-          arr2.push name:name,value:value
-        name = '门店'+i;
-        arr1.push name:name,value:value
-        geos[name] = [73+Math.random()*60, 21+Math.random()*30]
-        i++
 
-      arr2.sort (a,b)->
-        return -a.value+b.value
-      arr2 = [arr2[0], arr2[1], arr2[2]]
+      if result.status
+        data = result.result
+        console.log data
+        now = moment() unless now
+        data.forEach (o)->
+          value = 999
+          if o.updated_at
+            data = now.valueOf() - new Date(o.updated_at).valueOf()
+            value = moment(data).minute()
+            arr1.push name:o.username,value:value
+          else
+            arr1.push name:o.username,value:value
+          if value > 5
+            arr2.push name:o.username,value:value
+          if o.geo
+            geos[o.username]=[o.geo.lng,o.geo.lat]
+      else
+        showAlert('获取实时监控数据失败')
+
+#      i = 0
+#      while i < 100
+#        v = Math.random()
+#        value = if v > 0.5 then 0 else Math.round(v*60)
+#        if value
+#          arr2.push name:name,value:value
+#        name = '门店'+i;
+#        arr1.push name:name,value:value
+#        geos[name] = [73+Math.random()*60, 21+Math.random()*30]
+#        i++
+
+#      if arr2
+#        arr2.sort (a,b)->
+#          return -a.value+b.value
+#        arr2 = [arr2[0], arr2[1], arr2[2]]
 
       option =
         title:
           text: '集团公播实时监控'
-          subtext: '每10秒更新状态'
+          subtext: '每分钟更新状态'
           x:'center'
         tooltip:
           trigger: 'item'
@@ -178,7 +196,7 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
               itemStyle:
                 normal:
                   borderColor: '#87cefa'
-                  borderWidth: 1
+                  borderWidth: 0
                   label:
                     show: false
                 emphasis:
@@ -212,11 +230,6 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
           }
         ]
 
-      if result.status
-        data = result.result
-      else
-        showAlert('获取实时监控数据失败')
-
       refresh()
 
   refresh = ->
@@ -224,8 +237,21 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
       myChart.dispose()
     myChart = echarts.init(domMain)
     window.onresize = myChart.resize
-    console.log option
     myChart.setOption option, true
+
+  $scope.$watch 'status', ->
+    if $scope.status != '1'
+      getLogs()
+    else
+      $timeout getRealtime, 100
+
+  $interval ->
+    if $scope.status == '1'
+      console.log 'run'
+      getRealtime()
+  , 60000
+
+  $interval getNow, 50000
 
   domMain = document.getElementById 'main'
   myChart = null
@@ -240,10 +266,6 @@ cs.controller 'ConsoleCtrl', ($scope, $http)->
     echarts = ec
     if myChart && myChart.dispose
       myChart.dispose()
-    myChart = echarts.init(domMain)
-    window.onresize = myChart.resize
-    getRealtime()
-#    getLogs()
 
 angular.element(document).ready ->
   angular.bootstrap(document.getElementById("consoleDiv"), ['ConsoleApp'])

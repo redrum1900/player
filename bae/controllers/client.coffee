@@ -37,8 +37,11 @@ module.exports = (app) ->
 
     ep = new EventProxy()
     ep.all 'log','bro','menu',(log, bro, menu)->
-      mongoose.disconnect()
-      res.json status:true,results:bros:bro.broadcasts,menus:menu
+      console.log log
+      o = {}
+      o.bros = bro.broadcasts if bro
+      o.menus = menu
+      res.json status:true,results:o
 
     ep.fail (err)->
       Error err, res
@@ -48,6 +51,7 @@ module.exports = (app) ->
       created_at:moment().format("YYYY-MM-DD")
     ,
       $inc:count:1
+      $set:updated_at:new Date()
     ,
       upsert:true
     , ep.done('log')
