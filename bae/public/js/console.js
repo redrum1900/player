@@ -156,7 +156,7 @@
                 value: value
               });
             }
-            if (value > 5) {
+            if (value > 500) {
               arr2.push({
                 name: o.username,
                 value: value

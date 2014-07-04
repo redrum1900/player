@@ -35,7 +35,7 @@ package controllers
 		public var online:Boolean=true;
 
 		[Bindable]
-		public var local:Boolean=true;
+		public var local:Boolean=false;
 
 		public var enableFunctions:Array=['record'];
 
@@ -52,7 +52,7 @@ package controllers
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (Capabilities.isDebugger)
+			if (!Capabilities.isDebugger)
 				ServiceBase.HOST='http://localhost:18080/api';
 			else
 				ServiceBase.HOST='http://m.yuefu.com/api';

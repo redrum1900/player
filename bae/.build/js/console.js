@@ -156,7 +156,7 @@
                 value: value
               });
             }
-            if (value > 5) {
+            if (value > 500) {
               arr2.push({
                 name: o.username,
                 value: value
@@ -271,13 +271,6 @@
       window.onresize = myChart.resize;
       return myChart.setOption(option, true);
     };
-    $scope.$watch('status', function() {
-      if ($scope.status !== '1') {
-        return getLogs();
-      } else {
-        return $timeout(getRealtime, 100);
-      }
-    });
     $interval(function() {
       if ($scope.status === '1') {
         console.log('run');
@@ -299,8 +292,15 @@
     return require(['echarts', 'echarts/chart/pie', 'echarts/chart/map'], function(ec) {
       echarts = ec;
       if (myChart && myChart.dispose) {
-        return myChart.dispose();
+        myChart.dispose();
       }
+      return $scope.$watch('status', function() {
+        if ($scope.status !== '1') {
+          return getLogs();
+        } else {
+          return $timeout(getRealtime, 100);
+        }
+      });
     });
   });
 

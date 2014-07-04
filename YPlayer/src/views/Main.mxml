@@ -670,6 +670,7 @@
 							songs.push(bro);
 					}
 				}
+				length=songs.length;
 				updatePVInfo();
 				var vo:Object;
 				var file:File;
@@ -997,15 +998,11 @@
 				time=player2Time + ' ' + DateUtil.formateTime(tt - pt) + ' 后结束'
 			}
 
+			private var length:Number;
+
 			private function updatePVInfo(percent:Number=0):void
 			{
-				var songs:Array=api.songs;
-				var length:int=songs.length;
-				if (api.dmMenu && api.dmMenu.dm_list)
-				{
-					length+=api.dmMenu.dm_list.length;
-				}
-				if (pv && songs)
+				if (pv && length)
 					pv.info='媒资初始化进度：' + loaded + '/' + length + ' 当前进度：' + Math.round(percent * 100) + '%';
 			}
 		]]>
