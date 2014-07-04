@@ -48,6 +48,8 @@ app.configure = function configure(nconf, next) {
 //    });
 //    u1.save();
 
+    console.log(process.env.BAE_ENV_AK, process.env.BAE_ENV_SK)
+
     passport.use(auth.localStrategy());
 
     passport.serializeUser(function (user, done) {
