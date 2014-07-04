@@ -8,6 +8,7 @@
 
   module.exports = function(app) {
     app.get('/console', auth.isAuthenticated(), function(req, res) {
+      console.log('AKSK:' + process.env.BAE_ENV_AK, process.env.BAE_ENV_SK);
       return res.render('console');
     });
     return app.get('/sms/left', auth.isAuthenticated(), function(req, res) {

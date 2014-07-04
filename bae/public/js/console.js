@@ -298,7 +298,7 @@
         if ($scope.status !== '1') {
           return getLogs();
         } else {
-          return $timeout(getRealtime, 100);
+          return $timeout(getRealtime, 500);
         }
       });
     });

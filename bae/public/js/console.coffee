@@ -265,7 +265,7 @@ cs.controller 'ConsoleCtrl', ($scope, $http, $timeout, $interval)->
       if $scope.status != '1'
         getLogs()
       else
-        $timeout getRealtime, 100
+        $timeout getRealtime, 500
 
 angular.element(document).ready ->
   angular.bootstrap(document.getElementById("consoleDiv"), ['ConsoleApp'])
