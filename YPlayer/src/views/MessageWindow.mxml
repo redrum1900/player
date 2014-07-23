@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Window xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  showStatusBar="false">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+
+			import mx.events.FlexEvent;
+
+			import controllers.API;
+			[Bindable]
+			public var message:Object;
+
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+//				minWidth="430"
+//				minHeight="250"
+				if (this.nativeWindow.width < 430)
+				{
+					vc.width=430;
+					this.nativeWindow.width=430;
+				}
+				if (this.nativeWindow.height < 250)
+					this.nativeWindow.height=250;
+				postion();
+				PAlert.show('确认收到消息吗？确认后窗口将自动关闭', '提示', this, function(value:String):void
+				{
+					if (value == PAlert.YES)
+					{
+						API.instance.handleMessage(message._id, 2, function():void
+						{
+							close();
+						});
+					}
+				}, PAlert.YESNO);
+			}
+
+			protected function window1_closingHandler(event:Event):void
+			{
+				event.stopImmediatePropagation();
+				PAlert.show('确认关闭窗口吗？', '提示', this, function(value:String):void
+				{
+					if (value == PAlert.YES)
+					{
+						API.instance.handleMessage(message._id, 2, function():void
+						{
+							close();
+						});
+					}
+				}, PAlert.YESNO);
+			}
+
+			protected function label1_updateCompleteHandler(event:FlexEvent):void
+			{
+				if (vc.width > 430)
+					vc.width=430;
+				this.nativeWindow.width=vc.width;
+				this.nativeWindow.height=vc.height;
+				this.nativeWindow.orderToFront();
+				postion();
+			}
+
+			private function postion():void
+			{
+				this.nativeWindow.x=(Capabilities.screenResolutionX - nativeWindow.width) / 2;
+				this.nativeWindow.y=(Capabilities.screenResolutionY - nativeWindow.height) / 2;
+			}
+		]]>
+	</fx:Script>
+
+	<s:VGroup horizontalAlign="center"
+			  paddingLeft="40"
+			  paddingRight="40"
+			  paddingBottom="30"
+			  id="vc"
+			  updateComplete="label1_updateCompleteHandler(event)"
+			  paddingTop="30"
+			  gap="20">
+		<s:Label text="{message.content}"
+				 width="100%"
+				 fontSize="18"/>
+		<s:Button skinClass="skins.buttons.PrimaryButtonSkin"
+				  id="confirm"
+				  buttonMode="true"
+				  click="confirm_clickHandler(event)"
+				  label="确认收到"/>
+	</s:VGroup>
+
+</s:Window>

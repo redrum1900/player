@@ -1,6 +1,0 @@
-{>"layouts/master" /}
-
-{<body}
-    <h1>您请求的页面不存在</h1>
-    <p>URL <code>{url}</code> 不存在</p>
-{/body}

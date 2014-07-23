@@ -71,7 +71,7 @@
 			private function checkStatus():void
 			{
 				var s:Object=API.instance.playingSong;
-				if (s == data || (s && s.url == data.url))
+				if (s == data || (s && data && s.url == data.url))
 				{
 					c=0x2E80D5;
 				}

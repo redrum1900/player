@@ -16,6 +16,7 @@ package models
 		public var interval:int;
 		public var duration:Number;
 		public var type:int;
+		public var size:Number;
 	}
 }
 

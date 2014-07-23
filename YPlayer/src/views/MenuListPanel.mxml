@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="group1_creationCompleteHandler(event)"
+		 xmlns:layouts="com.pamakids.layouts.*"
+		 xmlns:views="views.*"
+		 xmlns:components="com.youli.components.*">
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.manager.LoadManager;
+			import com.pamakids.services.QNService;
+			import com.pamakids.utils.DateUtil;
+			import com.pamakids.utils.NodeUtil;
+			import com.youli.events.ODataEvent;
+
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+
+			import controllers.API;
+
+			import skins.SongListSkin;
+
+			import views.components.SongRenderer;
+
+			private var bros:Array;
+			private var api:API;
+
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				api=API.instance;
+				showMenus();
+			}
+
+			private function showMenus():void
+			{
+				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				this.menus.label='请选择您要查看的信息';
+				var arr:Array=[];
+				for each (var menu:Object in menus)
+				{
+					if (rbg.selectedValue == 1)
+					{
+						if (menu.type == 1)
+						{
+							if (api.hasCached(menu._id))
+								menu.name+=' 【已缓存】'
+							arr.push(menu);
+						}
+					}
+					else
+					{
+						if (menu.type == 2)
+						{
+							if (api.hasCached(menu._id))
+								menu.name+=' 【已缓存】'
+							arr.push(menu);
+						}
+					}
+				}
+				this.menus.dataProvider=new ArrayCollection(arr);
+			}
+
+			protected function menus_changeHandler(event:ODataEvent):void
+			{
+				trace(event.data);
+				var o:Object=event.data;
+				var arr:Array;
+				LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void
+				{
+					o=JSON.parse(data);
+					if (o.type == 1)
+					{
+						arr=api.parseMenu(o, null, true).songs;
+						if (o.loop)
+							listInfo='曲目时长   曲目名称'
+						else
+							listInfo='播放时间   曲目名称'
+					}
+					else
+						arr=api.parseMenu(null, o, true).dmMenu.dm_list;
+					if (!(o.begin_date is Date))
+						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+					if (!(o.end_date is Date))
+						o.end_date=NodeUtil.getLocalDate(o.end_date);
+					label='播放项目：' + o.name + ' 开始日期：' + DateUtil.getYMD(o.begin_date) + ' 结束日期：' + DateUtil.getYMD(o.end_date);
+					songItems=new ArrayCollection(arr);
+				}, o._id + '.json', api.online);
+			}
+
+			protected function rbg_changeHandler(event:Event):void
+			{
+				songItems=null;
+				showMenus();
+			}
+
+			[Bindable]
+			private var songItems:ArrayCollection;
+			[Bindable]
+			private var listInfo:String;
+			[Bindable]
+			private var label:String;
+		]]>
+	</fx:Script>
+
+	<s:states>
+		<s:State name="s1"/>
+		<s:State name="s2"/>
+	</s:states>
+
+	<fx:Declarations>
+		<s:RadioButtonGroup id="rbg"
+							change="rbg_changeHandler(event)"/>
+	</fx:Declarations>
+
+	<s:BitmapImage source="@Embed('/assets/panelBG.jpg')"
+				   width="100%"
+				   height="100%"
+				   fillMode="repeat"/>
+	<s:VGroup width="100%"
+			  height="100%"
+			  gap="20"
+			  paddingLeft="20"
+			  paddingBottom="10"
+			  paddingRight="20"
+			  paddingTop="20"
+			  fontSize="14">
+		<s:Label color="0xffffff"
+				 fontSize="14"
+				 text="三个月内的歌单及广播海报信息（再次点击列表图标关闭）"/>
+		<s:HGroup width="100%"
+				  verticalAlign="middle">
+			<s:RadioButton skinClass="skins.radioButton.RadioButtonSkin"
+						   id="r1"
+						   group="{rbg}"
+						   selected="true"
+						   label="歌单"
+						   value="1"/>
+			<s:RadioButton skinClass="skins.radioButton.RadioButtonSkin"
+						   id="r2"
+						   group="{rbg}"
+						   label="广播海报"
+						   value="2"/>
+			<s:Spacer/>
+			<components:NativeMenuButton skinClass="skins.buttons.PrimaryButtonSkin"
+										 labelField="name"
+										 label="请选择您要查看的信息"
+										 reselect="menus_changeHandler(event)"
+										 change="menus_changeHandler(event)"
+										 id="menus"/>
+		</s:HGroup>
+		<s:Label color="0xd9dee3"
+				 fontSize="14"
+				 text="{listInfo}"
+				 visible="{label}"/>
+		<s:List mouseDown="event.stopImmediatePropagation()"
+				skinClass="skins.SongListSkin"
+				width="100%"
+				height="100%"
+				dataProvider="{songItems}"
+				itemRenderer="views.components.SongRenderer"
+				id="songs">
+		</s:List>
+	</s:VGroup>
+</s:Group>

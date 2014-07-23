@@ -4,29 +4,33 @@
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 creationComplete="inited(event)"
 		 xmlns:layouts="com.youli.layouts.*">
+
+	<fx:Metadata>
+		[Event(name="startRecord", type="flash.events.Event")]
+		[Event(name="stopRecord", type="flash.events.Event")]
+	</fx:Metadata>
+
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
+			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
-			import com.pamakids.manager.FileManager;
-			import com.pamakids.manager.LoadManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.utils.DateUtil;
-			import com.pamakids.utils.URLUtil;
-			
+
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
-			
+
 			import spark.components.Button;
 			import spark.events.IndexChangeEvent;
-			
+
 			import controllers.AA;
 			import controllers.API;
-			
+
 			import models.InsertVO;
 			import models.MenuVO;
 			import models.TimeVO;
-			
+
 			import skins.buttons.PrimaryButtonSkin;
 			import skins.buttons.WarningButtonSkin;
 
@@ -35,42 +39,13 @@
 
 			protected function inited(event:FlexEvent):void
 			{
-//				var ac:ArrayCollection = new ArrayCollection();
-//				var startTime:Date = new Date();
-//				startTime.hours = 9;
-//				startTime.minutes=0;
-//				startTime.seconds=0;
-//				for(var i:int; i<=120; i++){
-//					var vo:SongVO = new SongVO();
-//					vo.url = '/assets/temp/1.mp3';
-//					vo.cover = '/assets/temp/1.jpg';
-//					vo.name = '你听我说';
-//					if(i)
-//						startTime.minutes += 3;
-//					vo.playTime = DateUtil.getdate
-//					ac.addItem(vo);
-//					if(i == 5)
-//					{
-//						var ivo:InsertVO = new InsertVO();
-//						ivo.name = 'DM插播1';
-//						ivo.playTime = DateUtil.getHMS(startTime);
-//						ivo.time = "02:00";
-//						ivo.repeat = 3;
-//						ivo.interval = 60;
-//						ac.addItem(ivo);
-//					}
-//					vo = new SongVO();
-//					vo.url = '/assets/temp/2.mp3';
-//					vo.cover = '/assets/temp/2.jpg';
-//					vo.name = 'Just One Last Dance';
-//					startTime.minutes += 3;
-//					vo.playTime = DateUtil.getHMS(startTime);
-//					ac.addItem(vo);
 				var menu:MenuVO;
 				api=API.instance;
 				API.instance.addEventListener('PLAY', function():void
 				{
 					menu=API.instance.menu;
+					if (!menu)
+						return;
 					var dmMenu:Object=API.instance.dmMenu;
 					songItems=new ArrayCollection(API.instance.songs);
 					label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date);
@@ -92,14 +67,15 @@
 					{
 						listInfo='播放时间   曲目名称'
 					}
-					bb.dataProvider=ac;
-					bb.selectedIndex=0;
-//					for each (var o:Object in api.songs)
-//					{
-//
-//					}
+					bb.dataProvider=null
+					TweenLite.delayedCall(0.5, function():void
+					{
+						bb.dataProvider=ac;
+						bb.selectedIndex=0;
+					});
 					AA.say('play');
-//					to(api.playingIndex);
+					if (api.playingIndex)
+						to(api.playingIndex);
 				});
 				API.instance.addEventListener('bros', function():void
 				{
@@ -108,22 +84,13 @@
 					bros=API.instance.broadcasts;
 					buttonsGroup.removeAllElements();
 					createButtons();
-					autoload();
 				});
-				AA.listen('reload', function(e:Event):void
-				{
-					i=0;
-					loaded=0;
-					autoload();
-				});
-//				}
 			}
 
 			public function to(index:int):void
 			{
 				if (index == -1)
 				{
-					trace('to index got -1');
 					return;
 				}
 				TweenLite.delayedCall(0.5, function():void
@@ -143,20 +110,21 @@
 			{
 				var b:Button=new Button();
 				dic[b]=o;
-				if(o.type == 1){
+				if (o.type == 1)
+				{
 					b.setStyle('skinClass', WarningButtonSkin);
-					var bm:NativeMenu = new NativeMenu();
+					var bm:NativeMenu=new NativeMenu();
 					bm.addEventListener(Event.SELECT, navHandler);
 					var ni:NativeMenuItem=new NativeMenuItem('编辑');
 					ni.data=o;
 					bm.addItem(ni);
-					b.contextMenu = bm;
+					b.contextMenu=bm;
 				}
-				else{
+				else
+				{
 					b.setStyle('skinClass', PrimaryButtonSkin);
 				}
 				b.label=o.name;
-				trace(o.name);
 
 				b.addEventListener(MouseEvent.CLICK, broHandler);
 				buttonsGroup.addElement(b);
@@ -201,72 +169,86 @@
 
 			protected function broHandler(event:MouseEvent):void
 			{
-				var o:Object = dic[event.currentTarget];
-				if(o.url){
+				var o:Object=dic[event.currentTarget];
+				if (o.url)
+				{
 					dispatchEvent(new ODataEvent(o));
-				}else{
+				}
+				else
+				{
 					record(o as InsertVO);
 				}
 			}
-			
+
 			private function record(vo:InsertVO):void
 			{
-				rbv=new RecordBroView();
-				rbv.vo=vo;
-				PopupBoxManager.popup(rbv, function():void
+				var lp:ListPanel=this;
+				PAlert.show('打开录制界面时会将所有播放声音的音量自动调节为零，请确认', '是否确认开始录制', null, function(value:String):void
 				{
-					var so:SharedObject = SharedObject.getLocal('yp');
-					var bros:Array = api.broadcasts;
-					var arr:Array = [];
-					for each(var o:Object in bros){
-						if(o.type == 1){
-							arr.push(o);
-						}
+					if (value == PAlert.YES)
+					{
+						lp.dispatchEvent(new Event('startRecord'));
+						rbv=new RecordBroView();
+						rbv.vo=vo;
+						PopupBoxManager.popup(rbv, function():void
+						{
+							var so:SharedObject=SharedObject.getLocal('yp');
+							var bros:Array=api.broadcasts;
+							var arr:Array=[];
+							for each (var o:Object in bros)
+							{
+								if (o.type == 1)
+								{
+									arr.push(o);
+								}
+							}
+							trace(vo.name);
+							so.data.records=arr;
+							so.flush();
+
+							buttonsGroup.removeAllElements();
+							i=0;
+							createButtons();
+							lp.dispatchEvent(new Event('stopRecord'));
+						});
 					}
-					trace(vo.name);
-					so.data.records = arr;
-					so.flush();
-					
-					buttonsGroup.removeAllElements();
-					i = 0;
-					createButtons();
-				});
+				}, PAlert.YESNO);
 			}
 
 			private var loaded:int;
 			private var api:API;
 
-			private function autoload():void
-			{
-				return
-				var isArr:Boolean=bros is Array;
-				if (!bros)
-					return;
-				if (loaded != bros.length)
-				{
-					var vo:Object=bros[loaded];
-					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					var f:File=new File(path);
-					if (f.exists)
-					{
-						loaded++;
-						if (loaded != bros.length)
-							autoload();
-					}
-					else
-					{
-						LoadManager.instance.load(vo.url, function():void
-						{
-							loaded++;
-							autoload();
-						}, URLUtil.getCachePath(vo.url));
-					}
-				}
-				else
-				{
-					trace('all bro loaded', loaded);
-				}
-			}
+//			private function autoload():void
+//			{
+//				return
+//				var isArr:Boolean=bros is Array;
+//				if (!bros)
+//					return;
+//				if (loaded != bros.length)
+//				{
+//					var vo:Object=bros[loaded];
+//					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
+//					var f:File=new File(path);
+//					if (f.exists)
+//					{
+//						loaded++;
+//						if (loaded != bros.length)
+//							autoload();
+//					}
+//					else
+//					{
+//						LoadManager.instance.load(vo.url, function():void
+//						{
+//							loaded++;
+//							autoload();
+//						}, URLUtil.getCachePath(vo.url));
+//					}
+//				}
+//				else
+//				{
+//					trace('all bro loaded', loaded);
+//				}
+//			}
 
 			protected function bb_changeHandler(event:IndexChangeEvent):void
 			{
@@ -294,14 +276,13 @@
 
 			[Bindable]
 			private var listInfo:String;
-			
+
 			protected function navHandler(event:Event):void
 			{
-				var nm:NativeMenuItem = event.target as NativeMenuItem;
+				var nm:NativeMenuItem=event.target as NativeMenuItem;
 				trace(nm.data);
 				record(nm.data as InsertVO);
 			}
-			
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"
