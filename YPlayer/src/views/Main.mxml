@@ -1051,9 +1051,7 @@
 				  verticalAlign="middle"
 				  paddingLeft="20"
 				  paddingRight="20">
-			<s:BitmapImage source="@Embed('/assets/icon/32.png')"
-						   left="20"
-						   verticalCenter="0"/>
+			<components:Logo/>
 			<!--<s:Label text="乐府时代播放器" fontSize="22" color="0xffffff" left="20" verticalCenter="0"/>-->
 			<components:VolumeController id="vc1"
 										 changing="vc1_changingHandler(event)"
