@@ -55,7 +55,7 @@
 
 			protected function pre(event:FlexEvent):void
 			{
-				var v:String=API.instance.isTest ? 'test' : 'update';
+				var v:String=API.instance.isTest ? 'lc_test' : 'lc_update';
 				updateURL='http://yfcdn.qiniudn.com/file/' + v + '.xml' + '?' + Math.random();
 				AA.centerWindow(nativeWindow);
 				updater.initialize();

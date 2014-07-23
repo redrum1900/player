@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <application xmlns="http://ns.adobe.com/air/application/4.0">
-	<id>LaChapellPlayer</id>
-	<filename>La Chapell 播放器</filename>
-	<name>La Chapell 播放器</name>
+	<id>LaChapellePlayer</id>
+	<filename>La Chapelle 播放器</filename>
+	<name>La Chapelle 播放器</name>
 	<versionNumber>0.0.1</versionNumber>
 	<versionLabel>预发布版本0.0.1</versionLabel>
 	<description>北京乐府时代传媒科技有限公司（YueFu Media）是国内优秀的版权音乐及服务提供商，致力于为国内广大商业客户提供专业化、优质的版权音乐及服务，改善国内背景音乐市场现有局面。</description>
 	<copyright>北京乐府时代传媒科技有限公司</copyright>
 	<initialWindow>
 		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
-		<title>La Chapell 播放器</title>
+		<title>La Chapelle 播放器</title>
 		<minimizable>true</minimizable>
 		<maximizable>false</maximizable>
 		<resizable>false</resizable>
@@ -24,8 +24,8 @@
 
 	<supportedProfiles>desktop extendedDesktop</supportedProfiles>
 
-	<installFolder>La Chapell</installFolder>
-	<programMenuFolder>La Chapell</programMenuFolder>
+	<installFolder>La Chapelle</installFolder>
+	<programMenuFolder>La Chapelle</programMenuFolder>
 
 	<icon>
 		<image16x16>assets/logos/16.png</image16x16>
