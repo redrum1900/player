@@ -4,12 +4,12 @@ package views.preloaders
 	import com.greensock.easing.Cubic;
 	import com.pamakids.managers.NiceToolTipManagerImpl;
 	import com.youli.messengers.PreloaderMessenger;
-	
+
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.ProgressEvent;
-	
+
 	import mx.core.mx_internal;
 	import mx.events.FlexEvent;
 	import mx.preloaders.IPreloaderDisplay;
@@ -32,8 +32,8 @@ package views.preloaders
 		{
 			addEventListener(Event.ADDED_TO_STAGE, onStage);
 		}
-		
-		[Embed(source="/assets/welcome.png")]
+
+		[Embed(source="/assets/customize/lc/welcome.png")]
 		private var logo:Class;
 
 		private function onStage(event:Event):void
@@ -144,7 +144,7 @@ package views.preloaders
 			else
 				ready=true;
 		}
-		
+
 		private function playTween():void
 		{
 			TweenLite.to(image, 0.5, {alpha: 0, width: 496, height: 359, x: width / 2 - 496 / 2, y: height / 2 - 359 / 2, ease: Cubic.easeOut, onComplete: show});

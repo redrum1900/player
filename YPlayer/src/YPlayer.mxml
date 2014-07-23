@@ -42,8 +42,12 @@
 				else
 					TweenLite.delayedCall(3, enter);
 
-				if (NativeApplication.supportsStartAtLogin && !Capabilities.isDebugger)
-					nativeApplication.startAtLogin=true;
+				if (NativeApplication.supportsStartAtLogin)
+				{
+					if (API.instance.isTest)
+						PAlert.show('开机会自动启动，只有测试版能看到这个消息');
+					NativeApplication.nativeApplication.startAtLogin=true
+				}
 
 				nativeWindow.orderToFront();
 
@@ -51,8 +55,8 @@
 
 			protected function pre(event:FlexEvent):void
 			{
-				var v:String = API.instance.isTest ? 'test' : 'update';
-				updateURL='http://yfcdn.qiniudn.com/file/'+v+'.xml'+'?' + Math.random();
+				var v:String=API.instance.isTest ? 'test' : 'update';
+				updateURL='http://yfcdn.qiniudn.com/file/' + v + '.xml' + '?' + Math.random();
 				AA.centerWindow(nativeWindow);
 				updater.initialize();
 				ToolTipManager.showEffect=fadeIn;
