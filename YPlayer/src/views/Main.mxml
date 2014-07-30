@@ -278,7 +278,7 @@
 
 			private function play():void
 			{
-				if (player1.playing || !api.songs)
+				if (player1.playing || !api.songs || !api.songs.length)
 					return;
 				var now:Date=api.now;
 				var has:Boolean;

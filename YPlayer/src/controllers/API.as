@@ -61,7 +61,7 @@ package controllers
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (!Capabilities.isDebugger)
+			if (Capabilities.isDebugger)
 				ServiceBase.HOST='http://localhost:18080/api';
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
@@ -325,6 +325,7 @@ package controllers
 		public function getMenuList():void
 		{
 			trace('saved_dir', FileManager.savedDir);
+			progress='连接云系统成功，开始获取新内容';
 			if (menu || !FileManager.savedDir)
 				return;
 			try
@@ -447,6 +448,7 @@ package controllers
 					o=menus[i];
 					o.end_date=NodeUtil.getLocalDate(o.end_date);
 					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+					trace(DateUtil.getYMD(o.begin_date), DateUtil.getYMD(o.end_date), DateUtil.getYMD(n));
 					if (o.type == 1 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime())
 					{
 						listMenu=o;
@@ -688,6 +690,8 @@ package controllers
 					return;
 			}
 
+			progress='开始初始化内容';
+
 			pv=new PrepareWindow();
 			var label:String;
 			if (menu)
@@ -702,6 +706,7 @@ package controllers
 			}
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
+				progress='';
 				if (e.data)
 				{
 					var so:SharedObject=updateLogSO;
@@ -884,6 +889,7 @@ package controllers
 		{
 			username=username.replace(' ', '');
 			var f:File;
+			progress='连接云系统';
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var so:SharedObject=SharedObject.getLocal('yp');
@@ -971,6 +977,8 @@ package controllers
 		public var updater:NativeApplicationUpdater;
 		public var playingSong:SongVO;
 		private var pv:PrepareWindow;
+		[Bindable]
+		public var progress:String='系统初始化';
 
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{

@@ -33,7 +33,7 @@ package views.preloaders
 			addEventListener(Event.ADDED_TO_STAGE, onStage);
 		}
 
-		[Embed(source="/assets/customize/lc/welcome.png")]
+		[Embed(source="/assets/welcome.png")]
 		private var logo:Class;
 
 		private function onStage(event:Event):void

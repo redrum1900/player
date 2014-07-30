@@ -159,6 +159,8 @@
 						b.setStyle('skinClass', SuccesButtonSkin);
 					else if (tags.indexOf('黄色') != -1)
 						b.setStyle('skinClass', WarningButtonSkin);
+					else
+						b.setStyle('skinClass', PrimaryButtonSkin);
 					if (tags)
 						b.label=tags.split(',')[0];
 				}

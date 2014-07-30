@@ -14,6 +14,7 @@
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
+			import com.pamakids.services.QNService;
 			import com.pamakids.utils.URLUtil;
 
 			import flash.utils.getTimer;
@@ -160,6 +161,8 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
+					if (vo.url.indexOf('http') == -1)
+						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);
 
