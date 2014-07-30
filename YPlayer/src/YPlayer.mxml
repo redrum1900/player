@@ -42,15 +42,7 @@
 				else
 					TweenLite.delayedCall(3, enter);
 
-				if (NativeApplication.supportsStartAtLogin)
-				{
-					if (API.instance.isTest)
-						PAlert.show('开机会自动启动，只有测试版能看到这个消息');
-					NativeApplication.nativeApplication.startAtLogin=true
-				}
-
 				nativeWindow.orderToFront();
-
 			}
 
 			protected function pre(event:FlexEvent):void

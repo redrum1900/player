@@ -31,7 +31,9 @@
 			import models.MenuVO;
 			import models.TimeVO;
 
+			import skins.buttons.DangerButtonSkin;
 			import skins.buttons.PrimaryButtonSkin;
+			import skins.buttons.SuccesButtonSkin;
 			import skins.buttons.WarningButtonSkin;
 
 			[Bindable]
@@ -83,6 +85,7 @@
 					loaded=0;
 					bros=API.instance.broadcasts;
 					buttonsGroup.removeAllElements();
+					btnDic=new Dictionary();
 					createButtons();
 				});
 			}
@@ -106,10 +109,36 @@
 				});
 			}
 
+			private var btnDic:Dictionary;
+
 			private function getButton(o:Object):Button
 			{
-				var b:Button=new Button();
-				dic[b]=o;
+				var b:Button;
+				var newButton:Boolean=false;
+				var tags:String=o.hasOwnProperty('tags') ? o.tags : '';
+				if (!tags)
+				{
+					b=new Button();
+					dic[b]=o;
+					b.label=o.name;
+					newButton=true;
+				}
+				else
+				{
+					b=btnDic[tags];
+					if (!b)
+					{
+						b=new Button();
+						newButton=true;
+						btnDic[tags]=b;
+						dic[b]=[o];
+					}
+					else
+					{
+						dic[b].push(o);
+					}
+				}
+
 				if (o.type == 1)
 				{
 					b.setStyle('skinClass', WarningButtonSkin);
@@ -122,23 +151,42 @@
 				}
 				else
 				{
-					b.setStyle('skinClass', PrimaryButtonSkin);
+					if (!tags || tags.indexOf('蓝色') != -1)
+						b.setStyle('skinClass', PrimaryButtonSkin);
+					else if (tags.indexOf('红色') != -1)
+						b.setStyle('skinClass', DangerButtonSkin);
+					else if (tags.indexOf('绿色') != -1)
+						b.setStyle('skinClass', SuccesButtonSkin);
+					else if (tags.indexOf('黄色') != -1)
+						b.setStyle('skinClass', WarningButtonSkin);
+					if (tags)
+						b.label=tags.split(',')[0];
 				}
-				b.label=o.name;
+
+				if (newButton)
+				{
+					buttonsGroup.addElement(b);
+					b.alpha=0;
+					b.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:FlexEvent):void
+					{
+						var dt:Number=createTime - 0.1;
+						if (dt > 0)
+							TweenLite.to(b, dt, {alpha: 1});
+						i++;
+						createButtons();
+						var v:Number=b.y + b.height;
+						if (scroller.height < v)
+							scroller.height=v < 200 ? b.y + b.height : 200;
+					});
+				}
+				else
+				{
+					i++;
+					createButtons();
+				}
 
 				b.addEventListener(MouseEvent.CLICK, broHandler);
-				buttonsGroup.addElement(b);
-				b.alpha=0;
-				b.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:FlexEvent):void
-				{
-					var dt:Number=createTime - 0.1;
-					if (dt > 0)
-						TweenLite.to(b, dt, {alpha: 1});
-					createButtons();
-					var v:Number=b.y + b.height;
-					if (scroller.height < v)
-						scroller.height=v < 200 ? b.y + b.height : 200;
-				});
+
 				return b;
 			}
 
@@ -152,10 +200,7 @@
 				if (!bros)
 					return;
 				if (bros && i < bros.length)
-				{
 					getButton(bros[i]);
-					i++;
-				}
 //				else
 //				{
 //					to(API.instance.playingIndex);
@@ -170,13 +215,30 @@
 			protected function broHandler(event:MouseEvent):void
 			{
 				var o:Object=dic[event.currentTarget];
-				if (o.url)
+				if (o is Array)
 				{
-					dispatchEvent(new ODataEvent(o));
+					var n:NativeMenu=new NativeMenu();
+					var arr:Array=[];
+					for each (var item:Object in o)
+					{
+						var ni:NativeMenuItem=new NativeMenuItem(item.name);
+						ni.data=item;
+						ni.addEventListener(Event.SELECT, function(e:Event):void
+						{
+							var nmi:NativeMenuItem=e.target as NativeMenuItem;
+							dispatchEvent(new ODataEvent(nmi.data));
+						});
+						arr.push(ni);
+					}
+					n.items=arr;
+					n.display(this.stage, event.stageX, event.stageY);
 				}
 				else
 				{
-					record(o as InsertVO);
+					if (o.url)
+						dispatchEvent(new ODataEvent(o));
+					else
+						record(o as InsertVO);
 				}
 			}
 

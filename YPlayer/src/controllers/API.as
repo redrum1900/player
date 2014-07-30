@@ -46,7 +46,7 @@ package controllers
 		public var enableFunctions:Array=['record'];
 
 		private var serviceDic:Dictionary;
-			private var refreshTimer:Timer;
+		private var refreshTimer:Timer;
 
 		public var contactInfo:String='请电话联系 ';
 		private var nowOffset:Number=0;
@@ -61,7 +61,7 @@ package controllers
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (Capabilities.isDebugger)
+			if (!Capabilities.isDebugger)
 				ServiceBase.HOST='http://localhost:18080/api';
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
@@ -113,7 +113,7 @@ package controllers
 		{
 			if (refreshTimer.currentCount % 60 == 0 && !local)
 			{
-				getSB('/refresh', 'GET').call(function(vo:ResultVO):void
+				getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 				{
 					if (vo.status && !pv)
 					{
@@ -333,7 +333,7 @@ package controllers
 
 				if (online && !local)
 				{
-					getSB('menu/list', 'GET').call(function(vo:ResultVO):void
+					getSB('menu/list/2', 'GET').call(function(vo:ResultVO):void
 					{
 						if (vo.status)
 						{
@@ -438,7 +438,7 @@ package controllers
 			{
 				var i:int;
 				var listMenu:Object;
-				var dmMenu:Object;
+				var dmMenus:Array=[];
 				var o:Object;
 				var n:Date=now;
 				n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
@@ -462,8 +462,7 @@ package controllers
 						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 					if (o.type == 2 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime())
 					{
-						dmMenu=o;
-						break;
+						dmMenus.push(o);
 					}
 				}
 
@@ -481,21 +480,30 @@ package controllers
 				{
 					var songMenu:Object;
 					var dmMenuO:Object;
-					if (dmMenu)
+					var dmCount:int;
+					if (dmMenus.length)
 					{
-						LoadManager.instance.loadText(QNService.HOST + dmMenu._id + '.json', function(data:String):void
+						for each (var dmm:Object in dmMenus)
 						{
-							dmMenuO=JSON.parse(data);
-							if (songMenu)
-								parseMenu(songMenu, dmMenuO);
-						}, dmMenu._id + '.json', online);
+							LoadManager.instance.loadText(QNService.HOST + dmm._id + '.json', function(data:String):void
+							{
+								dmCount++;
+								var o:Object=JSON.parse(data);
+								if (!dmMenuO)
+									dmMenuO=o
+								else
+									dmMenuO.dm_list=dmMenuO.dm_list.concat(o.dm_list);
+								if (songMenu && dmCount == dmMenus.length)
+									parseMenu(songMenu, dmMenuO);
+							}, dmm._id + '.json', online);
+						}
 					}
 					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void
 					{
 						songMenu=JSON.parse(data);
-						if (dmMenu)
+						if (dmMenus.length)
 						{
-							if (dmMenuO)
+							if (dmMenuO && dmCount == dmMenus.length)
 								parseMenu(songMenu, dmMenuO);
 						}
 						else
@@ -849,9 +857,9 @@ package controllers
 				if (!records)
 				{
 					records=[]
-					records.push({name: '定制广播1', type: 1});
-					records.push({name: '定制广播2', type: 1});
-					records.push({name: '定制广播3', type: 1});
+					records.push({name: '定制广播', type: 1});
+//					records.push({name: '定制广播2', type: 1});
+//					records.push({name: '定制广播3', type: 1});
 				}
 				bs=bs.concat(records);
 			}

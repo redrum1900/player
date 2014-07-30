@@ -25,7 +25,7 @@
 			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
 			
-			import flash.net.navigateToURL;
+			import flash.net.SharedObject;
 			import flash.utils.setTimeout;
 			
 			import mx.events.FlexEvent;
@@ -921,11 +921,6 @@
 			
 			private function playBro(ivo:InsertVO):void
 			{
-				broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【确认】', '提示', null, function():void{ivo
-					player2.stop();
-					broPlayed();
-					broAlert = null;
-				});
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
 				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
 				var sp:SoundPlayer;
@@ -963,6 +958,11 @@
 				{
 					player2.volume=vc2Volume / 100;
 					player2.url=url;
+					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【确认】', '提示', null, function():void{ivo
+						player2.stop();
+						broPlayed();
+						broAlert = null;
+					}, PAlert.CONFIRM);
 				}, 800);
 			}
 			

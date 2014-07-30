@@ -17,6 +17,7 @@ package models
 		public var duration:Number;
 		public var type:int;
 		public var size:Number;
+		public var tags:String;
 	}
 }
 
