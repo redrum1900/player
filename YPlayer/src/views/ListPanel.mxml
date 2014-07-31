@@ -271,6 +271,13 @@
 							so.flush();
 
 							buttonsGroup.removeAllElements();
+							if (btnDic)
+							{
+								for (var key:String in btnDic)
+								{
+									delete btnDic[key];
+								}
+							}
 							i=0;
 							createButtons();
 							lp.dispatchEvent(new Event('stopRecord'));

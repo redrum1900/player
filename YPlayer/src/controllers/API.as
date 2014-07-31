@@ -139,7 +139,8 @@ package controllers
 							});
 							if (broadcasts)
 								pv.broadcasts=broadcasts.concat();
-							PopupBoxManager.popup(pv);
+							pv.open();
+//							PopupBoxManager.popup(pv);
 						}
 						if (vo.results.message)
 						{
