@@ -782,6 +782,7 @@
 			
 			private function dmPlayed(ivo:InsertVO):void
 			{
+				api.recordDM(ivo);
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
 				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
 				if (!brodcasting)

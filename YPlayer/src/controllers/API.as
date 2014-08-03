@@ -615,7 +615,7 @@ package controllers
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
-			for each (var o:Object in times)
+			for each (var o:Object in menu.list)
 			{
 				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
 				{
@@ -653,6 +653,7 @@ package controllers
 							continue;
 					}
 					var ivo:InsertVO=new InsertVO();
+					ivo._id=dm.dm._id;
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
 					ivo.duration=dm.dm.duration;
