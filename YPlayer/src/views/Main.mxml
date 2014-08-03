@@ -9,6 +9,8 @@
 		 xmlns:views="views.*"
 		 xmlns:components="views.components.*">
 
+	<fx:Script source="MainSource.as"/>
+	
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
@@ -275,6 +277,9 @@
 
 			private var playingIndex:int;
 			private var pv:PrepareView;
+			private var nearestSong:SongVO;
+			private var firstSong:SongVO;
+			private var vo:SongVO;
 
 			private function play():void
 			{
@@ -282,141 +287,40 @@
 					return;
 				var now:Date=api.now;
 				var has:Boolean;
-				var vo:SongVO;
-				var temp:Number;
-				var nearestSong:SongVO;
-				var firstSong:SongVO;
 				if (!randomPlay.selected)
 				{
 					if (!song1)
 					{
 						if (api.isCurrentTimeLoop)
 						{
-							song1=api.songs[0];
-							if (api.songs.length > 1)
-							{
-								for (var k:int=1; k < api.songs.length; k++)
-								{
-									song2=api.songs[k] as SongVO;
-									if (song2)
-										break;
-								}
-							}
-							has=true;
+							getSongWhileTimeLoop();
+							has = true;
 						}
 						else
 						{
-							for (var i:int; i < api.songs.length; i++)
-							{
-								vo=api.songs[i] as SongVO;
-								if (!nearestSong)
-									nearestSong=vo;
-								if (!firstSong)
-									firstSong=vo;
-								if (vo)
-								{
-									if (vo.playTime.date != now.date)
-										vo.playTime.date=now.date;
-									var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
-									var nn:Number = nearestSong.playTime.getTime() - now.getTime();
-									var vn:Number = vo.playTime.getTime() - now.getTime();
-									if(now.getHours() <= 12)
-										nearestSong= nn > vn ? nearestSong : vo;
-									else
-										nearestSong= nn < vn ? nearestSong : vo;
-									if (temp)
-									{
-										result-=temp;
-										temp=0;
-									}
-									if (result > 1000 && result < vo.duration * 1000)
-									{
-										if (vo != song1)
-										{
-											vo=api.songs[i];
-											playingIndex=i;
-											has=true;
-											if (i != api.songs.length - 1)
-											{
-												for (i++; i < api.songs.length - 1; i++)
-												{
-													song2=api.songs[i] as SongVO;
-													if (song2)
-														break;
-												}
-											}
-											else
-												song2=null
-											song1=vo;
-											break;
-										}
-										else
-										{
-											temp=result;
-										}
-									}
-								}
-							}
+							has = getSongWhileTimeNotLoop();
 						}
 					}
 					else
 					{
-						has=true;
-						if (song2)
-						{
-							song1=song2;
-							var index:int=api.songs.indexOf(song2);
-							if (index == -1)
-							{
-								song1=null;
-								song2=null;
-								play();
-								return;
-							}
-							if (index != api.songs.length - 1)
-							{
-								for (index++; i < api.songs.length - 1; index++)
-								{
-									song2=api.songs[index] as SongVO;
-									if (song2)
-										break;
-								}
-							}
-							else if (api.isCurrentTimeLoop)
-							{
-								song2=api.songs[0];
-							}
-							else
-							{
-								song2=null;
-							}
-						}
-						else if (api.isCurrentTimeLoop)
-						{
-							song1=api.songs[0];
-							if (api.songs.length > 1)
-								song2=api.songs[1] as SongVO;
-						}
-						else
-						{
+						//如果歌单更新则清空重新播放
+						if(song2 && api.songs.indexOf(song2) == -1){
 							song1=null;
-							has=false;
+							song2=null;
+							play();
+							return;
 						}
+						has=switchSong();
 					}
 				}
 				else
 				{
-					var svo:SongVO=api.getRandomSong();
-					while (song1._id == svo._id)
-					{
-						svo=api.getRandomSong();
-					}
-					song1=svo
+					song1=api.getRandomSong(song1);
 					if (song1)
 						has=true;
 					else
 					{
-						PAlert.show('抱歉，当前时段没有可随机播放的曲目，请取消随机播放或联系我们');
+						PAlert.show('抱歉，当前时段没有可随机播放的曲目，请取消随机播放或联系我们\n'+api.contactInfo);
 						randomPlay.selected=false;
 						play();
 						return;
@@ -439,11 +343,6 @@
 							value=(firstSong.playTime.getTime() - now.getTime()) / 1000;
 						}
 						time='当前时段无媒资可播放 ' + DateUtil.formateTime(value) + ' 后将播放 ' + nearestSong.name;
-					}
-					else
-					{
-						TweenLite.killDelayedCallsTo(play);
-						TweenLite.delayedCall(3, play);
 					}
 				}
 				else
@@ -473,17 +372,15 @@
 						LoadManager.instance.load(vo.url, function():void
 						{
 							player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
-							if (!api.isCurrentTimeLoop)
-								player.currentPosition=s;
+							if (!api.isCurrentTimeLoop){
+								player.currentPosition = now.getTime() - vo.playTime.getTime();
+							}
 						}, URLUtil.getCachePath(vo.url), null, function(percent:Number):void
 						{
 							if (!player1.playing)
 								time='第一次播放 ' + vo.name + ' ，请稍候，加载进度 ' + Math.round(percent * 100) + '%';
 						});
 					}
-//					setTimeout(function():void{
-//						soundVisualizer.setCover(vo.cover);
-//					}, 1000);
 				}
 			}
 
@@ -642,8 +539,7 @@
 					case FEEDBACK:
 					case CONTACT_US:
 					case ABOUT_US:
-						PAlert.show('客服电话1:51244052\n客服电话2:58699501\nqq1：王萍99651674\nqq2：杨丹丹674357918\nqq3：段颖3779317');
-//						navigateToURL(new URLRequest('http://weibo.com/u/2662098313'));
+						PAlert.show(api.contactInfo);
 						break;
 					case CLEAR_CACHE:
 						PAlert.show('您确认清空缓存文件吗？', '提示', null, function(value:String):void

@@ -15,7 +15,10 @@ package controllers
 	import com.pamakids.utils.Singleton;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
+	import flash.errors.IOError;
 	import flash.events.Event;
+	import flash.events.HTTPStatusEvent;
+	import flash.events.IOErrorEvent;
 	import flash.events.TimerEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
@@ -48,7 +51,7 @@ package controllers
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
 
-		public var contactInfo:String='请电话联系 ';
+		public var contactInfo:String='客服电话1:51244052\n客服电话2:58699501\nqq1：王萍99651674\nqq2：杨丹丹674357918\nqq3：段颖3779317';
 		private var nowOffset:Number=0;
 
 		public function API()
@@ -62,7 +65,12 @@ package controllers
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
 			if (Capabilities.isDebugger)
+			{
+				var file:File=File.applicationStorageDirectory.resolvePath('log');
+				if (file.exists)
+					trace(FileManager.readFile(file.nativePath, false, true));
 				ServiceBase.HOST='http://localhost:18080/api';
+			}
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 			if (local)
@@ -72,36 +80,68 @@ package controllers
 			}
 			else
 			{
-				try
-				{
-					var u:URLRequest=new URLRequest('http://m.yuefu.com/log/token');
-					var ul:URLLoader=new URLLoader();
-					ul.addEventListener(Event.COMPLETE, function(e:Event):void
-					{
-						var o:Object=JSON.parse(ul.data);
-						QNService.token=o.uptoken;
-					});
-					ul.load(u);
-
-					var u2:URLRequest=new URLRequest('http://m.yuefu.com/now');
-					var ul2:URLLoader=new URLLoader();
-					ul2.addEventListener(Event.COMPLETE, function(e:Event):void
-					{
-						var date:Date=NodeUtil.getLocalDate(ul2.data);
-						nowOffset=date.getTime() - now.getTime();
-						trace('Now Offset:' + nowOffset);
-//						var o:Object=JSON.parse(ul2.data);
-//						QNService.token=o.uptoken;
-					});
-					ul2.load(u2);
-				}
-				catch (error:Error)
-				{
-					trace('get token error');
-				}
+				getUploadToken();
+				getNowTime();
 			}
+			setYPData('startup', new Date().getTime());
+			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+		}
+
+		private function getNowTime():void
+		{
+			var u:URLRequest=new URLRequest('http://m.yuefu.com/now');
+			var ul:URLLoader=new URLLoader();
+			ul.addEventListener(Event.COMPLETE, function(e:Event):void
+			{
+				var date:Date=NodeUtil.getLocalDate(ul.data);
+				nowOffset=date.getTime() - now.getTime();
+				trace('Now Offset:' + nowOffset);
+			});
+			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
+			{
+				appendLog('GetNow Error' + e.toString());
+				TweenLite.killDelayedCallsTo(getNowTime);
+				TweenLite.delayedCall(60, getNowTime);
+			});
+			ul.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void
+			{
+				if (e.status && e.status != 200)
+				{
+					TweenLite.killDelayedCallsTo(getNowTime);
+					TweenLite.delayedCall(60, getNowTime);
+					appendLog('GetNow Error' + e.toString());
+				}
+			});
+			ul.load(u);
+		}
+
+		private function getUploadToken():void
+		{
+			var u:URLRequest=new URLRequest('http://m.yuefu.com/log/token');
+			var ul:URLLoader=new URLLoader();
+			ul.addEventListener(Event.COMPLETE, function(e:Event):void
+			{
+				var o:Object=JSON.parse(ul.data);
+				QNService.token=o.uptoken;
+			});
+			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
+			{
+				appendLog('GetUploadToken Error' + e.toString());
+				TweenLite.killDelayedCallsTo(getUploadToken);
+				TweenLite.delayedCall(60, getUploadToken);
+			});
+			ul.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void
+			{
+				if (e.status && e.status != 200)
+				{
+					TweenLite.killDelayedCallsTo(getUploadToken);
+					TweenLite.delayedCall(60, getUploadToken);
+					appendLog('GetUploadToken Error' + e.toString());
+				}
+			});
+			ul.load(u);
 		}
 
 		public function get now():Date
@@ -113,46 +153,60 @@ package controllers
 		{
 			if (refreshTimer.currentCount % 60 == 0 && !local)
 			{
-				getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
+				refreshData();
+				var refresh:Number=getYPData('refreshTime') as Number;
+				if (now.getTime() - refresh >= 24 * 60 * 60 * 100)
 				{
-					if (vo.status && !pv)
-					{
-						var menus:Array=FileManager.readFile('menus.yp') as Array;
-						var brosChanged:Boolean;
-						if (compareBros(vo.results.bros))
-						{
-							brosChanged=true;
-							if (vo.results.bros)
-								FileManager.saveFile('bros.yp', vo.results.bros)
-							initBroadcasts();
-						}
-						if (compareMenus(menus, vo.results.menus as Array))
-						{
-							initMenu();
-						}
-						else if (brosChanged)
-						{
-							pv=new PrepareWindow();
-							pv.addEventListener('loaded', function(e:Event):void
-							{
-								pv=null;
-							});
-							if (broadcasts)
-								pv.broadcasts=broadcasts.concat();
-							pv.open();
-//							PopupBoxManager.popup(pv);
-						}
-						if (vo.results.message)
-						{
-							handleMessage(vo.results.message._id, 1);
-							var mw:MessageWindow=new MessageWindow();
-							mw.message=vo.results.message;
-							mw.title=vo.results.message.title;
-							mw.open();
-						}
-					}
-				});
+					checkLog();
+					setYPData('refreshTime', now.getTime());
+				}
 			}
+		}
+
+		private function refreshData():void
+		{
+			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
+			{
+				if (vo.status && !pv)
+				{
+					var menus:Array=FileManager.readFile('menus.yp') as Array;
+					var brosChanged:Boolean;
+					if (compareBros(vo.results.bros))
+					{
+						brosChanged=true;
+						if (vo.results.bros)
+							FileManager.saveFile('bros.yp', vo.results.bros)
+						initBroadcasts();
+					}
+					if (compareMenus(menus, vo.results.menus as Array))
+					{
+						initMenu();
+					}
+					else if (brosChanged)
+					{
+						pv=new PrepareWindow();
+						pv.addEventListener('loaded', function(e:Event):void
+						{
+							pv=null;
+						});
+						if (broadcasts)
+							pv.broadcasts=broadcasts.concat();
+						pv.open();
+					}
+					if (vo.results.message)
+					{
+						handleMessage(vo.results.message._id, 1);
+						var mw:MessageWindow=new MessageWindow();
+						mw.message=vo.results.message;
+						mw.title=vo.results.message.title;
+						mw.open();
+					}
+				}
+				else
+				{
+					appendLog('RefreshFailed' + vo.errorResult);
+				}
+			}, {startup: getYPData('startup')});
 		}
 
 		/**
@@ -391,7 +445,7 @@ package controllers
 		[Bindable]
 		public var songs:Array;
 
-		public function getRandomSong():SongVO
+		public function getRandomSong(svo:SongVO):SongVO
 		{
 			var vo:SongVO;
 			var arr:Array=[];
@@ -406,15 +460,27 @@ package controllers
 							if (s.allow_circle)
 								arr.push(s);
 						}
-						if (arr.length)
-							vo=arr[Math.floor(Math.random() * arr.length)];
 					}
 				}
 			}
 			else
 			{
-				arr=songs;
-				vo=arr[Math.floor(Math.random() * arr.length)];
+				arr=currentTime.songs;
+			}
+			if (arr.length)
+			{
+				if (!svo || arr.length == 1)
+				{
+					vo=arr[Math.floor(Math.random() * arr.length)];
+				}
+				else if (svo)
+				{
+					vo=arr[Math.floor(Math.random() * arr.length)];
+					while (svo._id == vo._id)
+					{
+						vo=arr[Math.floor(Math.random() * arr.length)];
+					}
+				}
 			}
 			return vo;
 		}
@@ -431,6 +497,23 @@ package controllers
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
 			return n.getTime() >= begin.getTime() && n.getTime() <= end.getTime();
+		}
+
+		private function dayValidate(tags:Array):void
+		{
+			var b:Boolean=true;
+			if (tags && tags.length)
+			{
+				for (var i:int; i <= 6; i++)
+				{
+					if (tags.indexOf(i + '') != -1 && tags.indexOf(now.day + '') == -1)
+					{
+						b=false;
+						break;
+					}
+				}
+			}
+			return b;
 		}
 
 		private function initMenu():void
@@ -450,7 +533,7 @@ package controllers
 					o.end_date=NodeUtil.getLocalDate(o.end_date);
 					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 					trace(DateUtil.getYMD(o.begin_date), DateUtil.getYMD(o.end_date), DateUtil.getYMD(n));
-					if (o.type == 1 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime())
+					if (o.type == 1 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime() && dayValidate(o.tags))
 					{
 						listMenu=o;
 						break;
@@ -463,7 +546,7 @@ package controllers
 						o.end_date=NodeUtil.getLocalDate(o.end_date);
 					if (!(o.begin_date is Date))
 						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
-					if (o.type == 2 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime())
+					if (o.type == 2 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime() && dayValidate(o.tags))
 					{
 						dmMenus.push(o);
 					}
@@ -527,6 +610,7 @@ package controllers
 		}
 
 		public var times:Array=[];
+		public var currentTime:Object;
 
 		public function get isCurrentTimeLoop():Boolean
 		{
@@ -536,6 +620,7 @@ package controllers
 				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
 				{
 					b=o.loop;
+					currentTime=o;
 					break;
 				}
 			}
@@ -840,6 +925,18 @@ package controllers
 			}, PAlert.CONFIRM, '再试一次', '', true);
 		}
 
+		private function getYPData(key:String):Object
+		{
+			return SharedObject.getLocal('yp').data[key];
+		}
+
+		private function setYPData(key:String, value:Object):void
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			so.data[key]=value;
+			so.flush();
+		}
+
 		public function initBroadcasts():void
 		{
 			var bs:Array=FileManager.readFile('bros.yp') as Array;
@@ -864,8 +961,6 @@ package controllers
 				{
 					records=[]
 					records.push({name: '定制广播', type: 1});
-//					records.push({name: '定制广播2', type: 1});
-//					records.push({name: '定制广播3', type: 1});
 				}
 				bs=bs.concat(records);
 			}
