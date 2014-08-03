@@ -499,7 +499,7 @@ package controllers
 			return n.getTime() >= begin.getTime() && n.getTime() <= end.getTime();
 		}
 
-		private function dayValidate(tags:Array):void
+		private function dayValidate(tags:Array):Boolean
 		{
 			var b:Boolean=true;
 			if (tags && tags.length)
