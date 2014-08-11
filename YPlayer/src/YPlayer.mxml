@@ -16,7 +16,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.pamakids.utils.DateUtil;
+			import com.plter.air.windows.utils.RegCommand;
 			import com.youli.components.LMouseData;
 			import com.youli.messengers.PreloaderMessenger;
 
@@ -44,6 +44,8 @@
 
 				nativeWindow.orderToFront();
 
+				if (!Capabilities.isDebugger && NativeApplication.supportsStartAtLogin)
+					NativeApplication.nativeApplication.startAtLogin=true;
 			}
 
 			protected function pre(event:FlexEvent):void
@@ -51,7 +53,8 @@
 				var v:String=API.instance.isTest ? 'test' : 'update';
 				updateURL='http://yfcdn.qiniudn.com/file/' + v + '.xml' + '?' + Math.random();
 				AA.centerWindow(nativeWindow);
-				updater.initialize();
+//				updater.initialize();
+				API.instance.checkUpdate();
 				ToolTipManager.showEffect=fadeIn;
 				ToolTipManager.hideEffect=fadeOut;
 				ToolTipManager.showDelay=0;
@@ -59,44 +62,46 @@
 				PopupBoxManager.PARENT=this
 			}
 
-			protected function updater_initializedHandler(event:UpdateEvent):void
-			{
-				updater.checkNow();
-			}
+//			protected function updater_initializedHandler(event:UpdateEvent):void
+//			{
+//				updater.checkNow();
+//			}
 
-			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
-			{
-				if (event.available && !Capabilities.isDebugger)
-				{
-					API.instance.updatable=true;
-					API.instance.updater=updater;
-				}
-				else
-				{
-					trace('软件最新');
-				}
-			}
+//			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
+//			{
+//				if (event.available)
+//				{
+//					trace(event.versionLabel);
+//					API.instance.newVersion=event.version;
+//					API.instance.updatable=true;
+//					API.instance.updater=updater;
+//				}
+//				else
+//				{
+//					trace('软件最新');
+//				}
+//			}
 
 			protected function updater_errorHandler(event:ErrorEvent):void
 			{
 				trace(event.toString());
 			}
 
-			protected function updater_downloadCompleteHandler(event:UpdateEvent):void
-			{
-				updater.installUpdate();
-			}
+//			protected function updater_downloadCompleteHandler(event:UpdateEvent):void
+//			{
+//				updater.installUpdate();
+//			}
 
 			private function enter():void
 			{
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
 			}
 
-			protected function updater_checkForUpdateHandler(event:UpdateEvent):void
-			{
-				event.preventDefault();
-				updater.checkForUpdate();
-			}
+//			protected function updater_checkForUpdateHandler(event:UpdateEvent):void
+//			{
+//				event.preventDefault();
+//				updater.checkForUpdate();
+//			}
 
 			protected function handler(event:UncaughtErrorEvent):void
 			{
@@ -152,7 +157,7 @@
 				duration="100"
 				alphaFrom="1"
 				alphaTo="0"/>
-		<nativeApplicationUpdater:NativeApplicationUpdater id="updater"
+		<!--<nativeApplicationUpdater:NativeApplicationUpdater id="updater"
 														   updateURL="{updateURL}"
 														   initialized="updater_initializedHandler(event)"
 														   updateStatus="updater_updateStatusHandler(event)"
@@ -160,7 +165,7 @@
 														   error="updater_errorHandler(event)"
 														   downloadError="updater_errorHandler(event)"
 														   downloadComplete="updater_downloadCompleteHandler(event)"
-														   updateError="updater_errorHandler(event)"/>
+														   updateError="updater_errorHandler(event)"/>-->
 	</fx:Declarations>
 
 	<s:Rect left="2"

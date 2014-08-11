@@ -1,0 +1,7 @@
+{
+	"test":true,
+	"local":false,
+	"exe":"乐播.exe",
+	"swf":"Player.swf",
+	"update":"http://yfcdn.qiniudn.com/file/update.json"
+}

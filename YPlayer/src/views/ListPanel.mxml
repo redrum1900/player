@@ -16,6 +16,7 @@
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
@@ -28,6 +29,7 @@
 			import controllers.API;
 
 			import models.InsertVO;
+			import models.LogVO;
 			import models.MenuVO;
 			import models.TimeVO;
 
@@ -256,6 +258,7 @@
 						rbv.vo=vo;
 						PopupBoxManager.popup(rbv, function():void
 						{
+							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
 							var so:SharedObject=SharedObject.getLocal('yp');
 							var bros:Array=api.broadcasts;
 							var arr:Array=[];

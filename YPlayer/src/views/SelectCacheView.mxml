@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
-					 xmlns:s="library://ns.adobe.com/flex/spark" 
-					 xmlns:mx="library://ns.adobe.com/flex/mx" 
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
 					 xmlns:components="com.pamakids.components.*"
-					 title="选择缓存路径" 
-					 creationComplete="popupbox1_creationCompleteHandler(event)"
-					 >
+					 title="选择缓存路径"
+					 creationComplete="popupbox1_creationCompleteHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
@@ -13,16 +12,18 @@
 			import com.pamakids.utils.FileHelper;
 
 			import mx.events.FlexEvent;
+
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				FileHelper.browse(File.desktopDirectory.nativePath, 2, function(f:File):void{
+				FileHelper.browse(File.desktopDirectory.nativePath, 2, function(f:File):void
+				{
 					trace(f.nativePath);
-					var s:String = f.nativePath;
-					s = s.replace(/\\/g,"/")
-					url = s+'/';
+					var s:String=f.nativePath;
+					s=s.replace(/\\/g, "/")
+					url=s + '/乐播/';
 					trace(s);
-					FileManager.savedDir = url;
-				},'选择缓存文件夹');
+					FileManager.savedDir=url;
+				}, '选择缓存文件夹');
 //				API.instance.login(username.text, password.text, function(vo:ResultVO):void{
 //					if(vo.status){
 //						ServiceBase.id = vo.results+'';
@@ -49,30 +50,32 @@
 
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
-				var so:SharedObject = SharedObject.getLocal('yp');
-				so.data.cacheDir = url;
-				FileManager.savedDir = url;
+				var so:SharedObject=SharedObject.getLocal('yp');
+				so.data.cacheDir=url;
+				FileManager.savedDir=url;
 				so.flush();
 				close();
 			}
-
 		]]>
 	</fx:Script>
 
 	<components:layout>
 		<s:VerticalLayout horizontalAlign="center"
-						  paddingLeft="40" paddingRight="40"
-						  paddingBottom="20" paddingTop="30"
-						  gap="10"
-						  />
+						  paddingLeft="40"
+						  paddingRight="40"
+						  paddingBottom="20"
+						  paddingTop="30"
+						  gap="10"/>
 	</components:layout>
 
 	<s:Label text="{url}"/>
 
 	<s:HGroup>
-		<s:Button label="选择" skinClass="skins.buttons.LoginButtonSkin" 
+		<s:Button label="选择"
+				  skinClass="skins.buttons.LoginButtonSkin"
 				  click="button1_clickHandler(event)"/>
-		<s:Button label="确认" skinClass="skins.buttons.LoginButtonSkin" 
+		<s:Button label="确认"
+				  skinClass="skins.buttons.LoginButtonSkin"
 				  enabled="{url}"
 				  click="button2_clickHandler(event)"/>
 	</s:HGroup>

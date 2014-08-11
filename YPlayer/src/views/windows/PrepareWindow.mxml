@@ -22,6 +22,8 @@
 			import mx.events.FlexEvent;
 
 			import controllers.API;
+
+			import models.LogVO;
 			private var api:API;
 			[Bindable]
 			public var info:String;
@@ -106,6 +108,7 @@
 				if (avaibleSize - size < 512000)
 				{
 					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
+					api.recordLog(new LogVO(LogVO.WARNING, Math.round(avaibleSize / 1024) + '', '磁盘空间预警'));
 				}
 				length=songs.length;
 				if (!label)

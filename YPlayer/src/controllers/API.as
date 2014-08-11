@@ -13,9 +13,13 @@ package controllers
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
 	import com.pamakids.utils.Singleton;
+	import com.pamakids.utils.URLUtil;
+	import com.plter.air.windows.utils.NativeCommand;
+	import com.plter.air.windows.utils.RegCommand;
+	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
-	import flash.errors.IOError;
+	import flash.desktop.NativeApplication;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
@@ -27,10 +31,12 @@ package controllers
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
+	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
 	import models.InsertVO;
+	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
@@ -44,18 +50,31 @@ package controllers
 		[Bindable]
 		public var local:Boolean=false;
 		public var online:Boolean=true;
-		public var isTest:Boolean=true;
+		public var isTest:Boolean=false;
 
 		public var enableFunctions:Array=['record'];
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
 
-		public var contactInfo:String='客服电话1:51244052\n客服电话2:58699501\nqq1：王萍99651674\nqq2：杨丹丹674357918\nqq3：段颖3779317';
+		public var contactInfo:String='客服电话1：010-51244052\n客服电话2：010-58699501\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
+		private var config:Object;
 
 		public function API()
 		{
+			var o:Object=FileManager.readFile('config.json', true, true);
+			o=JSON.parse(o + '');
+			isTest=o.test;
+			local=o.local;
+			config=o;
+			var so:SharedObject=SharedObject.getLocal('version');
+			if (!so.data.version)
+			{
+				so.data.version='1.3.5';
+				so.flush();
+			}
+			version=so.data.version;
 //			var so:SharedObject=SharedObject.getLocal('yp');
 //			so.clear();
 //			so.flush();
@@ -87,7 +106,108 @@ package controllers
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+			startAtLogin();
 		}
+
+		public function downloadUpdate(callback:Function):void
+		{
+			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
+			{
+				if (b && b.length)
+				{
+					try
+					{
+						var f:File=File.applicationDirectory.resolvePath(config.swf);
+						f=new File(f.nativePath);
+						var fs:FileStream=new FileStream();
+						fs.open(f, FileMode.WRITE);
+						fs.writeBytes(b);
+						fs.close();
+						var so:SharedObject=SharedObject.getLocal('version');
+						so.data.version=newVersion;
+						so.flush();
+						PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
+						{
+							reboot();
+						}, PAlert.YESNO, '重启播放器', '暂时不重启');
+					}
+					catch (error:Error)
+					{
+						PAlert.show(error.message);
+					}
+				}
+				else
+				{
+					trace('io error');
+					callback(0)
+					PAlert.show('更新失败，请检查网络连接');
+				}
+			}, newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
+			{
+				trace('io error');
+				callback(0)
+				PAlert.show('更新失败，请检查网络连接');
+			});
+		}
+
+		private function startAtLogin():void
+		{
+//			if (Capabilities.os.indexOf('Windows') == -1 || Capabilities.isDebugger)
+//				return;
+//			var so:SharedObject=SharedObject.getLocal('yp');
+//			if (!so.data.settedStartAtLogin)
+//			{
+//				var rg:RegCommand=new RegCommand();
+//				rg.addAutoRunWithName('YFPlayer', File.applicationDirectory.resolvePath("乐播.exe").nativePath);
+//				so.data.settedStartAtLogin=true;
+//				so.flush();
+//			}
+		}
+
+		public function reboot():void
+		{
+//					var nativeProcessStartupInfo:NativeProcessStartupInfo=new NativeProcessStartupInfo();
+//					var file:File=new File();
+
+			var n:NativeCommand=new NativeCommand();
+			var args:Vector.<String>=new Vector.<String>;
+			args.push(File.applicationDirectory.resolvePath("乐播.exe").nativePath);
+
+			n.runCmd(args, ShowCmdWindow.HIDE, 1000);
+//					nativeProcessStartupInfo.executable=file;
+//					var process:NativeProcess=new NativeProcess();
+//					process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, function onOutputData(event:Object):void
+//					{
+//						var stdOut=process.standardOutput;
+//						var data=stdOut.readUTFBytes(process.standardOutput.bytesAvailable);
+//						PAlert.show(data);
+//					});
+//					process.start(nativeProcessStartupInfo);
+
+			NativeApplication.nativeApplication.exit();
+
+//			var mgr:ProductManager=new ProductManager("airappinstaller");
+//			var s:String="-launch " + NativeApplication.nativeApplication.applicationID + " " + NativeApplication.nativeApplication.publisherID;
+//			trace(s);
+//			mgr.launch(s);
+
+
+//			processArgs.push("hello");
+//			nativeProcessStartupInfo.arguments=processArgs;
+
+//			PAlert.show('重启了');
+
+
+//			var arr:Array=NativeApplication.nativeApplication.openedWindows;
+//			if (arr && arr.length)
+//			{
+//				for each (var w:NativeWindow in arr)
+//				{
+//					w.close();
+//				}
+//			}
+		}
+
 
 		private function getNowTime():void
 		{
@@ -125,6 +245,7 @@ package controllers
 			{
 				var o:Object=JSON.parse(ul.data);
 				QNService.token=o.uptoken;
+				checkLog();
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -151,7 +272,18 @@ package controllers
 
 		protected function refreshHandler(event:TimerEvent):void
 		{
-			if (refreshTimer.currentCount % 60 == 0 && !local)
+			if (local)
+				return;
+//			if (refreshTimer.currentCount % 3 == 0)
+//			{
+//				getSB('volume', 'GET').call(function(vo:ResultVO):void
+//				{
+//					if (vo.status)
+//					{
+//					}
+//				});
+//			}
+			if (refreshTimer.currentCount % 60 == 0)
 			{
 				refreshData();
 				var refresh:Number=getYPData('refreshTime') as Number;
@@ -160,6 +292,25 @@ package controllers
 					checkLog();
 					setYPData('refreshTime', now.getTime());
 				}
+				if (!checkPlayingValid())
+					initMenu();
+
+				checkLogin();
+			}
+		}
+
+		private function checkLogin():void
+		{
+			if (!ServiceBase.id)
+			{
+				var so:SharedObject=SharedObject.getLocal('yp');
+				getSB('user/login').call(function(vo:ResultVO):void
+				{
+					if (vo.status)
+						ServiceBase.id=vo.results.id + '';
+					else
+						appendLog('LoginError:' + so.data.username + '-' + so.data.password + '-' + vo.errorResult);
+				}, {username: so.data.username, password: so.data.password});
 			}
 		}
 
@@ -204,9 +355,9 @@ package controllers
 				}
 				else
 				{
-					appendLog('RefreshFailed' + vo.errorResult);
+					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-			}, {startup: getYPData('startup')});
+			}, {startup: getYPData('startup'), version: version});
 		}
 
 		/**
@@ -231,6 +382,27 @@ package controllers
 			}, {_id: messageID, received: status == 1});
 		}
 
+		public function recordLog(o:LogVO):void
+		{
+			var so:SharedObject=SharedObject.getLocal('log');
+			var logs:Array=so.data.logs;
+			if (!logs)
+				logs=[];
+			if (o)
+			{
+				logs.push(o);
+				so.data.logs=logs;
+				so.flush();
+			}
+			getSB('log/record').call(function(vo:ResultVO):void
+			{
+				if (vo.status)
+					so.clear();
+				else
+					appendLog('RecordLogError:' + vo.errorResult);
+			}, {logs: JSON.stringify(logs)});
+		}
+
 		public function recordDM(ivo:InsertVO):void
 		{
 			var arr:Array=dmLogSO.data.plaied;
@@ -241,12 +413,12 @@ package controllers
 			}
 			arr.push({id: ivo._id, plaied: now.toUTCString()});
 			dmLogSO.flush();
-			getSB('dm/record', 'GET').call(function(vo:ResultVO):void
+			getSB('dm/record').call(function(vo:ResultVO):void
 			{
 				if (vo.status)
 					dmLogSO.clear();
 				else
-					appendLog(vo.errorResult);
+					appendLog('RecordDM Error:' + vo.errorResult);
 			}, {dms: JSON.stringify(arr)});
 		}
 
@@ -445,6 +617,25 @@ package controllers
 		[Bindable]
 		public var songs:Array;
 
+		public function getCurrentTimeSongs():Array
+		{
+			var vo:SongVO;
+			var arr:Array=[];
+			for each (var t:TimeVO in menu.list)
+			{
+				if (t.begin.getTime() < now.getTime() && t.end.getTime() > now.getTime())
+				{
+					for each (var s:SongVO in t.songs)
+					{
+						if (s.allow_circle || t.loop)
+							arr.push(s);
+					}
+					break;
+				}
+			}
+			return arr;
+		}
+
 		public function getRandomSong(svo:SongVO):SongVO
 		{
 			var vo:SongVO;
@@ -516,6 +707,46 @@ package controllers
 			return b;
 		}
 
+		private function menuValid(menu:Object):Boolean
+		{
+			var n:Date=now;
+			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
+			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
+		}
+
+		private function checkPlayingValid():Boolean
+		{
+			var b:Boolean=true;
+			if (!menuValid(menu))
+			{
+				return false;
+			}
+			if (dmMenus && dmMenus.length)
+			{
+				for each (var dm:Object in dmMenus)
+				{
+					if (!menuValid(dm))
+					{
+						b=false;
+						break;
+					}
+				}
+			}
+			if (FileManager.savedDir && !b)
+			{
+				var f:File=new File(FileManager.savedDir + 'cache');
+				if (f.exists)
+				{
+					var size:Number=f.size;
+					f.deleteFile();
+					recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(size / 1024) + '', '自动清空了过期歌单' + menu.name));
+				}
+			}
+			return b;
+		}
+
+		private var dmMenus:Array;
+
 		private function initMenu():void
 		{
 			var menus:Array=FileManager.readFile('menus.yp') as Array;
@@ -523,32 +754,39 @@ package controllers
 			{
 				var i:int;
 				var listMenu:Object;
-				var dmMenus:Array=[];
+				dmMenus=[];
 				var o:Object;
 				var n:Date=now;
 				n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
 				for (i=0; i < menus.length; i++)
 				{
 					o=menus[i];
-					o.end_date=NodeUtil.getLocalDate(o.end_date);
-					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
-					trace(DateUtil.getYMD(o.begin_date), DateUtil.getYMD(o.end_date), DateUtil.getYMD(n));
-					if (o.type == 1 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime() && dayValidate(o.tags))
+					if (o.end_date && o.begin_date)
 					{
-						listMenu=o;
-						break;
+						o.end_date=NodeUtil.getLocalDate(o.end_date);
+						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+						if (o.type == 1 && menuValid(o))
+						{
+							if (!listMenu)
+								listMenu=o;
+							else if (o.end_date.getTime() < listMenu.end_date.getTime())
+								listMenu=o;
+						}
 					}
 				}
 				for (i=0; i < menus.length; i++)
 				{
 					o=menus[i];
-					if (!(o.end_date is Date))
-						o.end_date=NodeUtil.getLocalDate(o.end_date);
-					if (!(o.begin_date is Date))
-						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
-					if (o.type == 2 && n.getTime() >= o.begin_date.getTime() && n.getTime() <= o.end_date.getTime() && dayValidate(o.tags))
+					if (o.end_date && o.begin_date)
 					{
-						dmMenus.push(o);
+						if (!(o.end_date is Date))
+							o.end_date=NodeUtil.getLocalDate(o.end_date);
+						if (!(o.begin_date is Date))
+							o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+						if (o.type == 2 && menuValid(o))
+						{
+							dmMenus.push(o);
+						}
 					}
 				}
 
@@ -985,6 +1223,7 @@ package controllers
 		public function login(username:String, password:String, callback:Function):void
 		{
 			username=username.replace(' ', '');
+			username=username.replace('：', ':');
 			var f:File;
 			progress='连接云系统';
 			getSB('user/login').call(function(vo:ResultVO):void
@@ -1037,6 +1276,8 @@ package controllers
 						});
 					}
 				}
+				if (!vo.status)
+					appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
 				callback(vo);
 			}, {username: username, password: password});
 		}
@@ -1050,6 +1291,8 @@ package controllers
 
 		private function checkLog():void
 		{
+			if (!ServiceBase.id || !QNService.token)
+				return;
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
 			if (file.exists && file.isDirectory)
 			{
@@ -1070,12 +1313,31 @@ package controllers
 
 		[Bindable]
 		public var updatable:Boolean;
-
+		public var newVersion:String;
+		public var versionLabel:String;
 		public var updater:NativeApplicationUpdater;
 		public var playingSong:SongVO;
 		private var pv:PrepareWindow;
+		public var version:String;
 		[Bindable]
 		public var progress:String='系统初始化';
+
+//		public function isNewVersion(newVersion:String):Boolean
+//		{
+//			var arr:Array=version.split('.');
+//			var v1:int;
+//			var v2:int;
+//			for each (var s:String in arr)
+//			{
+//				v1+=parseInt(s);
+//			}
+//			arr = newVersion.split('.');
+//			for each (var s:String in arr)
+//			{
+//				v2+=parseInt(s);
+//			}
+//			return v2 > v1;
+//		}
 
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{
@@ -1085,6 +1347,20 @@ package controllers
 			s=new ServiceBase(uri, method);
 			serviceDic[uri + method]=s;
 			return s;
+		}
+
+		public function checkUpdate():void
+		{
+			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
+			{
+				var o:Object=JSON.parse(s);
+				if (o.version != version)
+				{
+					trace('New Version:' + o.version);
+					newVersion=o.version;
+					updatable=true;
+				}
+			});
 		}
 	}
 }

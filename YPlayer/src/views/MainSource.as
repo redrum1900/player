@@ -1,17 +1,11 @@
 import models.SongVO;
 
-private function getSongWhileTimeLoop():void
+private function initSongWhileTimeLoop():void
 {
-	song1=api.songs[0];
-	if (api.songs.length > 1)
-	{
-		for (var k:int=1; k < api.songs.length; k++)
-		{
-			song2=api.songs[k] as SongVO;
-			if (song2)
-				break;
-		}
-	}
+	var songs:Array=api.getCurrentTimeSongs();
+	song1=songs[0];
+	if (songs.length > 1)
+		song2=songs[1];
 }
 
 private function getSongWhileTimeNotLoop():Boolean
@@ -29,7 +23,7 @@ private function getSongWhileTimeNotLoop():Boolean
 			firstSong=vo;
 		if (vo) //如果是歌曲
 		{
-			if (vo.playTime.date != now.date) //强制date一直方便进行time比对
+			if (vo.playTime.date != now.date) //强制date一致方便进行time比对
 				vo.playTime.date=now.date;
 			//歌曲播放时间同当前时间差
 			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();

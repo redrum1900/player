@@ -37,6 +37,7 @@
 			import controllers.API;
 			
 			import models.InsertVO;
+			import models.LogVO;
 			import models.SongVO;
 
 			private var player1:SoundPlayer;
@@ -293,7 +294,7 @@
 					{
 						if (api.isCurrentTimeLoop)
 						{
-							getSongWhileTimeLoop();
+							initSongWhileTimeLoop();
 							has = true;
 						}
 						else
@@ -511,10 +512,9 @@
 				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
 //				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
 				if (api.isTest)
-				{
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
+				if(!api.local)
 					moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
-				}
 //				moreMenu.addItem(getNMI('','', true));
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
@@ -559,7 +559,7 @@
 						}, PAlert.YESNO);
 						break;
 					case REMOTE_ACCOUNT:
-						PAlert.show('您确认注销账户并退出吗？退出后再次使用需要重新登录', '提示', null, function(value:String):void
+						PAlert.show('您确认注销账户并退出吗？退出后再次使用需要重新登录，届时可以重新设置缓存路径', '提示', null, function(value:String):void
 						{
 							if (value == PAlert.YES)
 							{
@@ -591,17 +591,34 @@
 
 			protected function button3_clickHandler(event:MouseEvent):void
 			{
+				if(updateButton. label == '重启应用')
+				{
+					api.reboot();
+					return;
+				}
 				if (this.updating)
 					return;
 				updateButton.label='下载更新';
 				updating=true;
-				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
-				{
-					var percent:Number=e.bytesLoaded / e.bytesTotal;
-					percent=Math.round(percent * 100);
-					updateButton.label='更新进度' + percent + '%';
+				api.downloadUpdate(function(percent:Number):void{
+					if(!percent){
+						updateButton.label='下载更新';
+					}else{
+						percent=Math.round(percent * 100);
+						updateButton.label='进度' + percent + '%';
+						if(percent == 100){
+							updateButton.label = '重启应用';
+							updating = false;
+						}
+					}
 				});
-				api.updater.downloadUpdate();
+//				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
+//				{
+//					var percent:Number=e.bytesLoaded / e.bytesTotal;
+//					percent=Math.round(percent * 100);
+//					updateButton.label='进度' + percent + '%';
+//				});
+//				api.updater.downloadUpdate();
 			}
 
 			private var dmPlayers:Dictionary=new Dictionary();
@@ -729,7 +746,7 @@
 				volumeSO.data.volume=vc1Volume;
 				volumeSO.flush();
 			}
-
+			
 			protected function vc2_changingHandler(event:ODataEvent):void
 			{
 				vc2Volume=event.data as Number;
@@ -818,6 +835,7 @@
 			
 			private function playBro(ivo:InsertVO):void
 			{
+				api.recordLog(new LogVO(LogVO.NORMAL,'playBro',ivo.name));
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
 				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
 				var sp:SoundPlayer;
@@ -856,6 +874,7 @@
 					player2.volume=vc2Volume / 100;
 					player2.url=url;
 					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【确认】', '提示', null, function():void{ivo
+						api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 						player2.stop();
 						broPlayed();
 						broAlert = null;
@@ -966,17 +985,9 @@
 					  label="更新"/>
 			<s:Button fontSize="14"
 					  color="0x191C1E"
-					  skinClass="skins.buttons.PrimaryButtonSkin"
-					  id="bro"
-					  includeInLayout="{API.instance.local}"
-					  visible="{API.instance.local}"
-					  click="bro_clickHandler(event)"
-					  label="广播"/>
-			<s:Button fontSize="14"
-					  color="0x191C1E"
 					  skinClass="skins.buttons.DefaultButtonSkin"
 					  click="button2_clickHandler(event)"
-					  label="缩小"/>
+					  label="隐藏"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.WarningButtonSkin"
 					  click="button1_clickHandler(event)"
