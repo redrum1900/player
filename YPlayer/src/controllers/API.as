@@ -215,8 +215,11 @@ package controllers
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
-				var date:Date=NodeUtil.getLocalDate(ul.data);
-				nowOffset=date.getTime() - now.getTime();
+				if (ul.data)
+				{
+					var date:Date=NodeUtil.getLocalDate(ul.data);
+					nowOffset=date.getTime() - now.getTime();
+				}
 				trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
@@ -243,9 +246,12 @@ package controllers
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
-				var o:Object=JSON.parse(ul.data);
-				QNService.token=o.uptoken;
-				checkLog();
+				if (ul.data)
+				{
+					var o:Object=JSON.parse(ul.data);
+					QNService.token=o.uptoken;
+					checkLog();
+				}
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{

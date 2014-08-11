@@ -1,5 +1,6 @@
 package models
 {
+
 	public class MenuVO
 	{
 		public function MenuVO()
@@ -14,6 +15,7 @@ package models
 		public var updated_at:Date;
 		public var begin_date:Date;
 		public var quality:Number;
+		public var tags:Array;
 	}
 }
 

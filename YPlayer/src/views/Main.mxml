@@ -264,6 +264,7 @@
 						song2=null;
 					}
 					play();
+					autoPlayTimer.start();
 				});
 			}
 
@@ -331,8 +332,6 @@
 				{
 					if (player1.playing)
 						player1.stop();
-					if (!autoPlayTimer.running)
-						autoPlayTimer.start();
 					song1=null;
 					api.playingSong=null;
 					if (nearestSong)
@@ -348,8 +347,8 @@
 				}
 				else
 				{
-					if (autoPlayTimer.running)
-						autoPlayTimer.stop();
+//					if (autoPlayTimer.running)
+//						autoPlayTimer.stop();
 					vo=song1;
 					api.playingSong=vo;
 					api.playingIndex=api.songs.indexOf(song1);
@@ -692,7 +691,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!song1)
+				if (!player1.playing)
 					play();
 			}
 
