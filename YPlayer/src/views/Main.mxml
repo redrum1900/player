@@ -3,8 +3,8 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 color="0xffffff"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="100%"
-		 height="100%"
+		 width="700"
+		 height="507"
 		 creationComplete="inited(event)"
 		 xmlns:views="views.*"
 		 xmlns:components="views.components.*">

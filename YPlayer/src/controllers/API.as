@@ -41,9 +41,10 @@ package controllers
 	import models.SongVO;
 	import models.TimeVO;
 
-	import views.MessageWindow;
+	import views.PrepareView;
 	import views.SelectCacheView;
-	import views.windows.PrepareWindow;
+
+//	import views.windows.PrepareWindow;
 
 	public class API extends Singleton
 	{
@@ -75,7 +76,19 @@ package controllers
 				so.flush();
 			}
 			version=so.data.version;
+			so=SharedObject.getLocal('yp');
+			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
+			so.flush();
 //			var so:SharedObject=SharedObject.getLocal('yp');
+//			var f:File=new File(so.data.cacheDir)
+//			if (f.exists)
+//			{
+//				f.deleteDirectoryAsync(true);
+//				f.addEventListener(Event.COMPLETE, function(e:Event):void
+//				{
+//					trace('您的缓存已清空，请放心使用');
+//				})
+//			}
 //			so.clear();
 //			so.flush();
 //			var file:File=File.applicationStorageDirectory.resolvePath('log');
@@ -216,7 +229,8 @@ package controllers
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
 				var date:Date=NodeUtil.getLocalDate(ul.data);
-				nowOffset=date.getTime() - now.getTime();
+				if (date)
+					nowOffset=date.getTime() - now.getTime();
 				trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
@@ -335,22 +349,22 @@ package controllers
 					}
 					else if (brosChanged)
 					{
-						pv=new PrepareWindow();
+						pv=new PrepareView();
 						pv.addEventListener('loaded', function(e:Event):void
 						{
 							pv=null;
 						});
 						if (broadcasts)
 							pv.broadcasts=broadcasts.concat();
-						pv.open();
+						PopupBoxManager.popup(pv);
 					}
 					if (vo.results.message)
 					{
 						handleMessage(vo.results.message._id, 1);
-						var mw:MessageWindow=new MessageWindow();
-						mw.message=vo.results.message;
-						mw.title=vo.results.message.title;
-						mw.open();
+//						var mw:MessageWindow=new MessageWindow();
+//						mw.message=vo.results.message;
+//						mw.title=vo.results.message.title;
+//						mw.open();
 					}
 				}
 				else
@@ -1017,7 +1031,7 @@ package controllers
 
 			progress='开始初始化内容';
 
-			pv=new PrepareWindow();
+			pv=new PrepareView();
 			var label:String;
 			if (menu)
 			{
@@ -1061,8 +1075,8 @@ package controllers
 			if (broadcasts)
 				pv.broadcasts=broadcasts.concat();
 			pv.label=label;
-			pv.open();
-//			PopupBoxManager.popup(pv);
+//			pv.open();
+			PopupBoxManager.popup(pv);
 		}
 
 		private function get dmLogSO():SharedObject
@@ -1317,7 +1331,7 @@ package controllers
 		public var versionLabel:String;
 		public var updater:NativeApplicationUpdater;
 		public var playingSong:SongVO;
-		private var pv:PrepareWindow;
+		private var pv:PrepareView;
 		public var version:String;
 		[Bindable]
 		public var progress:String='系统初始化';
