@@ -9,13 +9,14 @@
 		<![CDATA[
 			import com.pamakids.components.PAlert;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.pamakids.utils.DPIUtil;
 			import com.youli.messengers.PreloaderMessenger;
 
 			import mx.events.FlexEvent;
 			import mx.managers.ToolTipManager;
 
 			import controllers.API;
+
+			import org.zengrong.ane.ANEToolkit;
 
 			protected function application1_creationCompleteHandler(event:FlexEvent):void
 			{
@@ -54,7 +55,9 @@
 			protected function application1_addedToStageHandler(event:Event):void
 			{
 				var arr:Array=getAndroidSize();
-				c.scaleX=c.scaleY=arr[0] / 2;
+				var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
+				var dpi:Number=o.densityDPI;
+				c.scaleX=c.scaleY=arr[0] / (dpi / 160);
 //				trace(getAndroidSize());
 			}
 		]]>

@@ -1,7 +1,6 @@
 {
 	"test":true,
 	"local":false,
-	"exe":"乐播.exe",
-	"swf":"Player.swf",
-	"update":"http://yfcdn.qiniudn.com/file/update.json"
+	"swf":"AndroidPlayer.swf",
+	"update":"http://yfcdn.qiniudn.com/file/android_update.json"
 }

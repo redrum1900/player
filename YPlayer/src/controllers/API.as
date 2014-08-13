@@ -41,6 +41,8 @@ package controllers
 	import models.SongVO;
 	import models.TimeVO;
 
+	import org.zengrong.ane.ANEToolkit;
+
 	import views.PrepareView;
 	import views.SelectCacheView;
 
@@ -77,6 +79,8 @@ package controllers
 			}
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
+			so.data.username='测试总部:分部1';
+			so.data.password='270427';
 			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
 			so.flush();
 //			var so:SharedObject=SharedObject.getLocal('yp');
@@ -130,12 +134,13 @@ package controllers
 				{
 					try
 					{
-						var f:File=File.applicationDirectory.resolvePath(config.swf);
-						f=new File(f.nativePath);
-						var fs:FileStream=new FileStream();
-						fs.open(f, FileMode.WRITE);
-						fs.writeBytes(b);
-						fs.close();
+						var __dir:String=ANEToolkit.storage.getInternal().filesDir;
+						ANEToolkit.storage.writeFile(__dir + '/' + config.swf, b);
+//						f=new File(f.nativePath);
+//						var fs:FileStream=new FileStream();
+//						fs.open(f, FileMode.WRITE);
+//						fs.writeBytes(b);
+//						fs.close();
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
@@ -179,24 +184,25 @@ package controllers
 
 		public function reboot():void
 		{
+			ANEToolkit.restart.rebootApp();
 //					var nativeProcessStartupInfo:NativeProcessStartupInfo=new NativeProcessStartupInfo();
 //					var file:File=new File();
 
-			var n:NativeCommand=new NativeCommand();
-			var args:Vector.<String>=new Vector.<String>;
-			args.push(File.applicationDirectory.resolvePath("乐播.exe").nativePath);
-
-			n.runCmd(args, ShowCmdWindow.HIDE, 1000);
-//					nativeProcessStartupInfo.executable=file;
-//					var process:NativeProcess=new NativeProcess();
-//					process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, function onOutputData(event:Object):void
-//					{
-//						var stdOut=process.standardOutput;
-//						var data=stdOut.readUTFBytes(process.standardOutput.bytesAvailable);
-//						PAlert.show(data);
-//					});
-//					process.start(nativeProcessStartupInfo);
-
+//			var n:NativeCommand=new NativeCommand();
+//			var args:Vector.<String>=new Vector.<String>;
+//			args.push(File.applicationDirectory.resolvePath("乐播.exe").nativePath);
+//
+//			n.runCmd(args, ShowCmdWindow.HIDE, 1000);
+////					nativeProcessStartupInfo.executable=file;
+////					var process:NativeProcess=new NativeProcess();
+////					process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, function onOutputData(event:Object):void
+////					{
+////						var stdOut=process.standardOutput;
+////						var data=stdOut.readUTFBytes(process.standardOutput.bytesAvailable);
+////						PAlert.show(data);
+////					});
+////					process.start(nativeProcessStartupInfo);
+//
 			NativeApplication.nativeApplication.exit();
 
 //			var mgr:ProductManager=new ProductManager("airappinstaller");
@@ -723,6 +729,8 @@ package controllers
 
 		private function menuValid(menu:Object):Boolean
 		{
+			if (!menu)
+				return false;
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
 			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
