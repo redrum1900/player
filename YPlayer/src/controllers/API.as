@@ -715,6 +715,8 @@ package controllers
 
 		private function menuValid(menu:Object):Boolean
 		{
+			if (!menu)
+				return false;
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
 			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
@@ -725,7 +727,7 @@ package controllers
 			var b:Boolean=true;
 			if (!menuValid(menu))
 			{
-				return false;
+				b=false;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -744,7 +746,10 @@ package controllers
 				if (f.exists)
 				{
 					var size:Number=f.size;
-					f.deleteFile();
+					f.deleteDirectory(true);
+					var cached:SharedObject=cachedSO;
+					cached.data.menus=[];
+					cached.flush();
 					recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(size / 1024) + '', '自动清空了过期歌单' + menu.name));
 				}
 			}

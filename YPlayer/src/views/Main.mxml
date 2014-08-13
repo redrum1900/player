@@ -872,12 +872,16 @@
 				{
 					player2.volume=vc2Volume / 100;
 					player2.url=url;
-					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【确认】', '提示', null, function():void{ivo
-						api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
-						player2.stop();
-						broPlayed();
-						broAlert = null;
-					}, PAlert.CONFIRM);
+					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【停止】', '提示', null, function():void{
+						PAlert.show('确认要停止播放当前广播吗？', '提示', null, function(value:String):void{
+							if(value == PAlert.YES){
+								api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
+								player2.stop();
+								broPlayed();
+								broAlert = null;
+							}
+						},PAlert.YESNO);
+					}, PAlert.CONFIRM, '停止');
 				}, 800);
 			}
 			

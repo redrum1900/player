@@ -13,6 +13,8 @@ private function getSongWhileTimeNotLoop():Boolean
 	var has:Boolean;
 	var now:Date=api.now;
 	var temp:Number;
+	nearestSong=null;
+	firstSong=null;
 
 	for (var i:int; i < api.songs.length; i++)
 	{
