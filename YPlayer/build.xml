@@ -4,7 +4,7 @@
 	 Please customize this file as necessary. -->
 <!-- Generated from project settings as of 5/10/12 11:02 AM -->
 <project name="youli"
-		 default="build"
+		 default="compile"
 		 basedir=".">
 
 	<property file="${basedir}/build.properties"/>
@@ -18,7 +18,6 @@
 
 	<target name="build">
 		<antcall target="init"/>
-		<antcall target="packageNative"/>
 	</target>
 
 	<target name="dir.check">
@@ -29,26 +28,6 @@
 
 	</target>
 
-	<target name="cleanContent"
-			depends="dir.check"
-			if="dir.exists">
-		<delete includeemptydirs="true">
-			<fileset dir="${OUTPUT_DIR}"
-					 includes="**/*"/>
-		</delete>
-	</target>
-
-	<target name="deployAssets">
-		<echo>create assets folder</echo>
-		<mkdir dir="${DEPLOY_ASSETS_DIR}"/>
-		<echo>copy assets</echo>
-		<copy todir="${DEPLOY_ASSETS_DIR}"
-			  includeemptydirs="false"
-			  overwrite="true">
-			<fileset dir="${ASSETS_DIR}"/>
-		</copy>
-	</target>
-
 	<target name="compile">
 		<mxmlc file="${SOURCE_DIR}/${APP_NAME}.mxml"
 			   output="${OUTPUT_DIR}/${APP_NAME}.swf"
@@ -56,7 +35,6 @@
 			   accessible="true"
 			   configname="air"
 			   debug="${DEBUG_FLAG}"
-			   locale="${LOCALE}"
 			   failonerror="true"
 			   fork="true"
 			   maxmemory="512m">
@@ -102,124 +80,24 @@
 						  append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/air/servicemonitor.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/globalAssets.swc"
+			<library-path file="${LIBRARY_DIR}/AirUtils.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/designToolsLib.swc"
+			<library-path file="${LIBRARY_DIR}/ASLib.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/airBaseLib.swc"
+			<library-path file="${LIBRARY_DIR}/CommonLib.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/serviceLib.swc"
+			<library-path file="${LIBRARY_DIR}/frocessing-0.5.2.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/as3corelib.swc"
+			<library-path file="${LIBRARY_DIR}/airBaseLib.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/as3_jpeg_wrapper.swc"
+			<library-path file="${LIBRARY_DIR}/globalAssets.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/AlivePDF.swc"
+			<library-path file="${LIBRARY_DIR}/NodeJSLib.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/greensock.swc"
+			<library-path file="${LIBRARY_DIR}/shineMP3_alchemy.swc"
 						  append="true"/>
-			<library-path file="${WORKSPACE_DIR}/libs/skinLib.swc"
-						  append="true"/>
-			<source-path path-element="${basedir}/locale"/>
 
 		</mxmlc>
-	</target>
-
-	<target name="certificate"
-			unless="${certificateExist}">
-		<echo>create certificate</echo>
-		<java jar="${ADT}"
-			  fork="true"
-			  failonerror="true">
-			<arg value="-certificate"/>
-			<arg value="-cn"/>
-			<arg value="${CERT_NAME}"/>
-			<arg value="-ou"/>
-			<arg value="${CERT_ORG_UNIT}"/>
-			<arg value="-o"/>
-			<arg value="${CERT_ORG_NAME}"/>
-			<arg value="-c"/>
-			<arg value="${CERT_COUNTRY}"/>
-			<arg value="${CERT_KEY_TYPE}"/>
-			<arg value="${KEYSTORE}"/>
-			<arg value="${CERT_PASSWORD}"/>
-		</java>
-	</target>
-
-	<target name="init"
-			depends="clean"
-			description="Cleans the deploy file">
-		<mkdir dir="${OUTPUT_DIR}"/>
-		<condition property="certificateExist">
-			<available file="${KEYSTORE}"
-					   type="file"/>
-		</condition>
-	</target>
-
-	<target name="clean"
-			description="Cleans up old files.">
-		<delete dir="${OUTPUT_DIR}"
-				failOnError="false"
-				includeEmptyDirs="true"/>
-	</target>
-
-	<property name="assets"
-			  location="${SOURCE_DIR}/assets"/>
-
-	<target name="temp"
-			depends="compile, certificate"/>
-
-	<target name="package"
-			depends="compile"
-			description="Packages the build SWF file from a temp directory.">
-		<java jar="${ADT}"
-			  fork="true"
-			  failonerror="true"
-			  maxmemory="512m">
-			<arg value="-package"/>
-			<arg value="-storetype"/>
-			<arg value="${STORETYPE}"/>
-			<arg value="-keystore"/>
-			<arg value="${KEYSTORE}"/>
-			<arg value="-storepass"/>
-			<arg value="${CERT_PASSWORD}"/>
-			<arg value="${OUTPUT_DIR}/${APP_NAME}.air"/>
-			<arg value="${SOURCE_DIR}/${APP_NAME}-app.xml"/>
-			<arg value="-C"/>
-			<arg value="${OUTPUT_DIR}"/>
-			<arg value="${OUTPUT_DIR}/${APP_NAME}.swf"/>
-			<arg value="-C"/>
-			<arg value="${SOURCE_DIR}/"/>
-			<arg value="assets/logos"/>
-			<arg value="-C"/>
-			<arg value="${SOURCE_DIR}/"/>
-			<arg value="assets/data"/>
-			<arg value="-C"/>
-			<arg value="${SOURCE_DIR}/"/>
-			<arg value="assets/theme/blue/navigator"/>
-			<arg value="-C"/>
-			<arg value="${SOURCE_DIR}/"/>
-			<arg value="assets/icon"/>
-			<arg value="assets/defaultPortrait30.jpg"/>
-			<arg value="assets/defaultPortrait80.jpg"/>
-			<arg value="assets/defaultPortrait160.jpg"/>
-			<arg value="assets/place.txt"/>
-			<arg value="sfs-config.xml"/>
-		</java>
-	</target>
-
-	<target name="packageNative"
-			depends="package">
-		<java jar="${ADT}"
-			  fork="true"
-			  failonerror="true"
-			  maxmemory="512m">
-			<arg value="-package"/>
-			<arg value="-target"/>
-			<arg value="native"/>
-			<arg value="${OUTPUT_DIR}/${APP_NAME}.dmg"/>
-			<arg value="${OUTPUT_DIR}/${APP_NAME}.air"/>
-		</java>
 	</target>
 
 </project>

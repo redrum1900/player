@@ -18,6 +18,11 @@
 
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
+				if (username.text.indexOf(':') == -1 && username.text.indexOf('：') == -1)
+				{
+					PAlert.show('抱歉，账户格式不对，需要按 “总部：分部” 的格式输入完整');
+					return;
+				}
 				loginBtn.enabled=false;
 				API.instance.login(username.text, password.text, function(vo:ResultVO):void
 				{
@@ -63,10 +68,10 @@
 	</components:layout>
 
 	<s:TextInput id="username"
-				 prompt="用户名/邮箱/手机号"
+				 prompt="账户（总部:分部）"
 				 skinClass="skins.textinput.LoginTextInputSkin"/>
 	<s:TextInput id="password"
-				 prompt="密码"
+				 prompt="密码（6位数字）"
 				 skinClass="skins.textinput.LoginTextInputSkin"/>
 	<s:Spacer height="10"/>
 	<s:Button label="登录"
