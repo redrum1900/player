@@ -267,6 +267,7 @@
 					autoPlayTimer.start();
 					var so:SharedObject=SharedObject.getLocal('yp');
 					var un:String = so.data.username;
+					un = un.replace('总部', '');
 					titleLabel = un.split(':')[0] + '播放器';
 				});
 			}

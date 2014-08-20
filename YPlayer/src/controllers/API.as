@@ -35,6 +35,8 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
+	import mx.logging.Log;
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
@@ -60,6 +62,7 @@ package controllers
 		public var contactInfo:String='客服电话1：010-51244052\n客服电话2：010-58699501\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
 		private var config:Object;
+		private var autoUpadte:Boolean;
 
 		public function API()
 		{
@@ -67,13 +70,14 @@ package controllers
 			o=JSON.parse(o + '');
 			isTest=o.test;
 			local=o.local;
+			autoUpadte=o.auto_update;
 			config=o;
 			var so:SharedObject=SharedObject.getLocal('version');
-			if (!so.data.version)
-			{
-				so.data.version='1.3.5';
-				so.flush();
-			}
+			if (o.version)
+				so.data.version=o.version;
+			else if (!so.data.version)
+				so.data.version='1.3.8';
+			so.flush();
 			version=so.data.version;
 //			var so:SharedObject=SharedObject.getLocal('yp');
 //			so.clear();
@@ -83,7 +87,7 @@ package controllers
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (!Capabilities.isDebugger)
+			if (Capabilities.isDebugger)
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
@@ -94,6 +98,9 @@ package controllers
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 			if (local)
 			{
+				var so:SharedObject=SharedObject.getLocal('yp');
+				so.data.username=o.username;
+				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
 			}
@@ -109,7 +116,9 @@ package controllers
 			startAtLogin();
 		}
 
-		public function downloadUpdate(callback:Function):void
+		private var needReboot:Boolean;
+
+		public function downloadUpdate(callback:Function=null):void
 		{
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
@@ -126,10 +135,21 @@ package controllers
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
-						PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
+						if (autoUpadte)
 						{
-							reboot();
-						}, PAlert.YESNO, '重启播放器', '暂时不重启');
+							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
+							if (!playingSong)
+								reboot();
+							else
+								needReboot=true;
+						}
+						else
+						{
+							PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
+							{
+								reboot();
+							}, PAlert.YESNO, '重启播放器', '暂时不重启');
+						}
 					}
 					catch (error:Error)
 					{
@@ -138,14 +158,24 @@ package controllers
 				}
 				else
 				{
-					trace('io error');
-					callback(0)
+					if (autoUpadte)
+					{
+						recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
+						return;
+					}
+					if (callback != null)
+						callback(0)
 					PAlert.show('更新失败，请检查网络连接');
 				}
 			}, newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
 			{
-				trace('io error');
-				callback(0)
+				if (autoUpadte)
+				{
+					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
+					return;
+				}
+				if (callback != null)
+					callback(0)
 				PAlert.show('更新失败，请检查网络连接');
 			});
 		}
@@ -280,15 +310,6 @@ package controllers
 		{
 			if (local)
 				return;
-//			if (refreshTimer.currentCount % 3 == 0)
-//			{
-//				getSB('volume', 'GET').call(function(vo:ResultVO):void
-//				{
-//					if (vo.status)
-//					{
-//					}
-//				});
-//			}
 			if (refreshTimer.currentCount % 60 == 0)
 			{
 				refreshData();
@@ -302,6 +323,13 @@ package controllers
 					initMenu();
 
 				checkLogin();
+			}
+			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
+			{
+				if (needReboot && !playingSong)
+					reboot();
+				else
+					checkUpdate();
 			}
 		}
 
@@ -1368,6 +1396,11 @@ package controllers
 				if (o.version != version)
 				{
 					trace('New Version:' + o.version);
+					if (autoUpadte)
+					{
+						recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+						downloadUpdate();
+					}
 					newVersion=o.version;
 					updatable=true;
 				}

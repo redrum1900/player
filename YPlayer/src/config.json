@@ -1,7 +1,10 @@
 {
 	"test":true,
-	"local":false,
+	"local":true,
+	"auto_update":true,
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
-	"update":"http://yfcdn.qiniudn.com/file/update.json"
+	"update":"http://yfcdn.qiniudn.com/file/update.json",
+	"version":"1.3.8",
+	"username":"本地版本：分部名称"
 }
