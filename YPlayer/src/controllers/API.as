@@ -13,9 +13,7 @@ package controllers
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
 	import com.pamakids.utils.Singleton;
-	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
-	import com.plter.air.windows.utils.RegCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
@@ -35,7 +33,7 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
-	import mx.logging.Log;
+	import spark.components.Menu;
 
 	import models.InsertVO;
 	import models.LogVO;
@@ -73,10 +71,11 @@ package controllers
 			autoUpadte=o.auto_update;
 			config=o;
 			var so:SharedObject=SharedObject.getLocal('version');
-			if (o.version)
-				so.data.version=o.version;
-			else if (!so.data.version)
-				so.data.version='1.3.8';
+			if (!so.data.version)
+				if (o.version)
+					so.data.version=o.version;
+				else
+					so.data.version='1.4.0';
 			so.flush();
 			version=so.data.version;
 //			var so:SharedObject=SharedObject.getLocal('yp');
@@ -743,7 +742,7 @@ package controllers
 
 		private function menuValid(menu:Object):Boolean
 		{
-			if (!menu)
+			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
@@ -918,9 +917,10 @@ package controllers
 //			dms=[];
 			var songDMDic:Dictionary=new Dictionary();
 //			this.dmMenu=dmMenu;
+			parseBroadcasts();
+			var a:Array=[];
 			if (dmMenu && dmMenu.dm_list)
 			{
-				var a:Array=[];
 				for each (var dm:Object in dmMenu.dm_list)
 				{
 					if (dm.day)
@@ -941,6 +941,26 @@ package controllers
 					a.push(ivo);
 				}
 				dmMenu.dm_list=a;
+			}
+
+			if (isJKL() && insertBro)
+			{
+				if (!dmMenu)
+				{
+					dmMenu=new MenuVO();
+					dmMenu.dm_list=a;
+				}
+				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00');
+				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00');
+				while (bd.getTime() < ed.getTime())
+				{
+					var ivo:InsertVO=new InsertVO();
+					ivo.name=insertBro.name;
+					ivo.url=insertBro.url;
+					ivo.playTime=DateUtil.clone(bd);
+					a.push(ivo);
+					bd.minutes+=30;
+				}
 			}
 
 			if (o && o.list)
@@ -1101,6 +1121,12 @@ package controllers
 				pv.broadcasts=broadcasts.concat();
 			pv.label=label;
 			pv.open();
+
+//			if (Capabilities.isDebugger)
+//			{
+//				dispatchEvent(new Event('PLAY'));
+//				initBroadcasts();
+//			}
 //			PopupBoxManager.popup(pv);
 		}
 
@@ -1217,6 +1243,14 @@ package controllers
 
 		public function initBroadcasts():void
 		{
+			parseBroadcasts();
+			dispatchEvent(new Event('bros'));
+		}
+
+		private var insertBro:Object;
+
+		private function parseBroadcasts():void
+		{
 			var bs:Array=FileManager.readFile('bros.yp') as Array;
 			if (bs)
 			{
@@ -1240,6 +1274,13 @@ package controllers
 					records=[]
 					records.push({name: '定制广播', type: 1});
 				}
+				else
+				{
+					if (isJKL() && records[0].url)
+						insertBro=records[0];
+					else if (Capabilities.isDebugger && records[0].url)
+						insertBro=records[0];
+				}
 				bs=bs.concat(records);
 			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
@@ -1253,7 +1294,15 @@ package controllers
 				}
 			}
 			broadcasts=arr;
-			dispatchEvent(new Event('bros'));
+		}
+
+		private function isJKL():Boolean
+		{
+			if (Capabilities.isDebugger)
+				return true;
+			var so:SharedObject=SharedObject.getLocal('yp');
+			var un:String=so.data.username;
+			return un.indexOf('京客隆') != -1;
 		}
 
 		[Bindable]
@@ -1396,13 +1445,16 @@ package controllers
 				if (o.version != version)
 				{
 					trace('New Version:' + o.version);
-					if (autoUpadte)
+					newVersion=o.version;
+					if (autoUpadte && !Capabilities.isDebugger)
 					{
 						recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
 						downloadUpdate();
 					}
-					newVersion=o.version;
-					updatable=true;
+					else
+					{
+						updatable=true;
+					}
 				}
 			});
 		}

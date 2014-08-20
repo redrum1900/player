@@ -1,6 +1,6 @@
 {
-	"test":true,
-	"local":true,
+	"test":false,
+	"local":false,
 	"auto_update":true,
 	"exe":"乐播.exe",
 	"swf":"Player.swf",

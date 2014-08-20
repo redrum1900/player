@@ -239,17 +239,30 @@
 				}
 				else
 				{
-					if (o.url)
+					if (o.type == 1)
+					{
+						if (o.url)
+						{
+							PAlert.show('请问是直接播放已定制的广播，还是重新编辑？', '提示', null, function(value:String):void
+							{
+								if (value == PAlert.YES)
+									dispatchEvent(new ODataEvent(o));
+								else if (value == PAlert.NO)
+									record(o as InsertVO);
+							}, PAlert.YESNO, '直接播放', '重新定制');
+						}
+						else
+							record(o as InsertVO);
+					}
+					else if (o.url)
 						dispatchEvent(new ODataEvent(o));
-					else
-						record(o as InsertVO);
 				}
 			}
 
 			private function record(vo:InsertVO):void
 			{
 				var lp:ListPanel=this;
-				PAlert.show('打开录制界面时会将所有播放声音的音量自动调节为零，请确认', '是否确认开始录制', null, function(value:String):void
+				PAlert.show('打开定制界面时会将所有播放声音的音量自动调节为零，请确认', '是否确认开始定制', null, function(value:String):void
 				{
 					if (value == PAlert.YES)
 					{

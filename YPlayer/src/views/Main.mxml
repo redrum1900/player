@@ -56,7 +56,11 @@
 				if (volumeSO.data.volume)
 					vc1Volume=volumeSO.data.volume;
 				if (volumeSO.data.volume2)
-					vc2Volume=volumeSO.data.volume;
+					vc2Volume=volumeSO.data.volume2;
+				if(vc1Volume)
+					vc1.volume = vc1Volume;
+				if(vc2Volume)
+					vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
 				//				t.start();
 				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
@@ -68,10 +72,9 @@
 
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
-				panelGroup.height=height - 57 - 48;
+				panelGroup.height=height - 57 - 48*2;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
-
 
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
@@ -736,8 +739,8 @@
 					hide(menuListPanel);
 			}
 			
-			private var vc1Volume:Number=50;
-			private var vc2Volume:Number=50;
+			private var vc1Volume:Number=50.0;
+			private var vc2Volume:Number=50.0;
 
 			protected function vc1_changingHandler(event:ODataEvent):void
 			{
