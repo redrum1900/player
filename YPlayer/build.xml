@@ -30,7 +30,7 @@
 
 	<target name="compile">
 		<mxmlc file="${SOURCE_DIR}/${APP_NAME}.mxml"
-			   output="${OUTPUT_DIR}/${APP_NAME}.swf"
+			   output="${OUTPUT_DIR}/Player.swf"
 			   static-rsls="true"
 			   accessible="true"
 			   configname="air"
