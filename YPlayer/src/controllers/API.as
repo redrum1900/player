@@ -18,10 +18,12 @@ package controllers
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
 	import flash.desktop.NativeApplication;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -70,7 +72,8 @@ package controllers
 			local=o.local;
 			autoUpadte=o.auto_update;
 			config=o;
-			var so:SharedObject=SharedObject.getLocal('version');
+			var so:SharedObject;
+			so=SharedObject.getLocal('version');
 			if (!so.data.version)
 				if (o.version)
 					so.data.version=o.version;
@@ -78,6 +81,9 @@ package controllers
 					so.data.version='1.4.0';
 			so.flush();
 			version=so.data.version;
+			so=SharedObject.getLocal('yp');
+			if (so.data.id)
+				ServiceBase.id=so.data.id;
 //			var so:SharedObject=SharedObject.getLocal('yp');
 //			so.clear();
 //			so.flush();
@@ -97,7 +103,7 @@ package controllers
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 			if (local)
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
+				so=SharedObject.getLocal('yp');
 				so.data.username=o.username;
 				so.flush();
 				online=false;
@@ -113,6 +119,22 @@ package controllers
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 			startAtLogin();
+		}
+
+		public function initUncaughtErrorListener(loaderInfo:Object):void
+		{
+			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function(e:UncaughtErrorEvent):void
+			{
+				if (e.error is Error)
+				{
+					var stack:String=Error(e.error).getStackTrace();
+					appendLog(Error(e.error).message + ((stack != null) ? "\n" + stack : ""));
+				}
+				else if (e.error is ErrorEvent)
+					appendLog(ErrorEvent(e.error).text);
+				else
+					appendLog(e.error.toString());
+			});
 		}
 
 		private var needReboot:Boolean;
@@ -313,7 +335,7 @@ package controllers
 			{
 				refreshData();
 				var refresh:Number=getYPData('refreshTime') as Number;
-				if (now.getTime() - refresh >= 24 * 60 * 60 * 100)
+				if (now.getTime() - refresh >= 24 * 60 * 60 * 1000)
 				{
 					checkLog();
 					setYPData('refreshTime', now.getTime());
@@ -1188,8 +1210,9 @@ package controllers
 					}
 					else
 					{
+						appendLog('UpdateLog Error:' + vo.errorResult);
 						TweenLite.killDelayedCallsTo(uploadUpdateLog);
-						TweenLite.delayedCall(60, uploadUpdateLog);
+						TweenLite.delayedCall(600, uploadUpdateLog);
 					}
 				}, log);
 			}
