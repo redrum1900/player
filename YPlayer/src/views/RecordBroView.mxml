@@ -3,7 +3,7 @@
 					 xmlns:s="library://ns.adobe.com/flex/spark"
 					 xmlns:mx="library://ns.adobe.com/flex/mx"
 					 xmlns:components="com.pamakids.components.*"
-					 title="录制广播"
+					 title="定制广播"
 					 width="300"
 					 disableClose="true"
 					 creationComplete="popupbox1_creationCompleteHandler(event)">
@@ -12,9 +12,11 @@
 		<![CDATA[
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
+			import com.pamakids.components.controls.SoundPlayer;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.SoundManager;
 			import com.pamakids.utils.DateUtil;
+			import com.pamakids.utils.FileHelper;
 
 			import mx.events.FlexEvent;
 			import mx.utils.UIDUtil;
@@ -88,6 +90,15 @@
 					mp3Encoder.start();
 					mp3Encoder.addEventListener(Event.COMPLETE, mp3EncodedHandler);
 				}
+				else if (selectedFile)
+				{
+					var nurl:String='recorded/' + selectedFile.name;
+					var path:String=FileManager.savedDir + nurl;
+					selectedFile.copyTo(new File(path), true);
+					vo.url=nurl;
+					vo.name=broName.text;
+					close();
+				}
 				else
 				{
 					vo.name=broName.text;
@@ -102,6 +113,7 @@
 					PAlert.show('您的设备没有麦克风，请检查后再试');
 					return;
 				}
+				playInfo.visible=true;
 				if (!recording)
 				{
 					recording=true;
@@ -114,17 +126,12 @@
 				}
 				else
 				{
-					timer.stop();
-					recording=false;
-					recorder.stop();
-					mic.setLoopBack(false);
-					ctl.label='开始录音';
-					ctl.setStyle('skinClass', SuccesButtonSkin);
+					stopRecord();
 				}
 			}
 
 			[Bindable]
-			private var info:String='';
+			private var info:String='已录制：00:00';
 
 			protected function play_clickHandler(event:MouseEvent):void
 			{
@@ -189,6 +196,8 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
+				if (timer.currentCount == 5)
+					stopRecord();
 				info='已录制：' + DateUtil.formateTime(timer.currentCount);
 			}
 
@@ -205,6 +214,12 @@
 				close();
 			}
 
+			override protected function close():void
+			{
+				super.close();
+				clearSP();
+			}
+
 			protected function mp3EncodedHandler(event:Event):void
 			{
 				var nurl:String='recorded/' + UIDUtil.createUID() + '.mp3';
@@ -212,6 +227,59 @@
 				vo.url=nurl;
 				vo.name=broName.text;
 				close();
+			}
+
+			protected function chooseFile_clickHandler(event:MouseEvent):void
+			{
+				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择广播声音文件', [new FileFilter('广播声音文件', '*.mp3')]);
+			}
+
+			[Bindable]
+			private var selectedFile:File;
+
+			private var sp:SoundPlayer;
+
+			private function selectedHandler(f:File):void
+			{
+				if (!sp)
+				{
+					sp=new SoundPlayer();
+					sp.muted=true;
+					sp.autoPlay=true;
+					sp.addEventListener("playing", playingHandler);
+				}
+				sp.url=f.url;
+				selectedFile=f;
+				broName.text=f.name.replace('.mp3', '');
+			}
+
+			private function stopRecord():void
+			{
+				timer.stop();
+				recording=false;
+				recorder.stop();
+				mic.setLoopBack(false);
+				ctl.label='开始录音';
+				ctl.setStyle('skinClass', SuccesButtonSkin);
+			}
+
+			protected function playingHandler(event:DataEvent):void
+			{
+				if (sp.soundLength / 60000 > 6)
+				{
+					selectedFile=null;
+					PAlert.show('选择的广播文件不可超出6分钟，请重新选择');
+				}
+				clearSP();
+			}
+
+			private function clearSP():void
+			{
+				if (sp)
+				{
+					sp.stop();
+					sp=null;
+				}
 			}
 		]]>
 	</fx:Script>
@@ -224,7 +292,24 @@
 						  gap="10"/>
 	</components:layout>
 	<s:VGroup id="bg"
-			  horizontalAlign="center">
+			  fontSize="14">
+		<s:Label text="选择录制好的mp3文件"
+				 color="0x777777"
+				 width="100%"/>
+		<s:HGroup verticalAlign="middle">
+			<s:Button id="chooseFile"
+					  label="选择文件"
+					  enabled="{!recording}"
+					  click="chooseFile_clickHandler(event)"
+					  buttonMode="true"
+					  skinClass="skins.buttons.PrimaryButtonSkin"/>
+			<s:Label text="{selectedFile.name}"
+					 color="0x777777"/>
+		</s:HGroup>
+		<s:Spacer height="18"/>
+		<s:Label text="或直接录制（最长不超过6分钟）"
+				 color="0x777777"
+				 width="100%"/>
 		<s:HGroup verticalAlign="middle">
 			<s:Button id="ctl"
 					  label="开始录音"
@@ -233,6 +318,8 @@
 					  buttonMode="true"
 					  skinClass="skins.buttons.SuccesButtonSkin"/>
 			<s:Label text="{info}"
+					 id="playInfo"
+					 visible="false"
 					 width="100%"/>
 			<s:Button id="play"
 					  enabled="{!recording}"
@@ -241,14 +328,16 @@
 					  label="试听"
 					  click="play_clickHandler(event)"/>
 		</s:HGroup>
+		<s:Spacer height="18"/>
 		<s:HGroup verticalAlign="middle"
 				  width="100%">
+			<s:Label text="按钮名称"
+					 color="0x30373e"/>
 			<s:TextInput color="0x30373e"
 						 text="{vo.name}"
 						 skinClass="skins.textinput.DefaultTextInputSkin"
 						 id="broName"
-						 prompt="请输入广播名称"
-						 toolTip="广播名称"/>
+						 prompt="请输入广播按钮名称"/>
 		</s:HGroup>
 		<s:Spacer height="18"/>
 		<s:HGroup width="100%">

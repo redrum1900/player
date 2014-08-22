@@ -8,6 +8,8 @@ package models
 		public static const CLEAR_CACHE:int=3;
 		public static const RECORD_DM:int=4;
 		public static const PLAY_RECORDED_DM:int=5;
+		public static const AUTO_UPDATE_BEGIN:int=6;
+		public static const AUTO_UPDATE_END:int=7;
 
 
 		/**

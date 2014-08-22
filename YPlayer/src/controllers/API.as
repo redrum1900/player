@@ -13,17 +13,17 @@ package controllers
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
 	import com.pamakids.utils.Singleton;
-	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
-	import com.plter.air.windows.utils.RegCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
 	import flash.desktop.NativeApplication;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -63,6 +63,7 @@ package controllers
 		public var contactInfo:String='客服电话1：010-51244052\n客服电话2：010-58699501\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
 		private var config:Object;
+		private var autoUpadte:Boolean;
 
 		public function API()
 		{
@@ -70,29 +71,21 @@ package controllers
 			o=JSON.parse(o + '');
 			isTest=o.test;
 			local=o.local;
+			autoUpadte=o.auto_update;
 			config=o;
-			var so:SharedObject=SharedObject.getLocal('version');
+			var so:SharedObject;
+			so=SharedObject.getLocal('version');
 			if (!so.data.version)
-			{
-				so.data.version='1.3.5';
-				so.flush();
-			}
+				if (o.version)
+					so.data.version=o.version;
+				else
+					so.data.version='1.4.0';
+			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
-			so.data.username='测试总部:分部1';
-			so.data.password='270427';
-			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
-			so.flush();
+			if (so.data.id)
+				ServiceBase.id=so.data.id;
 //			var so:SharedObject=SharedObject.getLocal('yp');
-//			var f:File=new File(so.data.cacheDir)
-//			if (f.exists)
-//			{
-//				f.deleteDirectoryAsync(true);
-//				f.addEventListener(Event.COMPLETE, function(e:Event):void
-//				{
-//					trace('您的缓存已清空，请放心使用');
-//				})
-//			}
 //			so.clear();
 //			so.flush();
 //			var file:File=File.applicationStorageDirectory.resolvePath('log');
@@ -111,6 +104,9 @@ package controllers
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 			if (local)
 			{
+				so=SharedObject.getLocal('yp');
+				so.data.username=o.username;
+				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
 			}
@@ -126,7 +122,25 @@ package controllers
 			startAtLogin();
 		}
 
-		public function downloadUpdate(callback:Function):void
+		public function initUncaughtErrorListener(loaderInfo:Object):void
+		{
+			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function(e:UncaughtErrorEvent):void
+			{
+				if (e.error is Error)
+				{
+					var stack:String=Error(e.error).getStackTrace();
+					appendLog(Error(e.error).message + ((stack != null) ? "\n" + stack : ""));
+				}
+				else if (e.error is ErrorEvent)
+					appendLog(ErrorEvent(e.error).text);
+				else
+					appendLog(e.error.toString());
+			});
+		}
+
+		private var needReboot:Boolean;
+
+		public function downloadUpdate(callback:Function=null):void
 		{
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
@@ -144,10 +158,11 @@ package controllers
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
-						PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
-						{
-							reboot();
-						}, PAlert.YESNO, '重启播放器', '暂时不重启');
+						needReboot=true;
+//						PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
+//						{
+//							reboot();
+//						}, PAlert.YESNO, '重启播放器', '暂时不重启');
 					}
 					catch (error:Error)
 					{
@@ -156,14 +171,23 @@ package controllers
 				}
 				else
 				{
-					trace('io error');
-					callback(0)
-					PAlert.show('更新失败，请检查网络连接');
+					if (autoUpadte)
+					{
+						recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
+						return;
+					}
+					if (callback != null)
+						callback(0)
 				}
 			}, newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
 			{
-				trace('io error');
-				callback(0)
+				if (autoUpadte)
+				{
+					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
+					return;
+				}
+				if (callback != null)
+					callback(0)
 				PAlert.show('更新失败，请检查网络连接');
 			});
 		}
@@ -234,9 +258,11 @@ package controllers
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
-				var date:Date=NodeUtil.getLocalDate(ul.data);
-				if (date)
+				if (ul.data)
+				{
+					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
+				}
 				trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
@@ -263,9 +289,12 @@ package controllers
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
-				var o:Object=JSON.parse(ul.data);
-				QNService.token=o.uptoken;
-				checkLog();
+				if (ul.data)
+				{
+					var o:Object=JSON.parse(ul.data);
+					QNService.token=o.uptoken;
+					checkLog();
+				}
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -316,6 +345,13 @@ package controllers
 					initMenu();
 
 				checkLogin();
+			}
+			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
+			{
+				if (needReboot && !playingSong)
+					reboot();
+				else
+					checkUpdate();
 			}
 		}
 
@@ -729,7 +765,7 @@ package controllers
 
 		private function menuValid(menu:Object):Boolean
 		{
-			if (!menu)
+			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
@@ -741,7 +777,7 @@ package controllers
 			var b:Boolean=true;
 			if (!menuValid(menu))
 			{
-				return false;
+				b=false;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -760,7 +796,10 @@ package controllers
 				if (f.exists)
 				{
 					var size:Number=f.size;
-					f.deleteFile();
+					f.deleteDirectory(true);
+					var cached:SharedObject=cachedSO;
+					cached.data.menus=[];
+					cached.flush();
 					recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(size / 1024) + '', '自动清空了过期歌单' + menu.name));
 				}
 			}
@@ -901,9 +940,10 @@ package controllers
 //			dms=[];
 			var songDMDic:Dictionary=new Dictionary();
 //			this.dmMenu=dmMenu;
+			parseBroadcasts();
+			var a:Array=[];
 			if (dmMenu && dmMenu.dm_list)
 			{
-				var a:Array=[];
 				for each (var dm:Object in dmMenu.dm_list)
 				{
 					if (dm.day)
@@ -924,6 +964,26 @@ package controllers
 					a.push(ivo);
 				}
 				dmMenu.dm_list=a;
+			}
+
+			if (isJKL() && insertBro)
+			{
+				if (!dmMenu)
+				{
+					dmMenu=new MenuVO();
+					dmMenu.dm_list=a;
+				}
+				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00');
+				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00');
+				while (bd.getTime() < ed.getTime())
+				{
+					var ivo:InsertVO=new InsertVO();
+					ivo.name=insertBro.name;
+					ivo.url=insertBro.url;
+					ivo.playTime=DateUtil.clone(bd);
+					a.push(ivo);
+					bd.minutes+=30;
+				}
 			}
 
 			if (o && o.list)
@@ -1145,8 +1205,9 @@ package controllers
 					}
 					else
 					{
+						appendLog('UpdateLog Error:' + vo.errorResult);
 						TweenLite.killDelayedCallsTo(uploadUpdateLog);
-						TweenLite.delayedCall(60, uploadUpdateLog);
+						TweenLite.delayedCall(600, uploadUpdateLog);
 					}
 				}, log);
 			}
@@ -1200,6 +1261,14 @@ package controllers
 
 		public function initBroadcasts():void
 		{
+			parseBroadcasts();
+			dispatchEvent(new Event('bros'));
+		}
+
+		private var insertBro:Object;
+
+		private function parseBroadcasts():void
+		{
 			var bs:Array=FileManager.readFile('bros.yp') as Array;
 			if (bs)
 			{
@@ -1223,6 +1292,13 @@ package controllers
 					records=[]
 					records.push({name: '定制广播', type: 1});
 				}
+				else
+				{
+					if (isJKL() && records[0].url)
+						insertBro=records[0];
+					else if (Capabilities.isDebugger && records[0].url)
+						insertBro=records[0];
+				}
 				bs=bs.concat(records);
 			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
@@ -1236,7 +1312,15 @@ package controllers
 				}
 			}
 			broadcasts=arr;
-			dispatchEvent(new Event('bros'));
+		}
+
+		private function isJKL():Boolean
+		{
+			if (Capabilities.isDebugger)
+				return true;
+			var so:SharedObject=SharedObject.getLocal('yp');
+			var un:String=so.data.username;
+			return un.indexOf('京客隆') != -1;
 		}
 
 		[Bindable]
@@ -1380,7 +1464,15 @@ package controllers
 				{
 					trace('New Version:' + o.version);
 					newVersion=o.version;
-					updatable=true;
+					if (autoUpadte && !Capabilities.isDebugger)
+					{
+						recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+						downloadUpdate();
+					}
+					else
+					{
+						updatable=true;
+					}
 				}
 			});
 		}

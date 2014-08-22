@@ -239,17 +239,30 @@
 				}
 				else
 				{
-					if (o.url)
+					if (o.type == 1)
+					{
+						if (o.url)
+						{
+							PAlert.show('请问是直接播放已定制的广播，还是重新编辑？', '提示', null, function(value:String):void
+							{
+								if (value == PAlert.YES)
+									dispatchEvent(new ODataEvent(o));
+								else if (value == PAlert.NO)
+									record(o as InsertVO);
+							}, PAlert.YESNO, '直接播放', '重新定制');
+						}
+						else
+							record(o as InsertVO);
+					}
+					else if (o.url)
 						dispatchEvent(new ODataEvent(o));
-					else
-						record(o as InsertVO);
 				}
 			}
 
 			private function record(vo:InsertVO):void
 			{
 				var lp:ListPanel=this;
-				PAlert.show('打开录制界面时会将所有播放声音的音量自动调节为零，请确认', '是否确认开始录制', null, function(value:String):void
+				PAlert.show('打开定制界面时会将所有播放声音的音量自动调节为零，请确认', '是否确认开始定制', null, function(value:String):void
 				{
 					if (value == PAlert.YES)
 					{
@@ -331,9 +344,11 @@
 				if (o is TimeVO)
 				{
 					songItems=new ArrayCollection(o.songs);
+					timeInfo=DateUtil.getHMS((o as TimeVO).begin) + ' 至 ' + DateUtil.getHMS((o as TimeVO).end);
 				}
 				else
 				{
+					timeInfo='';
 					if (o.type == 1)
 					{
 						songItems=new ArrayCollection(API.instance.songs);
@@ -357,6 +372,9 @@
 				trace(nm.data);
 				record(nm.data as InsertVO);
 			}
+
+			[Bindable]
+			private var timeInfo:String;
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"
@@ -386,13 +404,18 @@
 				 fontSize="14"
 				 text="{label}"/>
 		<s:Spacer height="18"/>
-		<s:ButtonBar id="bb"
-					 requireSelection="true"
-					 color="0x303941"
-					 selectedIndex="0"
-					 change="bb_changeHandler(event)"
-					 labelField="name"
-					 skinClass="skins.buttons.DefaultButtonBarSkin"/>
+		<s:HGroup verticalAlign="middle">
+			<s:ButtonBar id="bb"
+						 requireSelection="true"
+						 color="0x303941"
+						 selectedIndex="0"
+						 change="bb_changeHandler(event)"
+						 labelField="name"
+						 skinClass="skins.buttons.DefaultButtonBarSkin"/>
+			<s:Label text="{timeInfo}"
+					 fontSize="14"
+					 color="0xd9dee3"/>
+		</s:HGroup>
 		<s:Spacer height="8"/>
 		<s:Label color="0xd9dee3"
 				 fontSize="14"

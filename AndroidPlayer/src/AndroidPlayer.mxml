@@ -25,6 +25,7 @@
 				PAlert.PARENT=this.c
 				PopupBoxManager.PARENT=this.c
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
+				API.instance.initUncaughtErrorListener(loaderInfo);
 			}
 
 //			width="700"

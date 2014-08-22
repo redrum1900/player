@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
-					 xmlns:s="library://ns.adobe.com/flex/spark"
-					 xmlns:mx="library://ns.adobe.com/flex/mx"
-					 xmlns:components="com.pamakids.components.*"
-					 title="准备媒资"
-					 disableClose="true"
-					 minWidth="380"
-					 creationComplete="popupbox1_creationCompleteHandler(event)">
+<s:Window xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  creationComplete="popupbox1_creationCompleteHandler(event)"
+		  systemChrome="none"
+		  showStatusBar="false"
+		  xmlns:components="com.pamakids.components.*">
 
 	<fx:Script>
 		<![CDATA[
@@ -15,6 +14,7 @@
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
+			import com.pamakids.services.QNService;
 			import com.pamakids.utils.URLUtil;
 
 			import flash.utils.getTimer;
@@ -22,6 +22,8 @@
 			import mx.events.FlexEvent;
 
 			import controllers.API;
+
+			import models.LogVO;
 			private var api:API;
 			[Bindable]
 			public var info:String;
@@ -106,12 +108,24 @@
 				if (avaibleSize - size < 512000)
 				{
 					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
+					api.recordLog(new LogVO(LogVO.WARNING, Math.round(avaibleSize / 1024) + '', '磁盘空间预警'));
 				}
 				length=songs.length;
+				if (!label)
+				{
+					label='更新广播';
+				}
 
 				titleS='更新 ' + label + ' 共计 ' + Math.round(size / 1024) + ' M'
 
 				autoLoad();
+
+//				stage.addEventListener(MouseEvent.MOUSE_DOWN, dd);
+			}
+
+			private function get so():SharedObject
+			{
+				return SharedObject.getLocal('yp');
 			}
 
 			public var dmMenu:String;
@@ -119,10 +133,13 @@
 			private function allLoaded():void
 			{
 				var data:Object=null;
-				if ((startLoad && (menuID || dmMenu)) || !api.hasCached(menuID) || !api.hasCached(dmMenu))
+				if ((startLoad && (menuID || dmMenu)) || (menuID && !api.hasCached(menuID)) || (dmMenu && !api.hasCached(dmMenu)))
 				{
 					data={};
 					data.duration=(getTimer() - startLoad) / 1000;
+					if (this.haveStoredTime)
+						data.duration+=this.haveStoredTime;
+					so.data.duration=0;
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
@@ -138,6 +155,7 @@
 			}
 
 			private var startLoad:Number=0;
+			private var recordTimer:Timer=new Timer(1000);
 
 			private function autoLoad():void
 			{
@@ -150,13 +168,15 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
+					if (vo.url.indexOf('http') == -1)
+						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);
 
 					if (!file.exists)
 					{
 						if (!startLoad)
-							startLoad=getTimer();
+							starRecord();
 						autoLoading=vo;
 						LoadManager.instance.load(vo.url, function():void
 						{
@@ -175,12 +195,15 @@
 				}
 				else
 				{
-					TweenLite.delayedCall(0.1, function():void
-					{
-						close();
-						LoadManager.instance.allLoadingHandler=null
-						allLoaded();
-					});
+					var pw:PrepareWindow=this;
+//					TweenLite.delayedCall(0.1, function():void
+//					{
+					trace('closed', pw.closed);
+					pw.close();
+					trace('closed', pw.closed);
+					LoadManager.instance.allLoadingHandler=null
+					allLoaded();
+//					});
 				}
 			}
 
@@ -197,19 +220,74 @@
 
 			[Bindable]
 			private var titleS:String;
+
+			protected function vc_updateCompleteHandler(event:FlexEvent):void
+			{
+				if (this.nativeWindow.width != vc.width || this.nativeWindow.height != vc.height)
+				{
+					this.nativeWindow.width=vc.width;
+					this.nativeWindow.height=vc.height;
+					this.nativeWindow.orderToFront();
+					postion();
+				}
+			}
+
+			private function postion():void
+			{
+				this.nativeWindow.x=(Capabilities.screenResolutionX - nativeWindow.width) / 2;
+				this.nativeWindow.y=(Capabilities.screenResolutionY - nativeWindow.height) / 2;
+			}
+
+			protected function group1_mouseDownHandler(event:MouseEvent):void
+			{
+				this.nativeWindow.startMove();
+			}
+
+			private var haveStoredTime:Number;
+
+			private function starRecord():void
+			{
+				if (so.data.duration)
+					haveStoredTime=so.data.duration;
+				startLoad=getTimer();
+				recordTimer.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
+				{
+					so.data.duration=recordTimer.currentCount;
+					so.flush();
+				});
+				recordTimer.start();
+			}
 		]]>
 	</fx:Script>
 
-	<components:layout>
-		<s:VerticalLayout horizontalAlign="center"
-						  paddingLeft="40"
-						  paddingRight="40"
-						  paddingBottom="20"
-						  paddingTop="20"
-						  gap="18"/>
-	</components:layout>
-	<s:Label text="{titleS}"
-			 fontSize="18"/>
-	<s:Label text="{info}"
-			 fontSize="14"/>
-</components:PopupBox>
+	<components:PopupBox title="更新媒资"
+						 disableClose="true"
+						 updateComplete="vc_updateCompleteHandler(event)"
+						 id="vc">
+		<s:VGroup horizontalAlign="center"
+				  paddingLeft="40"
+				  paddingRight="40"
+				  paddingBottom="20"
+				  paddingTop="20"
+				  gap="18">
+			<s:Label text="{titleS}"
+					 fontSize="18"/>
+			<s:Label text="{info}"
+					 fontSize="14"/>
+		</s:VGroup>
+	</components:PopupBox>
+
+	<s:Group width="100%"
+			 height="100%"
+			 alpha="0"
+			 mouseDown="group1_mouseDownHandler(event)">
+		<s:Rect width="100%"
+				height="100%">
+			<s:fill>
+				<s:SolidColor/>
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+
+
+</s:Window>

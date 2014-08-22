@@ -16,15 +16,11 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.plter.air.windows.utils.RegCommand;
 			import com.youli.components.LMouseData;
 			import com.youli.messengers.PreloaderMessenger;
 
 			import mx.events.FlexEvent;
 			import mx.managers.ToolTipManager;
-
-			import air.update.events.StatusUpdateEvent;
-			import air.update.events.UpdateEvent;
 
 			import controllers.AA;
 			import controllers.API;
@@ -62,55 +58,19 @@
 				PopupBoxManager.PARENT=this
 			}
 
-//			protected function updater_initializedHandler(event:UpdateEvent):void
-//			{
-//				updater.checkNow();
-//			}
-
-//			protected function updater_updateStatusHandler(event:StatusUpdateEvent):void
-//			{
-//				if (event.available)
-//				{
-//					trace(event.versionLabel);
-//					API.instance.newVersion=event.version;
-//					API.instance.updatable=true;
-//					API.instance.updater=updater;
-//				}
-//				else
-//				{
-//					trace('软件最新');
-//				}
-//			}
-
 			protected function updater_errorHandler(event:ErrorEvent):void
 			{
 				trace(event.toString());
 			}
-
-//			protected function updater_downloadCompleteHandler(event:UpdateEvent):void
-//			{
-//				updater.installUpdate();
-//			}
 
 			private function enter():void
 			{
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
 			}
 
-//			protected function updater_checkForUpdateHandler(event:UpdateEvent):void
-//			{
-//				event.preventDefault();
-//				updater.checkForUpdate();
-//			}
-
-			protected function handler(event:UncaughtErrorEvent):void
-			{
-				API.instance.appendLog(event.toString());
-			}
-
 			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
 			{
-				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handler);
+				API.instance.initUncaughtErrorListener(loaderInfo);
 			}
 		]]>
 	</fx:Script>

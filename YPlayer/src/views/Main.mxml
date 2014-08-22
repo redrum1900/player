@@ -3,8 +3,8 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 color="0xffffff"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="700"
-		 height="507"
+		 width="100%"
+		 height="100%"
 		 creationComplete="inited(event)"
 		 xmlns:views="views.*"
 		 xmlns:components="views.components.*">
@@ -56,7 +56,11 @@
 				if (volumeSO.data.volume)
 					vc1Volume=volumeSO.data.volume;
 				if (volumeSO.data.volume2)
-					vc2Volume=volumeSO.data.volume;
+					vc2Volume=volumeSO.data.volume2;
+				if(vc1Volume)
+					vc1.volume = vc1Volume;
+				if(vc2Volume)
+					vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
 				//				t.start();
 				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
@@ -68,10 +72,9 @@
 
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
-				panelGroup.height=height - 57 - 48;
+				panelGroup.height=height - 57 - 48*2;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
-
 
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
@@ -264,6 +267,11 @@
 						song2=null;
 					}
 					play();
+					autoPlayTimer.start();
+					var so:SharedObject=SharedObject.getLocal('yp');
+					var un:String = so.data.username;
+					un = un.replace('总部', '');
+					titleLabel = un.split(':')[0] + '播放器';
 				});
 			}
 
@@ -331,8 +339,6 @@
 				{
 					if (player1.playing)
 						player1.stop();
-					if (!autoPlayTimer.running)
-						autoPlayTimer.start();
 					song1=null;
 					api.playingSong=null;
 					if (nearestSong)
@@ -348,8 +354,8 @@
 				}
 				else
 				{
-					if (autoPlayTimer.running)
-						autoPlayTimer.stop();
+//					if (autoPlayTimer.running)
+//						autoPlayTimer.stop();
 					vo=song1;
 					api.playingSong=vo;
 					api.playingIndex=api.songs.indexOf(song1);
@@ -692,7 +698,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!song1)
+				if (!player1.playing)
 					play();
 			}
 
@@ -733,8 +739,8 @@
 					hide(menuListPanel);
 			}
 			
-			private var vc1Volume:Number=50;
-			private var vc2Volume:Number=50;
+			private var vc1Volume:Number=50.0;
+			private var vc2Volume:Number=50.0;
 
 			protected function vc1_changingHandler(event:ODataEvent):void
 			{
@@ -873,22 +879,25 @@
 				{
 					player2.volume=vc2Volume / 100;
 					player2.url=url;
-					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【确认】', '提示', null, function():void{ivo
-						api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
-						player2.stop();
-						broPlayed();
-						broAlert = null;
-					}, PAlert.CONFIRM);
+					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【停止】', '提示', null, function():void{
+						PAlert.show('确认要停止播放当前广播吗？', '提示', null, function(value:String):void{
+							if(value == PAlert.YES){
+								api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
+								player2.stop();
+								broPlayed();
+								broAlert = null;
+							}
+						},PAlert.YESNO);
+					}, PAlert.CONFIRM, '停止');
 				}, 800);
 			}
+			
+			[Bindable]
+			private var titleLabel:String;
 			
 		]]>
 	</fx:Script>
 
-	<mx:UIComponent id="sv"
-					mouseChildren="false"
-					y="{info.y}"
-					mouseEnabled="false"/>
 	<s:BitmapImage id="background"
 				   source="@Embed('/assets/panelBG.jpg')"
 				   width="100%"
@@ -905,8 +914,21 @@
 
 	<s:Group height="57"
 			 width="100%">
+		<s:Group id="topinfo" height="45"
+				 width="100%">
+			<s:Label text="{titleLabel}"
+					 color="0xd9dee3"
+					 fontSize="18"
+					 left="20"
+					 verticalCenter="0"/>
+			<s:Label text="客服电话：010-51244052 010-58699501"
+					 color="0xd9dee3"
+					 fontSize="14"
+					 right="20"
+					 verticalCenter="0"/>
+		</s:Group>
 		<s:Group id="info"
-				 y="{topBG.height}"
+				 y="{topBG.height+topinfo.height}"
 				 width="100%">
 			<s:BitmapImage x="1"
 						   source="@Embed('/assets/trasBG.png')"/>
@@ -924,20 +946,6 @@
 								change="menuList_changeHandler(event)"
 								id="menuList"
 								toolTip="{menuList.selected ? '关闭列表' : '打开列表'}"/>
-				<!--
-<s:ToggleButton skinClass="skins.BroButton"
-				buttonMode="true"
-				id="broList"
-				change="broList_changeHandler(event)"
-				toolTip="{broList.selected ? '关闭广播' : '手动广播'}"
-				/>
-<s:ToggleButton skinClass="skins.InsertButton"
-				buttonMode="true"
-				change="insertSong_changeHandler(event)"
-				id="insertSong"
-				toolTip="{insertSong.selected ? '关闭定时插播' : '定时插播'}"
-				/>
-		  />-->
 				<s:ToggleButton id="randomPlay"
 								change="randomPlay_changeHandler(event)"
 								mouseDown="event.stopImmediatePropagation()"
@@ -953,6 +961,8 @@
 			</s:HGroup>
 		</s:Group>
 		<s:BitmapImage horizontalCenter="0"
+					   width="100%"
+					   y="{topinfo.height}"
 					   source="@Embed('/assets/topBG.png')"
 					   id="topBG">
 			<s:filters>
@@ -963,7 +973,8 @@
 			</s:filters>
 		</s:BitmapImage>
 		<s:HGroup width="100%"
-				  height="100%"
+				  y="{topinfo.height}"
+				  height="{topBG.height}"
 				  verticalAlign="middle"
 				  paddingLeft="20"
 				  paddingRight="20">
