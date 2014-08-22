@@ -35,8 +35,6 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
-	import spark.components.Menu;
-
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
