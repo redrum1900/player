@@ -12,6 +12,7 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
+	import com.pamakids.utils.ObjectUtil;
 	import com.pamakids.utils.Singleton;
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
@@ -35,12 +36,15 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
+	import mx.utils.UIDUtil;
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
 
+	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
 	import views.windows.PrepareWindow;
@@ -61,6 +65,7 @@ package controllers
 		private var nowOffset:Number=0;
 		private var config:Object;
 		private var autoUpadte:Boolean;
+		private var serial_number:String;
 
 		public function API()
 		{
@@ -71,6 +76,13 @@ package controllers
 			autoUpadte=o.auto_update;
 			config=o;
 			var so:SharedObject;
+			so=SharedObject.getLocal('sn');
+			if (!so.data.sn)
+			{
+				so.data.sn=UIDUtil.createUID();
+				so.flush();
+			}
+			serial_number=so.data.sn;
 			so=SharedObject.getLocal('version');
 			if (!so.data.version)
 				if (o.version)
@@ -291,7 +303,8 @@ package controllers
 
 		private function getUploadToken():void
 		{
-			var u:URLRequest=new URLRequest('http://m.yuefu.com/log/token');
+			var tokenURL:String=isTest ? 'http://t.yuefu.com/log/token' : 'http://m.yuefu.com/log/token';
+			var u:URLRequest=new URLRequest(tokenURL);
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
@@ -367,8 +380,23 @@ package controllers
 			}
 		}
 
+		public var main:Main;
+
 		private function refreshData():void
 		{
+			var pn:String;
+			if (!playingInfo)
+			{
+				if (playingSong)
+					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
+				else
+					pn=main.time;
+			}
+			else
+			{
+				pn=playingInfo;
+			}
+
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
 				if (vo.status && !pv)
@@ -410,8 +438,10 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-			}, {startup: getYPData('startup'), version: version});
+			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 		}
+
+		public var playingInfo:String;
 
 		/**
 		 * 处理消息
@@ -453,7 +483,7 @@ package controllers
 					so.clear();
 				else
 					appendLog('RecordLogError:' + vo.errorResult);
-			}, {logs: JSON.stringify(logs)});
+			}, {logs: JSON.stringify(logs), version: version, serial_number: serial_number});
 		}
 
 		public function recordDM(ivo:InsertVO):void
@@ -472,7 +502,7 @@ package controllers
 					dmLogSO.clear();
 				else
 					appendLog('RecordDM Error:' + vo.errorResult);
-			}, {dms: JSON.stringify(arr)});
+			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
 		}
 
 		public function appendLog(log:String):void
@@ -1191,6 +1221,8 @@ package controllers
 			var log:Object=so.data.data;
 			if (log)
 			{
+				log.version=version;
+				log.serial_number=serial_number;
 				getSB('/update/log').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
@@ -1388,7 +1420,7 @@ package controllers
 				if (!vo.status)
 					appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
 				callback(vo);
-			}, {username: username, password: password});
+			}, {username: username, password: password, serial_number: serial_number});
 		}
 
 		private function test():void
