@@ -166,6 +166,7 @@ package controllers
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
+						version=newVersion
 						if (autoUpadte)
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
