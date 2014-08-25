@@ -88,7 +88,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.4.0';
+					so.data.version='1.4.3';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
