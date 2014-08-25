@@ -25,11 +25,7 @@
 				PAlert.PARENT=this.c
 				PopupBoxManager.PARENT=this.c
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
-				API.instance.initUncaughtErrorListener(loaderInfo);
 			}
-
-//			width="700"
-//			height="507"
 
 			public function getAndroidSize(width:Number=700, height:Number=507):Array
 			{
@@ -59,7 +55,7 @@
 				var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
 				var dpi:Number=o.densityDPI;
 				c.scaleX=c.scaleY=arr[0] / (dpi / 160);
-//				trace(getAndroidSize());
+				API.instance.initUncaughtErrorListener(loaderInfo);
 			}
 		]]>
 	</fx:Script>
