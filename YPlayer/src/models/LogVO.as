@@ -29,5 +29,6 @@ package models
 		public var type:int;
 		public var value:String;
 		public var info:String;
+		public var created_at:Number;
 	}
 }
