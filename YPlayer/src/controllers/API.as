@@ -98,7 +98,7 @@ package controllers
 			so.flush();
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
-			if (!Capabilities.isDebugger)
+			if (Capabilities.isDebugger)
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
