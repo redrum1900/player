@@ -13,8 +13,6 @@ package controllers
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
 	import com.pamakids.utils.Singleton;
-	import com.plter.air.windows.utils.NativeCommand;
-	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
 	import flash.desktop.NativeApplication;
@@ -35,6 +33,8 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
+	import mx.utils.UIDUtil;
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
@@ -43,6 +43,7 @@ package controllers
 
 	import org.zengrong.ane.ANEToolkit;
 
+	import views.Main;
 	import views.PrepareView;
 	import views.SelectCacheView;
 
@@ -64,6 +65,7 @@ package controllers
 		private var nowOffset:Number=0;
 		private var config:Object;
 		private var autoUpadte:Boolean;
+		private var serial_number:String;
 
 		public function API()
 		{
@@ -74,26 +76,29 @@ package controllers
 			autoUpadte=o.auto_update;
 			config=o;
 			var so:SharedObject;
+			so=SharedObject.getLocal('sn');
+			if (!so.data.sn)
+			{
+				so.data.sn=UIDUtil.createUID();
+				so.flush();
+			}
+			serial_number=so.data.sn;
 			so=SharedObject.getLocal('version');
 			if (!so.data.version)
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.4.0';
+					so.data.version='1.4.2';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
 			if (so.data.id)
 				ServiceBase.id=so.data.id;
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			so.clear();
-//			so.flush();
-//			var file:File=File.applicationStorageDirectory.resolvePath('log');
-//			trace('log dir:' + file.nativePath);
+			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
+			so.flush();
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
-//			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (Capabilities.isDebugger)
+			if (!Capabilities.isDebugger)
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
@@ -115,8 +120,8 @@ package controllers
 				getUploadToken();
 				getNowTime();
 			}
-			setYPData('startup', new Date().getTime());
-			setYPData('refreshTime', new Date().getTime());
+			setYPData('startup', now.getTime());
+			setYPData('refreshTime', now.getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 			startAtLogin();
@@ -150,19 +155,12 @@ package controllers
 					{
 						var __dir:String=ANEToolkit.storage.getInternal().filesDir;
 						ANEToolkit.storage.writeFile(__dir + '/' + config.swf, b);
-//						f=new File(f.nativePath);
-//						var fs:FileStream=new FileStream();
-//						fs.open(f, FileMode.WRITE);
-//						fs.writeBytes(b);
-//						fs.close();
+						version=newVersion;
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
+						recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新成功'));
 						needReboot=true;
-//						PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
-//						{
-//							reboot();
-//						}, PAlert.YESNO, '重启播放器', '暂时不重启');
 					}
 					catch (error:Error)
 					{
@@ -262,6 +260,8 @@ package controllers
 				{
 					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
+					setYPData('startup', now.getTime());
+					setYPData('refreshTime', now.getTime());
 				}
 				trace('Now Offset:' + nowOffset);
 			});
@@ -285,7 +285,8 @@ package controllers
 
 		private function getUploadToken():void
 		{
-			var u:URLRequest=new URLRequest('http://m.yuefu.com/log/token');
+			var tokenURL:String=isTest ? 'http://t.yuefu.com/log/token' : 'http://m.yuefu.com/log/token';
+			var u:URLRequest=new URLRequest(tokenURL);
 			var ul:URLLoader=new URLLoader();
 			ul.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
@@ -336,7 +337,7 @@ package controllers
 			{
 				refreshData();
 				var refresh:Number=getYPData('refreshTime') as Number;
-				if (now.getTime() - refresh >= 24 * 60 * 60 * 100)
+				if (now.getTime() - refresh >= 24 * 60 * 60 * 1000)
 				{
 					checkLog();
 					setYPData('refreshTime', now.getTime());
@@ -370,8 +371,24 @@ package controllers
 			}
 		}
 
+		public var main:Main;
+		public var playingInfo:String;
+
 		private function refreshData():void
 		{
+			var pn:String;
+			if (!playingInfo)
+			{
+				if (playingSong)
+					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
+				else
+					pn=main.time;
+			}
+			else
+			{
+				pn=playingInfo;
+			}
+
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
 				if (vo.status && !pv)
@@ -413,7 +430,7 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-			}, {startup: getYPData('startup'), version: version});
+			}, {startup: getYPData('startup'), version: version, serial_number: serial_number, playingInfo: pn});
 		}
 
 		/**
@@ -446,6 +463,7 @@ package controllers
 				logs=[];
 			if (o)
 			{
+				o.created_at=now.getTime();
 				logs.push(o);
 				so.data.logs=logs;
 				so.flush();
@@ -456,7 +474,7 @@ package controllers
 					so.clear();
 				else
 					appendLog('RecordLogError:' + vo.errorResult);
-			}, {logs: JSON.stringify(logs)});
+			}, {logs: JSON.stringify(logs), version: version, serial_number: serial_number});
 		}
 
 		public function recordDM(ivo:InsertVO):void
@@ -475,7 +493,7 @@ package controllers
 					dmLogSO.clear();
 				else
 					appendLog('RecordDM Error:' + vo.errorResult);
-			}, {dms: JSON.stringify(arr)});
+			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
 		}
 
 		public function appendLog(log:String):void
@@ -1058,10 +1076,13 @@ package controllers
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
 				{
-					this.menu=CloneUtil.convertObject(o, MenuVO);
-					this.dmMenu=dmMenu;
-					this.songs=songs;
-					this.songDMDic=songDMDic;
+					if (!this.menu || this.menu._id == o._id)
+					{
+						this.menu=CloneUtil.convertObject(o, MenuVO);
+						this.dmMenu=dmMenu;
+						this.songs=songs;
+						this.songDMDic=songDMDic;
+					}
 				}
 				else if (dmMenu && dateValidate(dmMenu.begin_date, dmMenu.end_date))
 				{
@@ -1188,19 +1209,21 @@ package controllers
 			var log:Object=so.data.data;
 			if (log)
 			{
+				log.version=version;
+				log.serial_number=serial_number;
+				if (!cached.data.menus)
+					cached.data.menus=[];
+				var menus:Array=cached.data.menus;
+				if (log.songMenu && menus.indexOf(log.songMenu) == -1)
+					menus.push(log.songMenu);
+				if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
+					menus.push(log.dmMenu);
+				cached.flush();
 				getSB('/update/log').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 					{
 						so.clear();
-						if (!cached.data.menus)
-							cached.data.menus=[];
-						var menus:Array=cached.data.menus;
-						if (log.songMenu && menus.indexOf(log.songMenu) == -1)
-							menus.push(log.songMenu);
-						if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
-							menus.push(log.dmMenu);
-						cached.flush();
 						checkMenuToUpdate();
 					}
 					else
@@ -1385,7 +1408,7 @@ package controllers
 				if (!vo.status)
 					appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
 				callback(vo);
-			}, {username: username, password: password});
+			}, {username: username, password: password, serial_number: serial_number});
 		}
 
 		private function test():void

@@ -50,8 +50,8 @@
 					menu=API.instance.menu;
 					if (!menu)
 						return;
-					var dmMenu:Object=API.instance.dmMenu;
-					songItems=new ArrayCollection(API.instance.songs);
+					var dmMenu:Object=api.dmMenu;
+					songItems=new ArrayCollection(api.songs);
 					label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date);
 					var ac:ArrayCollection=new ArrayCollection();
 					ac.addItem({name: '完整列表', type: 1});

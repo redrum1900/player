@@ -69,6 +69,7 @@
 				//				updateTime();
 
 				api=API.instance;
+				api.main = this;
 
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
@@ -162,7 +163,7 @@
 			}
 
 			[Bindable]
-			private var time:String;
+			public var time:String;
 
 			private var brodcasting:Boolean;
 			private var playingDM:Boolean;
@@ -271,6 +272,7 @@
 					var so:SharedObject=SharedObject.getLocal('yp');
 					var un:String = so.data.username;
 					un = un.replace('总部', '');
+					un = un.replace('：',':');
 					titleLabel = un.split(':')[0] + '播放器';
 				});
 			}
@@ -657,10 +659,12 @@
 					var sp:SoundPlayer;
 					if (isBro)
 					{
+						api.playingInfo = '播放广播：'+ivo.name;
 						playBro(ivo);
 					}
 					else
 					{
+						api.playingInfo = '插播广播海报：'+ivo.name;
 						sp=dmPlayers[url] as SoundPlayer;
 						if (!sp)
 						{
@@ -805,6 +809,7 @@
 			
 			private function dmPlayed(ivo:InsertVO):void
 			{
+				api.playingInfo = '';
 				api.recordDM(ivo);
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
 				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
@@ -820,6 +825,7 @@
 			
 			private function broPlayed():void
 			{
+				api.playingInfo = '';
 				var hasDMPlaying:Boolean;
 				for each (var sp:SoundPlayer in dmPlayers)
 				{
