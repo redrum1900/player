@@ -430,7 +430,7 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-			}, {startup: getYPData('startup'), version: version, serial_number: serial_number, playingInfo: pn});
+			}, {startup: getYPData('startup'), version: version, serial_number: serial_number, playing: pn});
 		}
 
 		/**
