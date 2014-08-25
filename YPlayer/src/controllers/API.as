@@ -281,6 +281,8 @@ package controllers
 				{
 					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
+					setYPData('startup', now.getTime());
+					setYPData('refreshTime', now.getTime());
 				}
 				trace('Now Offset:' + nowOffset);
 			});
@@ -474,6 +476,7 @@ package controllers
 				logs=[];
 			if (o)
 			{
+				o.created_at=now.getTime();
 				logs.push(o);
 				so.data.logs=logs;
 				so.flush();
@@ -1086,10 +1089,13 @@ package controllers
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
 				{
-					this.menu=CloneUtil.convertObject(o, MenuVO);
-					this.dmMenu=dmMenu;
-					this.songs=songs;
-					this.songDMDic=songDMDic;
+					if (!this.menu || this.menu._id == o._id)
+					{
+						this.menu=CloneUtil.convertObject(o, MenuVO);
+						this.dmMenu=dmMenu;
+						this.songs=songs;
+						this.songDMDic=songDMDic;
+					}
 				}
 				else if (dmMenu && dateValidate(dmMenu.begin_date, dmMenu.end_date))
 				{
@@ -1224,19 +1230,19 @@ package controllers
 			{
 				log.version=version;
 				log.serial_number=serial_number;
+				if (!cached.data.menus)
+					cached.data.menus=[];
+				var menus:Array=cached.data.menus;
+				if (log.songMenu && menus.indexOf(log.songMenu) == -1)
+					menus.push(log.songMenu);
+				if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
+					menus.push(log.dmMenu);
+				cached.flush();
 				getSB('/update/log').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 					{
 						so.clear();
-						if (!cached.data.menus)
-							cached.data.menus=[];
-						var menus:Array=cached.data.menus;
-						if (log.songMenu && menus.indexOf(log.songMenu) == -1)
-							menus.push(log.songMenu);
-						if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
-							menus.push(log.dmMenu);
-						cached.flush();
 						checkMenuToUpdate();
 					}
 					else
