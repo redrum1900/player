@@ -53,14 +53,12 @@
 			protected function inited(event:FlexEvent):void
 			{
 				volumeSO=SharedObject.getLocal('yp');
-				if (volumeSO.data.volume)
+				if (volumeSO.data.volume != null)
 					vc1Volume=volumeSO.data.volume;
-				if (volumeSO.data.volume2)
+				if (volumeSO.data.volume2 != null)
 					vc2Volume=volumeSO.data.volume2;
-				if(vc1Volume)
-					vc1.volume = vc1Volume;
-				if(vc2Volume)
-					vc2.volume = vc2Volume;
+				vc1.volume = vc1Volume;
+				vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
 				//				t.start();
 				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
@@ -369,7 +367,6 @@
 					var f:File=new File(path);
 					now=api.now;
 					var s:Number=now.getTime() - vo.playTime.getTime();
-					trace(DateUtil.getHMS(vo.playTime), s, DateUtil.getHMS(now));
 					if (f.exists)
 					{
 						player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
@@ -513,6 +510,7 @@
 			private const CLEAR_CACHE:String='CLEAR_CACHE';
 			private const FEEDBACK:String='FEEDBACK';
 			private const REMOTE_ACCOUNT:String='REMOTE_ACCOUNT';
+			private const ABOUT_SOFTWARE:String = 'ABOUT_SOFTWARE';
 
 			private function initMore():void
 			{
@@ -523,6 +521,7 @@
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
 				if(!api.local)
 					moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
+				moreMenu.addItem(getNMI('关于软件', ABOUT_SOFTWARE));
 //				moreMenu.addItem(getNMI('','', true));
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
@@ -541,6 +540,9 @@
 				trace(event.target.data);
 				switch (event.target.data)
 				{
+					case ABOUT_SOFTWARE:
+						PAlert.show('软件版本：'+api.version+'\n序列号：'+api.serial_number, '关于软件');
+						break;
 					case CLOSE:
 						NativeApplication.nativeApplication.exit();
 						break;

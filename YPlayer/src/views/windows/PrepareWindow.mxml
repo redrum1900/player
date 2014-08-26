@@ -99,12 +99,10 @@
 				}
 				for each (var o:Object in songs)
 				{
-					trace(o.size);
 					if (o.size)
 						size+=o.size;
 				}
 				size=size / 1024
-				trace(size, avaibleSize);
 				if (avaibleSize - size < 512000)
 				{
 					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
@@ -198,9 +196,7 @@
 					var pw:PrepareWindow=this;
 //					TweenLite.delayedCall(0.1, function():void
 //					{
-					trace('closed', pw.closed);
 					pw.close();
-					trace('closed', pw.closed);
 					LoadManager.instance.allLoadingHandler=null
 					allLoaded();
 //					});
