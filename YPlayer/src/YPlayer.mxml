@@ -36,7 +36,7 @@
 				if (AA.i.isMac)
 					enter();
 				else
-					TweenLite.delayedCall(3, enter);
+					TweenLite.delayedCall(1, enter);
 
 				nativeWindow.orderToFront();
 
