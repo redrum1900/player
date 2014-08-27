@@ -112,16 +112,16 @@
 							}
 							else
 							{
-								if (vo.errCode)
-								{
-									api.online=false;
-									api.getMenuList();
-								}
-								else
-								{
-									var l:LoginView=new LoginView();
-									PopupBoxManager.popup(l);
-								}
+//								if (vo.errCode)
+//								{
+								api.online=false;
+								api.getMenuList();
+//								}
+//								else
+//								{
+//									var l:LoginView=new LoginView();
+//									PopupBoxManager.popup(l);
+//								}
 							}
 						});
 					}
