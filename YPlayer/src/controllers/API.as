@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.4.6';
+					so.data.version='1.5.0';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -1194,7 +1194,7 @@ package controllers
 				label=menu.name;
 				pv.menuID=menu._id;
 			}
-			if (dmMenu)
+			if (dmMenu && dmMenu._id)
 			{
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;

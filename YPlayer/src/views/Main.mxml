@@ -199,7 +199,7 @@
 				else
 					trace(song1);
 				var value:Number=tt - pt;
-				if (value < 0)
+				if (value <= 0)
 					play();
 				else if (dms)
 				{

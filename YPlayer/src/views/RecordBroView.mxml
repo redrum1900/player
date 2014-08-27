@@ -196,7 +196,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (timer.currentCount == 5)
+				if (timer.currentCount == 360)
 					stopRecord();
 				info='已录制：' + DateUtil.formateTime(timer.currentCount);
 			}
