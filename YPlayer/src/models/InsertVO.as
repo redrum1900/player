@@ -2,6 +2,7 @@ package models
 {
 	import com.pamakids.models.BaseVO;
 
+
 	public class InsertVO extends BaseVO
 	{
 		public function InsertVO()

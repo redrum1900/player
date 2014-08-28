@@ -199,7 +199,8 @@
 				else
 					trace(song1);
 				var value:Number=tt - pt;
-				if (value <= 0)
+				trace(value);
+				if (value < 0)
 					play();
 				else if (dms)
 				{
@@ -363,9 +364,10 @@
 					AA.say('play');
 					time='准备开始播放 ' + vo.name;
 					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					trace(path);
+					trace(vo.name);
 					var f:File=new File(path);
 					now=api.now;
+					trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
 					var s:Number=now.getTime() - vo.playTime.getTime();
 					if (f.exists)
 					{
@@ -704,7 +706,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!player1.playing)
+				if (!player1.playing && !song1)
 					play();
 			}
 
@@ -833,7 +835,7 @@
 				{
 					if (sp.playing)
 					{
-						player2Time='开始插播DM：' + broDic[sp.url].name;
+						player2Time='开始插播：' + broDic[sp.url].name;
 						sp.muted=false;
 						hasDMPlaying=true;
 						break;

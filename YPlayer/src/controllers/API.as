@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.0';
+					so.data.version='1.5.2';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -105,7 +105,8 @@ package controllers
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
-			if (Capabilities.isDebugger)
+			var b:Boolean=o.debug == null ? Capabilities.isDebugger : o.debug;
+			if (b)
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
@@ -436,8 +437,9 @@ package controllers
 					}
 					if (vo.results.reboot)
 					{
-						needReboot=true;
-						rebootByCommand=true;
+						reboot(false);
+//						needReboot=true;
+//						rebootByCommand=true;
 					}
 				}
 				else
@@ -1055,6 +1057,7 @@ package controllers
 				while (bd.getTime() < ed.getTime())
 				{
 					ivo=new InsertVO();
+					ivo.type=5;
 					ivo.name=insertBro.name;
 					ivo.url=insertBro.url;
 					ivo.playTime=DateUtil.clone(bd);
@@ -1091,8 +1094,8 @@ package controllers
 							song.playTime=DateUtil.clone(playTime);
 							song.size=s.size;
 							song._id=s._id;
-							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
-//							song.url=QNService.HOST + s.url;
+//							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+							song.url=QNService.HOST + s.url;
 							song.name=s.name
 							song.duration=s.duration;
 							arr.push(song);
@@ -1414,7 +1417,7 @@ package controllers
 
 		private function isJKL():Boolean
 		{
-			if (Capabilities.isDebugger)
+			if (config.debug)
 				return true;
 			var so:SharedObject=SharedObject.getLocal('yp');
 			var un:String=so.data.username;

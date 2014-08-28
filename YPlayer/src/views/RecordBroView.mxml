@@ -265,7 +265,7 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-				if (sp.soundLength / 60000 > 6)
+				if (sp && sp.soundLength / 60000 > 6)
 				{
 					selectedFile=null;
 					PAlert.show('选择的广播文件不可超出6分钟，请重新选择');

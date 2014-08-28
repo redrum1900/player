@@ -166,7 +166,7 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
-					if (vo.url.indexOf('http') == -1)
+					if (vo.url.indexOf('http') == -1 && vo.type != 5)
 						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);

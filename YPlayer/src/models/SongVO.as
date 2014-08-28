@@ -16,6 +16,7 @@ package models
 		public var playTime:Date;
 		public var size:Number;
 		public var allow_circle:Boolean;
+		public var type:int;
 	}
 }
 
