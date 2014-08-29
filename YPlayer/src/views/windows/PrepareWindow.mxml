@@ -55,7 +55,7 @@
 							isAutoloading=false;
 							loaded++;
 							autoLoad();
-						}, URLUtil.getCachePath(autoLoading.url), null, loadingHandler);
+						}, getCachePath(autoLoading), null, loadingHandler);
 					}
 					else if (autoLoading)
 					{
@@ -156,6 +156,11 @@
 			private var startLoad:Number=0;
 			private var recordTimer:Timer=new Timer(1000);
 
+			private function getCachePath(vo:Object):String
+			{
+				return api.isTool ? 'cache/' + vo.name : URLUtil.getCachePath(vo.url)
+			}
+
 			private function autoLoad():void
 			{
 				if (isAutoloading)
@@ -183,7 +188,7 @@
 							loaded++;
 							isAutoloading=false;
 							autoLoad();
-						}, URLUtil.getCachePath(vo.url), null, loadingHandler);
+						}, getCachePath(vo), null, loadingHandler);
 					}
 					else
 					{
