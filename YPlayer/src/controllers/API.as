@@ -12,7 +12,6 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
-	import com.pamakids.utils.ObjectUtil;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
@@ -91,7 +90,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.2';
+					so.data.version='1.5.3';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -1094,8 +1093,8 @@ package controllers
 							song.playTime=DateUtil.clone(playTime);
 							song.size=s.size;
 							song._id=s._id;
-//							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
-							song.url=QNService.HOST + s.url;
+							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+//							song.url=QNService.HOST + s.url;
 							song.name=s.name
 							song.duration=s.duration;
 							arr.push(song);

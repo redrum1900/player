@@ -290,11 +290,27 @@
 			private var nearestSong:SongVO;
 			private var firstSong:SongVO;
 			private var vo:SongVO;
+			
+			private function validSongTime(vo:SongVO):Boolean
+			{
+				var b:Boolean;
+				var now:Date=api.now;
+				if(vo.playTime.date != now.date)
+					vo.playTime.date = now.date;
+				var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
+				var vn:Number=vo.playTime.getTime() - now.getTime();
+				if(result>1000 && result<vo.duration*1000)
+					b = true;
+				return b;
+			}
 
 			private function play():void
 			{
 				if (player1.playing || !api.songs || !api.songs.length)
 					return;
+				if(song1 && song2 && !randomPlay.selected && !api.isCurrentTimeLoop && !validSongTime(song2)){
+					song1 = null;
+				}
 				var now:Date=api.now;
 				var has:Boolean;
 				if (!randomPlay.selected)
@@ -523,7 +539,7 @@
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
 				if(!api.local)
 					moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
-				moreMenu.addItem(getNMI('关于软件', ABOUT_SOFTWARE));
+				moreMenu.addItem(getNMI('关于更多', ABOUT_SOFTWARE));
 //				moreMenu.addItem(getNMI('','', true));
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));

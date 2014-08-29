@@ -138,6 +138,7 @@
 					if (this.haveStoredTime)
 						data.duration+=this.haveStoredTime;
 					so.data.duration=0;
+					so.flush()
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
