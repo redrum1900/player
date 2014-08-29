@@ -43,45 +43,16 @@
 
 			protected function inited(event:FlexEvent):void
 			{
-				var menu:MenuVO;
 				api=API.instance;
-				API.instance.addEventListener('PLAY', function():void
+				api.addEventListener('PLAY', function():void
 				{
-					menu=API.instance.menu;
-					if (!menu)
-						return;
-					var dmMenu:Object=API.instance.dmMenu;
-					songItems=new ArrayCollection(API.instance.songs);
-					label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date);
-					var ac:ArrayCollection=new ArrayCollection();
-					ac.addItem({name: '完整列表', type: 1});
-					if (dmMenu && dmMenu.dm_list && dmMenu.dm_list.length)
-					{
-						ac.addItem({name: '插播列表', type: 2});
-					}
-					for each (var m:TimeVO in menu.list)
-					{
-						ac.addItem(m);
-					}
-					if (api.isCurrentTimeLoop)
-					{
-						listInfo='曲目时长   曲目名称'
-					}
-					else
-					{
-						listInfo='播放时间   曲目名称'
-					}
-					bb.dataProvider=null
-					TweenLite.delayedCall(0.5, function():void
-					{
-						bb.dataProvider=ac;
-						bb.selectedIndex=0;
-					});
-					AA.say('play');
-					if (api.playingIndex)
-						to(api.playingIndex);
+					update();
 				});
-				API.instance.addEventListener('bros', function():void
+				AA.listen('UPDATE', function():void
+				{
+					update();
+				});
+				api.addEventListener('bros', function():void
 				{
 					i=0;
 					loaded=0;
@@ -98,7 +69,7 @@
 				{
 					return;
 				}
-				TweenLite.delayedCall(0.5, function():void
+				TweenLite.delayedCall(1, function():void
 				{
 					try
 					{
@@ -297,6 +268,8 @@
 							i=0;
 							createButtons();
 							lp.dispatchEvent(new Event('stopRecord'));
+							api.updateForRecord=true;
+							api.initMenu();
 						});
 					}
 				}, PAlert.YESNO);
@@ -375,6 +348,44 @@
 
 			[Bindable]
 			private var timeInfo:String;
+
+			private function update():void
+			{
+				var menu:Object;
+				menu=api.menu;
+				if (!menu)
+					return;
+				var dmMenu:Object=API.instance.dmMenu;
+				songItems=new ArrayCollection(api.songs);
+				label='播放项目：' + menu.name + ' 开始日期：' + DateUtil.getYMD(menu.begin_date) + ' 结束日期：' + DateUtil.getYMD(menu.end_date);
+				var ac:ArrayCollection=new ArrayCollection();
+				ac.addItem({name: '完整列表', type: 1});
+				if (dmMenu && dmMenu.dm_list && dmMenu.dm_list.length)
+				{
+					ac.addItem({name: '插播列表', type: 2});
+				}
+				for each (var m:TimeVO in menu.list)
+				{
+					ac.addItem(m);
+				}
+				if (api.isCurrentTimeLoop)
+				{
+					listInfo='曲目时长   曲目名称'
+				}
+				else
+				{
+					listInfo='播放时间   曲目名称'
+				}
+				bb.dataProvider=null
+				TweenLite.delayedCall(0.5, function():void
+				{
+					bb.dataProvider=ac;
+					bb.selectedIndex=0;
+				});
+				AA.say('play');
+				if (api.playingIndex)
+					to(api.playingIndex);
+			}
 		]]>
 	</fx:Script>
 	<s:VGroup gap="0"

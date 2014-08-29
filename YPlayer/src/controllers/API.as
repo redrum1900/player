@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.3';
+					so.data.version='1.5.4';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -881,7 +881,7 @@ package controllers
 
 		private var initializing:Boolean;
 
-		private function initMenu():void
+		public function initMenu():void
 		{
 			if (initializing)
 				return;
@@ -1003,6 +1003,7 @@ package controllers
 		}
 
 		public var dmMenu:Object;
+		public var updateForRecord:Boolean;
 
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
@@ -1091,6 +1092,8 @@ package controllers
 							song.allow_circle=s.allow_circle;
 							s=s.song;
 							song.playTime=DateUtil.clone(playTime);
+							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
+								playingSong=song;
 							song.size=s.size;
 							song._id=s._id;
 							if (isTool)
@@ -1159,14 +1162,27 @@ package controllers
 					this.songDMDic=songDMDic;
 					dmChanged=true;
 				}
-				if (!this.menu)
+				if (updateForRecord)
 				{
-					noPlayList();
-					return {};
+					this.songs=songs;
+					this.songDMDic=songDMDic;
+					this.dmMenu=dmMenu;
+					if (playingSong)
+						playingIndex=songs.indexOf(playingSong);
+					AA.say('UPDATE');
+					updateForRecord=false;
 				}
-				if (playingSong)
-					initBroadcasts();
-				toPrepare(o, dmMenu);
+				else
+				{
+					if (!this.menu)
+					{
+						noPlayList();
+						return {};
+					}
+					if (playingSong)
+						initBroadcasts();
+					toPrepare(o, dmMenu);
+				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
 		}
@@ -1406,6 +1422,8 @@ package controllers
 						insertBro=records[0];
 					else if (Capabilities.isDebugger && records[0].url)
 						insertBro=records[0];
+					else
+						insertBro=null;
 				}
 				bs=bs.concat(records);
 			}
@@ -1424,7 +1442,7 @@ package controllers
 
 		private function isJKL():Boolean
 		{
-			if (config.debug)
+			if (Capabilities.isDebugger)
 				return true;
 			var so:SharedObject=SharedObject.getLocal('yp');
 			var un:String=so.data.username;
@@ -1434,10 +1452,13 @@ package controllers
 		[Bindable]
 		public var playingIndex:int;
 
+		public var username:String;
+
 		public function login(username:String, password:String, callback:Function):void
 		{
 			username=username.replace(' ', '');
 			username=username.replace('：', ':');
+			this.username=username;
 			var f:File;
 			progress='连接云系统';
 			getSB('user/login').call(function(vo:ResultVO):void

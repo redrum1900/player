@@ -281,6 +281,12 @@
 					sp=null;
 				}
 			}
+
+			protected function clear_clickHandler(event:MouseEvent):void
+			{
+				vo.url='';
+				close();
+			}
 		]]>
 	</fx:Script>
 
@@ -341,6 +347,12 @@
 		</s:HGroup>
 		<s:Spacer height="18"/>
 		<s:HGroup width="100%">
+			<s:Button id="clear"
+					  color="0x30373e"
+					  enabled="{vo.url}"
+					  click="clear_clickHandler(event)"
+					  skinClass="skins.buttons.WarningButtonSkin"
+					  label="清除并关闭"/>
 			<s:Button id="toAdd"
 					  color="0x30373e"
 					  enabled="{!saving &amp;&amp; !playing &amp;&amp; !recording}"

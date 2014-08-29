@@ -169,6 +169,7 @@
 			private var preMics:Array;
 //			private var preVolume:Number=volume;
 			private var micChanged:int;
+			private var plaiedDM:Object;
 
 			protected function playingHandler(event:DataEvent):void
 			{
@@ -208,25 +209,28 @@
 					var min:Number;
 					for each (var dm:InsertVO in dms)
 					{
-						var ns:Number=now.getTime() / 1000;
-						if (dm.playTime.date != now.date)
-							dm.playTime.date=now.date;
-						var ds:Number=dm.playTime.getTime() / 1000;
-						value=ns - ds;
-						var absValue:int=Math.abs(value);
-						min=min < absValue ? min : absValue;
-						if (absValue <= 1)
+						if(dm != plaiedDM)
 						{
-							playingDM=true;
-							insertBroOrDM(dm);
-							break;
+							var ns:Number=now.getTime() / 1000;
+							if (dm.playTime.date != now.date)
+								dm.playTime.date=now.date;
+							var ds:Number=dm.playTime.getTime() / 1000;
+							value=ns - ds;
+							var absValue:int=Math.abs(value);
+							min=min < absValue ? min : absValue;
+							if (absValue <= 1)
+							{
+								playingDM=true;
+								plaiedDM = dm;
+								insertBroOrDM(dm);
+								break;
+							}
 						}
 					}
 					value=min;
-					if (playingDM || (value > 0 && value < 60))
+					if (value > 0 && value < 60 && !playingDM)
 					{
-						if (value > 1)
-							time+=' ' + DateUtil.formateTime(value) + ' 后将插播DM';
+						time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dm.name;
 					}
 					else if (song2)
 					{
@@ -559,7 +563,10 @@
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:
-						PAlert.show('软件版本：'+api.version+'\n序列号：'+api.serial_number, '关于软件');
+						var s:String = '缓存路径：'+FileManager.savedDir+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
+						if(api.username)
+							s = '账户名称：'+api.username+'\n'+s;
+						PAlert.show(s, '关于更多');
 						break;
 					case CLOSE:
 						NativeApplication.nativeApplication.exit();
