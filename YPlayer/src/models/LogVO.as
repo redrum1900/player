@@ -10,6 +10,8 @@ package models
 		public static const PLAY_RECORDED_DM:int=5;
 		public static const AUTO_UPDATE_BEGIN:int=6;
 		public static const AUTO_UPDATE_END:int=7;
+		public static const REBOOT_AUTO_UPDATE:int=8;
+		public static const REBOOT_BY_COMMAND:int=9;
 
 
 		/**

@@ -55,7 +55,7 @@
 							isAutoloading=false;
 							loaded++;
 							autoLoad();
-						}, URLUtil.getCachePath(autoLoading.url), null, loadingHandler);
+						}, getCachePath(autoLoading), null, loadingHandler);
 					}
 					else if (autoLoading)
 					{
@@ -99,12 +99,10 @@
 				}
 				for each (var o:Object in songs)
 				{
-					trace(o.size);
 					if (o.size)
 						size+=o.size;
 				}
 				size=size / 1024
-				trace(size, avaibleSize);
 				if (avaibleSize - size < 512000)
 				{
 					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
@@ -140,6 +138,7 @@
 					if (this.haveStoredTime)
 						data.duration+=this.haveStoredTime;
 					so.data.duration=0;
+					so.flush()
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
@@ -157,6 +156,11 @@
 			private var startLoad:Number=0;
 			private var recordTimer:Timer=new Timer(1000);
 
+			private function getCachePath(vo:Object):String
+			{
+				return api.isTool ? 'cache/' + vo.name : URLUtil.getCachePath(vo.url)
+			}
+
 			private function autoLoad():void
 			{
 				if (isAutoloading)
@@ -168,7 +172,7 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
-					if (vo.url.indexOf('http') == -1)
+					if (vo.url.indexOf('http') == -1 && vo.type != 5)
 						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);
@@ -184,7 +188,7 @@
 							loaded++;
 							isAutoloading=false;
 							autoLoad();
-						}, URLUtil.getCachePath(vo.url), null, loadingHandler);
+						}, getCachePath(vo), null, loadingHandler);
 					}
 					else
 					{
@@ -198,9 +202,7 @@
 					var pw:PrepareWindow=this;
 //					TweenLite.delayedCall(0.1, function():void
 //					{
-					trace('closed', pw.closed);
 					pw.close();
-					trace('closed', pw.closed);
 					LoadManager.instance.allLoadingHandler=null
 					allLoaded();
 //					});

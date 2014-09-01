@@ -84,7 +84,7 @@
 						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 					if (!(o.end_date is Date))
 						o.end_date=NodeUtil.getLocalDate(o.end_date);
-					label='播放项目：' + o.name + ' 开始日期：' + DateUtil.getYMD(o.begin_date) + ' 结束日期：' + DateUtil.getYMD(o.end_date);
+					label=o.name + ' 开始日期：' + DateUtil.getYMD(o.begin_date) + ' 结束日期：' + DateUtil.getYMD(o.end_date);
 					songItems=new ArrayCollection(arr);
 				}, o._id + '.json', api.online);
 			}
@@ -128,7 +128,7 @@
 			  fontSize="14">
 		<s:Label color="0xffffff"
 				 fontSize="14"
-				 text="三个月内的歌单及广播海报信息（再次点击列表图标关闭）"/>
+				 text="歌单及广播海报信息（再次点击列表图标关闭）"/>
 		<s:HGroup width="100%"
 				  verticalAlign="middle">
 			<s:RadioButton skinClass="skins.radioButton.RadioButtonSkin"
@@ -150,6 +150,9 @@
 										 change="menus_changeHandler(event)"
 										 id="menus"/>
 		</s:HGroup>
+		<s:Label color="0xd9dee3"
+				 fontSize="14"
+				 text="{label}"/>
 		<s:Label color="0xd9dee3"
 				 fontSize="14"
 				 text="{listInfo}"

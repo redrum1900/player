@@ -196,7 +196,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (timer.currentCount == 5)
+				if (timer.currentCount == 360)
 					stopRecord();
 				info='已录制：' + DateUtil.formateTime(timer.currentCount);
 			}
@@ -265,7 +265,7 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-				if (sp.soundLength / 60000 > 6)
+				if (sp && sp.soundLength / 60000 > 6)
 				{
 					selectedFile=null;
 					PAlert.show('选择的广播文件不可超出6分钟，请重新选择');
@@ -280,6 +280,12 @@
 					sp.stop();
 					sp=null;
 				}
+			}
+
+			protected function clear_clickHandler(event:MouseEvent):void
+			{
+				vo.url='';
+				close();
 			}
 		]]>
 	</fx:Script>
@@ -341,6 +347,12 @@
 		</s:HGroup>
 		<s:Spacer height="18"/>
 		<s:HGroup width="100%">
+			<s:Button id="clear"
+					  color="0x30373e"
+					  enabled="{vo.url}"
+					  click="clear_clickHandler(event)"
+					  skinClass="skins.buttons.WarningButtonSkin"
+					  label="清除并关闭"/>
 			<s:Button id="toAdd"
 					  color="0x30373e"
 					  enabled="{!saving &amp;&amp; !playing &amp;&amp; !recording}"

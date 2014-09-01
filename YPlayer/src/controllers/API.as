@@ -13,6 +13,7 @@ package controllers
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
 	import com.pamakids.utils.Singleton;
+	import com.pamakids.utils.URLUtil;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
 	import flash.desktop.NativeApplication;
@@ -33,6 +34,7 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
+	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
 
 	import models.InsertVO;
@@ -65,7 +67,8 @@ package controllers
 		private var nowOffset:Number=0;
 		private var config:Object;
 		private var autoUpadte:Boolean;
-		private var serial_number:String;
+		public var serial_number:String;
+		private var day:Number;
 
 		public function API()
 		{
@@ -176,8 +179,9 @@ package controllers
 					}
 					if (callback != null)
 						callback(0)
+					PAlert.show('更新失败，请检查网络连接');
 				}
-			}, newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
+			}, 'update/' + newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
 			{
 				if (autoUpadte)
 				{
@@ -204,49 +208,24 @@ package controllers
 //			}
 		}
 
-		public function reboot():void
+		private function get formatedNow():String
 		{
-			ANEToolkit.restart.rebootApp();
-//					var nativeProcessStartupInfo:NativeProcessStartupInfo=new NativeProcessStartupInfo();
-//					var file:File=new File();
+			var df:DateFormatter=new DateFormatter('YY-MM-DD HH:MM:SS');
+			return df.format(now);
+		}
 
-//			var n:NativeCommand=new NativeCommand();
-//			var args:Vector.<String>=new Vector.<String>;
-//			args.push(File.applicationDirectory.resolvePath("乐播.exe").nativePath);
-//
-//			n.runCmd(args, ShowCmdWindow.HIDE, 1000);
-////					nativeProcessStartupInfo.executable=file;
-////					var process:NativeProcess=new NativeProcess();
-////					process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, function onOutputData(event:Object):void
-////					{
-////						var stdOut=process.standardOutput;
-////						var data=stdOut.readUTFBytes(process.standardOutput.bytesAvailable);
-////						PAlert.show(data);
-////					});
-////					process.start(nativeProcessStartupInfo);
-//
-			NativeApplication.nativeApplication.exit();
-
-//			var mgr:ProductManager=new ProductManager("airappinstaller");
-//			var s:String="-launch " + NativeApplication.nativeApplication.applicationID + " " + NativeApplication.nativeApplication.publisherID;
-//			trace(s);
-//			mgr.launch(s);
-
-
-//			processArgs.push("hello");
-//			nativeProcessStartupInfo.arguments=processArgs;
-
-//			PAlert.show('重启了');
-
-
-//			var arr:Array=NativeApplication.nativeApplication.openedWindows;
-//			if (arr && arr.length)
-//			{
-//				for each (var w:NativeWindow in arr)
-//				{
-//					w.close();
-//				}
-//			}
+		public function reboot(forUpdate:Boolean=true):void
+		{
+			var logvo:LogVO;
+			if (forUpdate)
+				logvo=new LogVO(LogVO.REBOOT_AUTO_UPDATE, formatedNow, '自动重启为更新：' + newVersion)
+			else
+				logvo=new LogVO(LogVO.REBOOT_BY_COMMAND, formatedNow, '通过命令自动重启')
+			recordLog(logvo, function():void
+			{
+				appendLog('软件重启');
+				NativeApplication.nativeApplication.exit();
+			});
 		}
 
 
@@ -262,6 +241,7 @@ package controllers
 					nowOffset=date.getTime() - now.getTime();
 					setYPData('startup', now.getTime());
 					setYPData('refreshTime', now.getTime());
+					day=now.day;
 				}
 				trace('Now Offset:' + nowOffset);
 			});
@@ -350,7 +330,7 @@ package controllers
 			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
 			{
 				if (needReboot && !playingSong)
-					reboot();
+					reboot(rebootByCommand);
 				else
 					checkUpdate();
 			}
@@ -358,6 +338,8 @@ package controllers
 
 		private function checkLogin():void
 		{
+			if (local)
+				return;
 			if (!ServiceBase.id)
 			{
 				var so:SharedObject=SharedObject.getLocal('yp');
@@ -402,8 +384,22 @@ package controllers
 							FileManager.saveFile('bros.yp', vo.results.bros)
 						initBroadcasts();
 					}
-					if (compareMenus(menus, vo.results.menus as Array))
+					var daychanged:Boolean;
+					if (day != now.day && !initializing && !playingSong)
 					{
+						trace('Day Changed');
+						daychanged=true;
+						day=now.day;
+					}
+					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
+					{
+						var playingValid:Boolean=checkPlayingValid();
+						if (daychanged || !playingValid)
+						{
+							menu=null;
+							songs=null;
+							songDMDic=null;
+						}
 						initMenu();
 					}
 					else if (brosChanged)
@@ -417,21 +413,21 @@ package controllers
 							pv.broadcasts=broadcasts.concat();
 						PopupBoxManager.popup(pv);
 					}
-					if (vo.results.message)
-					{
-						handleMessage(vo.results.message._id, 1);
-//						var mw:MessageWindow=new MessageWindow();
-//						mw.message=vo.results.message;
-//						mw.title=vo.results.message.title;
-//						mw.open();
-					}
+					if (vo.results.reboot)
+						reboot(false);
+					if (vo.results.update)
+						checkUpdate();
 				}
 				else
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-			}, {startup: getYPData('startup'), version: version, serial_number: serial_number, playing: pn});
+			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 		}
+
+		private var rebootByCommand:Boolean;
+
+		public var playingInfo:String;
 
 		/**
 		 * 处理消息
@@ -455,8 +451,14 @@ package controllers
 			}, {_id: messageID, received: status == 1});
 		}
 
-		public function recordLog(o:LogVO):void
+		public function recordLog(o:LogVO, callbck:Function=null):void
 		{
+			if (local)
+			{
+				if (callbck != null)
+					callbck();
+				return;
+			}
 			var so:SharedObject=SharedObject.getLocal('log');
 			var logs:Array=so.data.logs;
 			if (!logs)
@@ -474,11 +476,15 @@ package controllers
 					so.clear();
 				else
 					appendLog('RecordLogError:' + vo.errorResult);
+				if (callbck != null)
+					callbck();
 			}, {logs: JSON.stringify(logs), version: version, serial_number: serial_number});
 		}
 
 		public function recordDM(ivo:InsertVO):void
 		{
+			if (local)
+				return;
 			var arr:Array=dmLogSO.data.plaied;
 			if (!arr)
 			{
@@ -755,6 +761,8 @@ package controllers
 
 		private function dateValidate(begin:Object, end:Object):Boolean
 		{
+			if (!begin || !end)
+				return false;
 			if (!(begin is Date))
 				begin=NodeUtil.getLocalDate(begin as String);
 			if (!(end is Date))
@@ -793,9 +801,33 @@ package controllers
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if (!menuValid(menu))
+			var clearedSize:Number=0;
+			var f:File;
+			var clearInfo:String='';
+			var o:Object;
+			var so:SharedObject=cachedSO;
+			var arr:Array=so.data.menus;
+			if (menu && !menuValid(menu))
 			{
+				arr.splice(arr.indexOf(menu._id), 1);
+				clearInfo+='清空了歌单：' + menu.name + ' ';
+				if (songs && songs.length)
+				{
+					for each (o in songs)
+					{
+						if (o.url && o.url.indexOf('http') != -1)
+						{
+							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
+							trace(f.name, f.size);
+							clearedSize+=f.size;
+							f.deleteFileAsync()
+						}
+					}
+				}
 				b=false;
+				menu=null;
+				songs=null;
+				songDMDic=null;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -804,30 +836,42 @@ package controllers
 					if (!menuValid(dm))
 					{
 						b=false;
-						break;
+						arr.splice(arr.indexOf(dm._id), 1);
+						clearInfo+='清空了DM：' + dm.name + ' ';
+						if (dm.dm_list && dm.dm_list.length)
+						{
+							for each (o in dm.dm_list)
+							{
+								if (o.url && o.url.indexOf('http') != -1)
+								{
+									f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
+									clearedSize+=f.size;
+									f.deleteFileAsync()
+								}
+							}
+						}
 					}
 				}
 			}
-			if (FileManager.savedDir && !b)
+			if (!b)
 			{
-				var f:File=new File(FileManager.savedDir + 'cache');
-				if (f.exists)
-				{
-					var size:Number=f.size;
-					f.deleteDirectory(true);
-					var cached:SharedObject=cachedSO;
-					cached.data.menus=[];
-					cached.flush();
-					recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(size / 1024) + '', '自动清空了过期歌单' + menu.name));
-				}
+				so.data.menus=arr;
+				so.flush();
+				trace(clearedSize / 1024, clearInfo);
+				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo));
 			}
 			return b;
 		}
 
 		private var dmMenus:Array;
 
-		private function initMenu():void
+		private var initializing:Boolean;
+
+		public function initMenu():void
 		{
+			if (initializing)
+				return;
+			initializing=true;
 			var menus:Array=FileManager.readFile('menus.yp') as Array;
 			if (menus && menus.length)
 			{
@@ -945,6 +989,7 @@ package controllers
 		}
 
 		public var dmMenu:Object;
+		public var updateForRecord:Boolean;
 
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
@@ -959,6 +1004,7 @@ package controllers
 			var songDMDic:Dictionary=new Dictionary();
 //			this.dmMenu=dmMenu;
 			parseBroadcasts();
+			var ivo:InsertVO;
 			var a:Array=[];
 			if (dmMenu && dmMenu.dm_list)
 			{
@@ -970,7 +1016,7 @@ package controllers
 						if (dm.day.indexOf(day) == -1)
 							continue;
 					}
-					var ivo:InsertVO=new InsertVO();
+					ivo=new InsertVO();
 					ivo._id=dm.dm._id;
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
@@ -995,7 +1041,8 @@ package controllers
 				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00');
 				while (bd.getTime() < ed.getTime())
 				{
-					var ivo:InsertVO=new InsertVO();
+					ivo=new InsertVO();
+					ivo.type=5;
 					ivo.name=insertBro.name;
 					ivo.url=insertBro.url;
 					ivo.playTime=DateUtil.clone(bd);
@@ -1023,6 +1070,7 @@ package controllers
 					if (oo.songs)
 					{
 						var duration:Number=0;
+						var songNum:int=0;
 						for (var j:int=0; j < oo.songs.length; j++)
 						{
 							var s:Object=oo.songs[j];
@@ -1030,11 +1078,11 @@ package controllers
 							song.allow_circle=s.allow_circle;
 							s=s.song;
 							song.playTime=DateUtil.clone(playTime);
+							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
+								playingSong=song;
 							song.size=s.size;
 							song._id=s._id;
 							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
-//							song.url=QNService.HOST + s.url;
-							//										song.cover = QNService.getQNThumbnail(s.cover, 200, 200);
 							song.name=s.name
 							song.duration=s.duration;
 							arr.push(song);
@@ -1091,14 +1139,27 @@ package controllers
 					this.songDMDic=songDMDic;
 					dmChanged=true;
 				}
-				if (!this.menu)
+				if (updateForRecord)
 				{
-					noPlayList();
-					return {};
+					this.songs=songs;
+					this.songDMDic=songDMDic;
+					this.dmMenu=dmMenu;
+					if (playingSong)
+						playingIndex=songs.indexOf(playingSong);
+					AA.say('UPDATE');
+					updateForRecord=false;
 				}
-				if (playingSong)
-					initBroadcasts();
-				toPrepare(o, dmMenu);
+				else
+				{
+					if (!this.menu)
+					{
+						noPlayList();
+						return {};
+					}
+					if (playingSong)
+						initBroadcasts();
+					toPrepare(o, dmMenu);
+				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
 		}
@@ -1110,12 +1171,21 @@ package controllers
 				if (menu && dmMenu)
 				{
 					if (hasCached(menu._id) && hasCached(dmMenu._id))
+					{
+						initializing=false;
 						return;
+					}
 				}
 				else if (menu && hasCached(menu._id))
+				{
+					initializing=false;
 					return;
+				}
 				else if (dmMenu && hasCached(dmMenu._id))
+				{
+					initializing=false;
 					return;
+				}
 			}
 
 			progress='开始初始化内容';
@@ -1127,13 +1197,14 @@ package controllers
 				label=menu.name;
 				pv.menuID=menu._id;
 			}
-			if (dmMenu)
+			if (dmMenu && dmMenu._id)
 			{
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;
 			}
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
+				initializing=false;
 				progress='';
 				if (e.data)
 				{
@@ -1164,7 +1235,6 @@ package controllers
 			if (broadcasts)
 				pv.broadcasts=broadcasts.concat();
 			pv.label=label;
-//			pv.open();
 			PopupBoxManager.popup(pv);
 		}
 
@@ -1204,6 +1274,8 @@ package controllers
 
 		private function uploadUpdateLog():void
 		{
+			if (local)
+				return;
 			var so:SharedObject=updateLogSO;
 			var cached:SharedObject=cachedSO;
 			var log:Object=so.data.data;
@@ -1263,6 +1335,7 @@ package controllers
 
 		private function noPlayList():void
 		{
+			initializing=false;
 			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败', null, function():void
 			{
 				online=true
@@ -1321,6 +1394,8 @@ package controllers
 						insertBro=records[0];
 					else if (Capabilities.isDebugger && records[0].url)
 						insertBro=records[0];
+					else
+						insertBro=null;
 				}
 				bs=bs.concat(records);
 			}
@@ -1349,10 +1424,13 @@ package controllers
 		[Bindable]
 		public var playingIndex:int;
 
+		public var username:String;
+
 		public function login(username:String, password:String, callback:Function):void
 		{
 			username=username.replace(' ', '');
 			username=username.replace('：', ':');
+			this.username=username;
 			var f:File;
 			progress='连接云系统';
 			getSB('user/login').call(function(vo:ResultVO):void
@@ -1420,8 +1498,9 @@ package controllers
 
 		private function checkLog():void
 		{
-			if (!ServiceBase.id || !QNService.token)
+			if (!ServiceBase.id || !QNService.token || local)
 				return;
+			trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
 			if (file.exists && file.isDirectory)
 			{
@@ -1433,7 +1512,7 @@ package controllers
 					QNService.instance.upload(f, function(r:Object):void
 					{
 						var re:ResultVO=r as ResultVO;
-						if (re && re.status)
+						if (re && re.status && f.exists)
 							f.deleteFile();
 					}, {key: upName});
 				}
@@ -1480,6 +1559,8 @@ package controllers
 
 		public function checkUpdate():void
 		{
+			if (local)
+				return;
 			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);

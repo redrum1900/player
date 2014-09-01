@@ -53,14 +53,12 @@
 			protected function inited(event:FlexEvent):void
 			{
 				volumeSO=SharedObject.getLocal('yp');
-				if (volumeSO.data.volume)
+				if (volumeSO.data.volume != null)
 					vc1Volume=volumeSO.data.volume;
-				if (volumeSO.data.volume2)
+				if (volumeSO.data.volume2 != null)
 					vc2Volume=volumeSO.data.volume2;
-				if(vc1Volume)
-					vc1.volume = vc1Volume;
-				if(vc2Volume)
-					vc2.volume = vc2Volume;
+				vc1.volume = vc1Volume;
+				vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
 				//				t.start();
 				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
@@ -114,16 +112,16 @@
 							}
 							else
 							{
-								if (vo.errCode)
-								{
-									api.online=false;
-									api.getMenuList();
-								}
-								else
-								{
-									var l:LoginView=new LoginView();
-									PopupBoxManager.popup(l);
-								}
+//								if (vo.errCode)
+//								{
+								api.online=false;
+								api.getMenuList();
+//								}
+//								else
+//								{
+//									var l:LoginView=new LoginView();
+//									PopupBoxManager.popup(l);
+//								}
 							}
 						});
 					}
@@ -171,6 +169,7 @@
 			private var preMics:Array;
 //			private var preVolume:Number=volume;
 			private var micChanged:int;
+			private var plaiedDM:Object;
 
 			protected function playingHandler(event:DataEvent):void
 			{
@@ -201,6 +200,7 @@
 				else
 					trace(song1);
 				var value:Number=tt - pt;
+				trace(value);
 				if (value < 0)
 					play();
 				else if (dms)
@@ -209,25 +209,28 @@
 					var min:Number;
 					for each (var dm:InsertVO in dms)
 					{
-						var ns:Number=now.getTime() / 1000;
-						if (dm.playTime.date != now.date)
-							dm.playTime.date=now.date;
-						var ds:Number=dm.playTime.getTime() / 1000;
-						value=ns - ds;
-						var absValue:int=Math.abs(value);
-						min=min < absValue ? min : absValue;
-						if (absValue <= 1)
+						if(dm != plaiedDM)
 						{
-							playingDM=true;
-							insertBroOrDM(dm);
-							break;
+							var ns:Number=now.getTime() / 1000;
+							if (dm.playTime.date != now.date)
+								dm.playTime.date=now.date;
+							var ds:Number=dm.playTime.getTime() / 1000;
+							value=ns - ds;
+							var absValue:int=Math.abs(value);
+							min=min < absValue ? min : absValue;
+							if (absValue <= 1)
+							{
+								playingDM=true;
+								plaiedDM = dm;
+								insertBroOrDM(dm);
+								break;
+							}
 						}
 					}
 					value=min;
-					if (playingDM || (value > 0 && value < 60))
+					if (value > 0 && value < 60 && !playingDM)
 					{
-						if (value > 1)
-							time+=' ' + DateUtil.formateTime(value) + ' 后将插播DM';
+						time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dm.name;
 					}
 					else if (song2)
 					{
@@ -291,11 +294,27 @@
 			private var nearestSong:SongVO;
 			private var firstSong:SongVO;
 			private var vo:SongVO;
+			
+			private function validSongTime(vo:SongVO):Boolean
+			{
+				var b:Boolean;
+				var now:Date=api.now;
+				if(vo.playTime.date != now.date)
+					vo.playTime.date = now.date;
+				var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
+				var vn:Number=vo.playTime.getTime() - now.getTime();
+				if(result>1000 && result<vo.duration*1000)
+					b = true;
+				return b;
+			}
 
 			private function play():void
 			{
 				if (player1.playing || !api.songs || !api.songs.length)
 					return;
+				if(song1 && song2 && !randomPlay.selected && !api.isCurrentTimeLoop && !validSongTime(song2)){
+					song1 = null;
+				}
 				var now:Date=api.now;
 				var has:Boolean;
 				if (!randomPlay.selected)
@@ -365,11 +384,11 @@
 					AA.say('play');
 					time='准备开始播放 ' + vo.name;
 					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					trace(path);
+					trace(vo.name);
 					var f:File=new File(path);
 					now=api.now;
+					trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
 					var s:Number=now.getTime() - vo.playTime.getTime();
-					trace(DateUtil.getHMS(vo.playTime), s, DateUtil.getHMS(now));
 					if (f.exists)
 					{
 						player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
@@ -513,6 +532,7 @@
 			private const CLEAR_CACHE:String='CLEAR_CACHE';
 			private const FEEDBACK:String='FEEDBACK';
 			private const REMOTE_ACCOUNT:String='REMOTE_ACCOUNT';
+			private const ABOUT_SOFTWARE:String = 'ABOUT_SOFTWARE';
 
 			private function initMore():void
 			{
@@ -523,6 +543,7 @@
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
 				if(!api.local)
 					moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
+				moreMenu.addItem(getNMI('关于更多', ABOUT_SOFTWARE));
 //				moreMenu.addItem(getNMI('','', true));
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
@@ -541,6 +562,12 @@
 				trace(event.target.data);
 				switch (event.target.data)
 				{
+					case ABOUT_SOFTWARE:
+						var s:String = '缓存路径：'+FileManager.savedDir+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
+						if(api.username)
+							s = '账户名称：'+api.username+'\n'+s;
+						PAlert.show(s, '关于更多');
+						break;
 					case CLOSE:
 						NativeApplication.nativeApplication.exit();
 						break;
@@ -702,7 +729,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!player1.playing)
+				if (!player1.playing && !song1)
 					play();
 			}
 
@@ -831,7 +858,7 @@
 				{
 					if (sp.playing)
 					{
-						player2Time='开始插播DM：' + broDic[sp.url].name;
+						player2Time='开始插播：' + broDic[sp.url].name;
 						sp.muted=false;
 						hasDMPlaying=true;
 						break;
@@ -885,16 +912,20 @@
 				{
 					player2.volume=vc2Volume / 100;
 					player2.url=url;
-					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【停止】', '提示', null, function():void{
-						PAlert.show('确认要停止播放当前广播吗？', '提示', null, function(value:String):void{
-							if(value == PAlert.YES){
-								api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
-								player2.stop();
-								broPlayed();
+					broAlert = PAlert.show('播放广播:'+ivo.name+'中，如果要临时停止请点击【立即停止】，\n您可以点击【继续播放】或【关闭】按钮关闭提示框\n您可以通过调节【其它音调节】音量来调节广播音量', '提示', null, function(value:String):void{
+						if(value == PAlert.YES){
+							PAlert.show('确认要停止播放当前广播吗？', '提示', null, function(value:String):void{
+								if(value == PAlert.YES){
+									api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
+									player2.stop();
+									broPlayed();
+								}
 								broAlert = null;
-							}
-						},PAlert.YESNO);
-					}, PAlert.CONFIRM, '停止');
+							},PAlert.YESNO);
+						}else{
+							broAlert = null;
+						}
+					}, PAlert.YESNO, '立即停止','继续播放');
 				}, 800);
 			}
 			
