@@ -14,15 +14,12 @@
 
 			import mx.events.FlexEvent;
 
+			import spark.skins.mobile.TextInputSkin;
+
 			import controllers.API;
 
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				if (username.text.indexOf(':') == -1 && username.text.indexOf('：') == -1)
-				{
-					PAlert.show('抱歉，账户格式不对，需要按 “总部：分部” 的格式输入完整');
-					return;
-				}
 				loginBtn.enabled=false;
 				API.instance.login(username.text, password.text, function(vo:ResultVO):void
 				{
@@ -68,11 +65,11 @@
 	</components:layout>
 
 	<s:TextInput id="username"
-				 prompt="账户（总部:分部）"
-				 skinClass="skins.textinput.LoginTextInputSkin"/>
+				 prompt="用户名"
+				 skinClass="spark.skins.mobile.TextInputSkin"/>
 	<s:TextInput id="password"
-				 prompt="密码（6位数字）"
-				 skinClass="skins.textinput.LoginTextInputSkin"/>
+				 prompt="密码"
+				 skinClass="spark.skins.mobile.TextInputSkin"/>
 	<s:Spacer height="10"/>
 	<s:Button label="登录"
 			  id="loginBtn"

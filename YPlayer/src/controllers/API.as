@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.4.3';
+					so.data.version='1.5.5';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -101,7 +101,7 @@ package controllers
 			so.flush();
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
-			if (Capabilities.isDebugger)
+			if (o.debug)
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
@@ -224,6 +224,7 @@ package controllers
 			recordLog(logvo, function():void
 			{
 				appendLog('软件重启');
+				ANEToolkit.restart.rebootApp();
 				NativeApplication.nativeApplication.exit();
 			});
 		}
@@ -426,8 +427,6 @@ package controllers
 		}
 
 		private var rebootByCommand:Boolean;
-
-		public var playingInfo:String;
 
 		/**
 		 * 处理消息

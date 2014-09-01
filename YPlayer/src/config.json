@@ -2,5 +2,6 @@
 	"test":true,
 	"local":false,
 	"swf":"AndroidPlayer.swf",
+	"debug":false,
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json"
 }

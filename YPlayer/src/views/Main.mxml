@@ -626,27 +626,27 @@
 
 			protected function button3_clickHandler(event:MouseEvent):void
 			{
-				if(updateButton. label == '重启应用')
-				{
-					api.reboot();
-					return;
-				}
-				if (this.updating)
-					return;
-				updateButton.label='下载更新';
-				updating=true;
-				api.downloadUpdate(function(percent:Number):void{
-					if(!percent){
-						updateButton.label='下载更新';
-					}else{
-						percent=Math.round(percent * 100);
-						updateButton.label='进度' + percent + '%';
-						if(percent == 100){
-							updateButton.label = '重启应用';
-							updating = false;
-						}
-					}
-				});
+//				if(updateButton. label == '重启应用')
+//				{
+//					api.reboot();
+//					return;
+//				}
+//				if (this.updating)
+//					return;
+//				updateButton.label='下载更新';
+//				updating=true;
+//				api.downloadUpdate(function(percent:Number):void{
+//					if(!percent){
+//						updateButton.label='下载更新';
+//					}else{
+//						percent=Math.round(percent * 100);
+//						updateButton.label='进度' + percent + '%';
+//						if(percent == 100){
+//							updateButton.label = '重启应用';
+//							updating = false;
+//						}
+//					}
+//				});
 //				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
 //				{
 //					var percent:Number=e.bytesLoaded / e.bytesTotal;
@@ -1024,18 +1024,6 @@
 										 changing="vc2_changingHandler(event)"
 										 label="其它音调节"/>
 			<s:Spacer width="100%"/>
-			<s:Button fontSize="14"
-					  id="updateButton"
-					  color="0x191C1E"
-					  skinClass="skins.buttons.DefaultButtonSkin"
-					  visible="{API.instance.updatable}"
-					  click="button3_clickHandler(event)"
-					  label="更新"/>
-			<s:Button fontSize="14"
-					  color="0x191C1E"
-					  skinClass="skins.buttons.DefaultButtonSkin"
-					  click="button2_clickHandler(event)"
-					  label="隐藏"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.WarningButtonSkin"
 					  click="button1_clickHandler(event)"
