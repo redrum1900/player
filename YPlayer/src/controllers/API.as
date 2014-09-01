@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.4';
+					so.data.version='1.5.5';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -355,6 +355,8 @@ package controllers
 
 		private function checkLogin():void
 		{
+			if (local)
+				return;
 			if (!ServiceBase.id)
 			{
 				var so:SharedObject=SharedObject.getLocal('yp');
@@ -475,6 +477,12 @@ package controllers
 
 		public function recordLog(o:LogVO, callbck:Function=null):void
 		{
+			if (local)
+			{
+				if (callbck != null)
+					callbck();
+				return;
+			}
 			var so:SharedObject=SharedObject.getLocal('log');
 			var logs:Array=so.data.logs;
 			if (!logs)
@@ -499,6 +507,8 @@ package controllers
 
 		public function recordDM(ivo:InsertVO):void
 		{
+			if (local)
+				return;
 			var arr:Array=dmLogSO.data.plaied;
 			if (!arr)
 			{
@@ -1304,6 +1314,8 @@ package controllers
 
 		private function uploadUpdateLog():void
 		{
+			if (local)
+				return;
 			var so:SharedObject=updateLogSO;
 			var cached:SharedObject=cachedSO;
 			var log:Object=so.data.data;
@@ -1526,7 +1538,7 @@ package controllers
 
 		private function checkLog():void
 		{
-			if (!ServiceBase.id || !QNService.token)
+			if (!ServiceBase.id || !QNService.token || local)
 				return;
 			trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
@@ -1587,6 +1599,8 @@ package controllers
 
 		public function checkUpdate():void
 		{
+			if (local)
+				return;
 			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
