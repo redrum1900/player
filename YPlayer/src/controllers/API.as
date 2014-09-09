@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.5';
+					so.data.version='1.5.6';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -477,7 +477,7 @@ package controllers
 
 		public function recordLog(o:LogVO, callbck:Function=null):void
 		{
-			if (local)
+			if (local || Capabilities.isDebugger)
 			{
 				if (callbck != null)
 					callbck();
@@ -1121,6 +1121,7 @@ package controllers
 							arr.push(song);
 							songs.push(song);
 							duration=s.duration;
+							trace(playTime);
 							if (dmMenu && dmMenu.dm_list && !oo.loop)
 							{
 								var t1:Number=playTime.getTime();
@@ -1132,10 +1133,10 @@ package controllers
 									var t3:Number=dmivo.playTime.getTime();
 									if (t1 <= t3 && t3 <= t2)
 									{
-										dmarr.push(dmivo);
-										songs.push(dmivo);
-										dms.splice(dms.indexOf(dmivo), 1);
-										break;
+										if (dmarr.indexOf(dmivo) == -1)
+											dmarr.push(dmivo);
+										if (songs.indexOf(dmivo) == -1)
+											songs.push(dmivo);
 									}
 								}
 								if (dmarr.length)
@@ -1171,6 +1172,9 @@ package controllers
 					this.songs=songs;
 					this.songDMDic=songDMDic;
 					dmChanged=true;
+					if (playingSong)
+						playingIndex=songs.indexOf(playingSong);
+					AA.say('UPDATE');
 				}
 				if (updateForRecord)
 				{
@@ -1314,7 +1318,7 @@ package controllers
 
 		private function uploadUpdateLog():void
 		{
-			if (local)
+			if (local || Capabilities.isDebugger)
 				return;
 			var so:SharedObject=updateLogSO;
 			var cached:SharedObject=cachedSO;
@@ -1538,7 +1542,7 @@ package controllers
 
 		private function checkLog():void
 		{
-			if (!ServiceBase.id || !QNService.token || local)
+			if (!ServiceBase.id || !QNService.token || local || Capabilities.isDebugger)
 				return;
 			trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');

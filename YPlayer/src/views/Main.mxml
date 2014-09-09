@@ -207,6 +207,7 @@
 				{
 					var now:Date=api.now;
 					var min:Number;
+					var dmName:String;
 					for each (var dm:InsertVO in dms)
 					{
 						if(dm != plaiedDM)
@@ -217,7 +218,12 @@
 							var ds:Number=dm.playTime.getTime() / 1000;
 							value=ns - ds;
 							var absValue:int=Math.abs(value);
-							min=min < absValue ? min : absValue;
+							if(!min)
+								min = absValue;
+							if(min > absValue){
+								min = absValue;
+								dmName = dm.name;
+							}
 							if (absValue <= 1)
 							{
 								playingDM=true;
@@ -230,9 +236,9 @@
 					value=min;
 					if (value > 0 && value < 60 && !playingDM)
 					{
-						time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dm.name;
+						time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dmName;
 					}
-					else if (song2)
+					else if (song2 && !playingDM)
 					{
 						value=tt - pt;
 						time+=' ' + DateUtil.formateTime(value) + ' 后将播放：' + song2.name;
@@ -312,7 +318,8 @@
 			{
 				if (player1.playing || !api.songs || !api.songs.length)
 					return;
-				if(song1 && song2 && !randomPlay.selected && !api.isCurrentTimeLoop && !validSongTime(song2)){
+				if(song1 && song2 && !randomPlay.selected && !api.isCurrentTimeLoop && !validSongTime(song2))
+				{
 					song1 = null;
 				}
 				var now:Date=api.now;
@@ -665,7 +672,7 @@
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
 				var url:String=data.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + data.url).url;
 				broDic[url]=ivo;
-				time=data.playTime && data.playTime.valueOf() ? '开始插播DM：' : '开始广播：';
+				time=data.playTime && data.playTime.valueOf() ? '开始插播广播海报：' : '开始广播：';
 				time+=ivo.name;
 				if (ivo.repeat)
 				{

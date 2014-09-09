@@ -2,7 +2,7 @@
 	"test":false,
 	"local":false,
 	"auto_update":true,
-	"debug":false,
+	"debug":true,
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
 	"update":"http://yfcdn.qiniudn.com/file/update.json",
