@@ -106,11 +106,13 @@
 				if (r)
 				{
 					var pt:Date=DateUtil.getDateByHHMMSS(playTime.text);
-					for (var i:int; i < r; i++)
+					for (var i:int; i <= r; i++)
 					{
 						o={playTime: pt.getHours() + ':' + pt.getMinutes()};
 						o.dm={duration: soundLength, type: InsertVO.CUSTOMIZE_INSERT, url: nurl, name: broName.text};
 						arr.push(o);
+						if (!ri || ri < soundLength / 60)
+							ri=Math.ceil(soundLength / 60) + ri
 						pt.minutes+=ri;
 					}
 				}

@@ -255,17 +255,17 @@
 						{
 							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
 							var so:SharedObject=SharedObject.getLocal('yp');
-							var bros:Array=api.broadcasts;
-							var arr:Array=[];
-							for each (var o:Object in bros)
-							{
-								if (o.type == 1)
-								{
-									arr.push(o);
-								}
-							}
-							trace(vo.name);
-							so.data.records=arr;
+//							var bros:Array=api.broadcasts;
+//							var arr:Array=[];
+//							for each (var o:Object in bros)
+//							{
+//								if (o.type == 1)
+//								{
+//									arr.push(o);
+//								}
+//							}
+							trace(vo.name, vo.url);
+							so.data.records=[vo];
 							so.flush();
 
 							buttonsGroup.removeAllElements();

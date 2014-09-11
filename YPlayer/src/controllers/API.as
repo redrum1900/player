@@ -79,6 +79,10 @@ package controllers
 			local=o.local;
 			autoUpadte=o.auto_update;
 			config=o;
+
+			if (isTest)
+				enableFunctions.push('insert');
+
 			var so:SharedObject;
 			so=SharedObject.getLocal('sn');
 			if (!so.data.sn)
@@ -1077,7 +1081,7 @@ package controllers
 				{
 					var d1:Date;
 					if (o.playTime is Date)
-						d1=o.playTime;
+						d1=DateUtil.clone(o.playTime);
 					else
 						d1=DateUtil.getDateByHHMMSS(o.playTime);
 					var v1:Number=d1.getTime();
@@ -1089,10 +1093,11 @@ package controllers
 						var v3:Number=d.getTime();
 						d.seconds+=o2.dm.duration;
 						var v4:Number=d.getTime();
-						if ((v3 > v1 && v3 < v2) || (v4 > v1 && v4 < v2))
+						if ((v3 >= v1 && v3 <= v2) || (v4 >= v1 && v4 <= v2))
 						{
+							d1.seconds-=o.duration;
 							var op:String=d1.getHours() + ':' + d1.getMinutes();
-							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的' + o.name + ' 时间冲突，请调整您的播放时间');
+							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的 ' + o.name + ' 时间冲突，请调整您的播放时间');
 							return false;
 						}
 					}
@@ -1281,7 +1286,9 @@ package controllers
 						this.dmMenu=dmMenu;
 						this.songs=songs;
 						this.songDMDic=songDMDic;
+						AA.say('UPDATE');
 					}
+					initializing=false;
 				}
 				else if (dmMenu && dateValidate(dmMenu.begin_date, dmMenu.end_date))
 				{
@@ -1292,6 +1299,7 @@ package controllers
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
 					AA.say('UPDATE');
+					initializing=false;
 				}
 				if (updateForRecord)
 				{
@@ -1301,6 +1309,7 @@ package controllers
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
 					AA.say('UPDATE');
+					initializing=false;
 					updateForRecord=false;
 				}
 				else
@@ -1560,7 +1569,7 @@ package controllers
 				}
 				bs=bs.concat(records);
 			}
-			if (local)
+			if (local || enabledInsert())
 			{
 				bs.push({name: '定制插播', type: 2});
 			}

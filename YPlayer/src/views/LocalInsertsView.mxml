@@ -6,7 +6,7 @@
 					 title="插播管理"
 					 width="680"
 					 height="400"
-					 creationComplete="popupbox1_creationCompleteHandler(event)"
+					 creationComplete="inited(event)"
 					 xmlns:components1="views.components.*">
 
 	<fx:Script>
@@ -45,7 +45,7 @@
 			public var curentMenu:MenuVO;
 			private var menus:Array;
 
-			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
+			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
 				menus=api.getLocalDMS();

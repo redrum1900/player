@@ -1,6 +1,6 @@
 {
-	"test":false,
-	"local":true,
+	"test":true,
+	"local":false,
 	"auto_update":true,
 	"debug":false,
 	"exe":"乐播.exe",

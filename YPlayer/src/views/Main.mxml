@@ -671,9 +671,10 @@
 				var ivo:InsertVO=data;
 				var url:String;
 				if(URLUtil.isHttp(ivo.url))
-					url = new File(FileManager.savedDir + data.url).url;
+					url = new File(FileManager.savedDir + URLUtil.getCachePath(ivo.url)).url
 				else
 					url = ivo.url;
+//				var url:String=data.url.indexOf('recorded') == -1 ? new File(naiveURL).url : 
 				broDic[url]=ivo;
 				time=data.playTime && data.playTime.valueOf() ? '开始插播广播海报：' : '开始广播：';
 				time+=ivo.name;
