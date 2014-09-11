@@ -23,6 +23,7 @@
 
 			import controllers.API;
 
+			import models.InsertVO;
 			import models.LogVO;
 			private var api:API;
 			[Bindable]
@@ -93,7 +94,7 @@
 				{
 					for each (var bro:Object in broadcasts)
 					{
-						if (bro.type != 1)
+						if (bro.type != InsertVO.CUSTOMIZE_BRO && bro.type != InsertVO.CUSTOMIZE_INSERT)
 							songs.push(bro);
 					}
 				}
@@ -172,7 +173,7 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
-					if (vo.url.indexOf('http') == -1 && vo.type != 5)
+					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
 						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);

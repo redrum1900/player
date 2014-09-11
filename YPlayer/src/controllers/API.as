@@ -59,6 +59,7 @@ package controllers
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
 
 		public var enableFunctions:Array=['record'];
+//		public var enableFunctions:Array=['record', 'insert'];
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
@@ -91,7 +92,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.6';
+					so.data.version='1.5.8';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -115,9 +116,9 @@ package controllers
 			}
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
+			so=SharedObject.getLocal('yp');
 			if (local)
 			{
-				so=SharedObject.getLocal('yp');
 				so.data.username=o.username;
 				so.flush();
 				online=false;
@@ -128,11 +129,42 @@ package controllers
 				getUploadToken();
 				getNowTime();
 			}
+			if (local || enabledInsert())
+			{
+				if (!so.data.localDMS)
+				{
+					var dmm:MenuVO=new MenuVO();
+					dmm.type=MenuVO.DM;
+					dmm.begin_date=now;
+					dmm.end_date=now;
+					dmm.name='默认列表';
+					so.data.localDMS=[dmm];
+					so.flush();
+				}
+			}
 			setYPData('startup', new Date().getTime());
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 			startAtLogin();
+		}
+
+		private function enabledInsert():Boolean
+		{
+			return enableFunctions.indexOf('insert') != -1;
+		}
+
+		public function getLocalDMS():Array
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			return CloneUtil.convertArrayObjects(so.data.localDMS, MenuVO);
+		}
+
+		public function updateLocalDMS(arr:Array):void
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			so.data.localDMS=arr;
+			so.flush();
 		}
 
 		public function initUncaughtErrorListener(loaderInfo:Object):void
@@ -1045,7 +1077,10 @@ package controllers
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
 					ivo.duration=dm.dm.duration;
-					ivo.url=QNService.HOST + dm.dm.url;
+					if (dm.dm.url.indexOf('inserted') != -1)
+						ivo.url=new File(FileManager.savedDir + dm.dm.url).url;
+					else
+						ivo.url=QNService.HOST + dm.dm.url;
 					ivo.repeat=dm.repeat;
 					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime);
 					ivo.interval=dm.interval;
@@ -1053,8 +1088,12 @@ package controllers
 				}
 				dmMenu.dm_list=a;
 			}
+			else if (local || enabledInsert())
+			{
+				dmMenu=getLocalDMS()
+			}
 
-			if (isJKL() && insertBro)
+			if (needInsert() && insertBro)
 			{
 				if (!dmMenu)
 				{
@@ -1066,12 +1105,15 @@ package controllers
 				while (bd.getTime() < ed.getTime())
 				{
 					ivo=new InsertVO();
-					ivo.type=5;
+					ivo.type=InsertVO.AUTO_INSERT;
 					ivo.name=insertBro.name;
 					ivo.url=insertBro.url;
 					ivo.playTime=DateUtil.clone(bd);
 					a.push(ivo);
-					bd.minutes+=30;
+					if (isLQ())
+						bd.minutes+=15;
+					else
+						bd.minutes+=30;
 				}
 			}
 
@@ -1434,7 +1476,7 @@ package controllers
 				}
 				else
 				{
-					if (isJKL() && records[0].url)
+					if (needInsert() && records[0].url)
 						insertBro=records[0];
 					else if (Capabilities.isDebugger && records[0].url)
 						insertBro=records[0];
@@ -1442,6 +1484,10 @@ package controllers
 						insertBro=null;
 				}
 				bs=bs.concat(records);
+			}
+			if (local)
+			{
+				bs.push({name: '定制插播', type: 2});
 			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
 			var arr:Array=[];
@@ -1454,6 +1500,20 @@ package controllers
 				}
 			}
 			broadcasts=arr;
+		}
+
+		private function needInsert():Boolean
+		{
+			return isLQ() || isJKL();
+		}
+
+		private function isLQ():Boolean
+		{
+			if (Capabilities.isDebugger)
+				return true;
+			var so:SharedObject=SharedObject.getLocal('yp');
+			var un:String=so.data.username;
+			return un.indexOf('利群') != -1;
 		}
 
 		private function isJKL():Boolean

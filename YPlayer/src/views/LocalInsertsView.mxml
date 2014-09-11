@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="插播管理"
+					 width="680"
+					 height="400"
+					 creationComplete="popupbox1_creationCompleteHandler(event)"
+					 xmlns:components1="views.components.*">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.utils.DateUtil;
+
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+
+			import controllers.API;
+
+			import events.ODataEvent;
+
+			import models.MenuVO;
+			private var api:API;
+			[Bindable]
+			private var insertedMenus:ArrayCollection;
+
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+
+			}
+
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+
+			}
+
+			[Bindable]
+			private var dms:ArrayCollection;
+
+			[Bindable]
+			private var label:String;
+
+			public var curentMenu:MenuVO;
+			private var menus:Array;
+
+			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				api=API.instance;
+				menus=api.getLocalDMS();
+				curentMenu=menus[0];
+				curentMenu.selected=true;
+				insertedMenus=new ArrayCollection(menus);
+				updateLable();
+
+				addEventListener(ODataEvent.DELETED, function(e:ODataEvent):void
+				{
+					curentMenu.dm_list.splice(curentMenu.dm_list.indexOf(e.data), 1);
+					refresh();
+				});
+			}
+
+			private function updateLable():void
+			{
+				label='开始日期：' + DateUtil.getYMD(curentMenu.begin_date) + ' 结束日期：' + DateUtil.getYMD(curentMenu.end_date);
+				dms=new ArrayCollection(curentMenu.dm_list);
+			}
+
+			protected function nativemenubutton1_changeHandler(event:ODataEvent):void
+			{
+				curentMenu=event.data as MenuVO;
+				updateLable();
+			}
+
+			[Bindable]
+			private var tempMenu:MenuVO;
+
+			protected function editMenu_clickHandler(event:MouseEvent):void
+			{
+				currentState='s2';
+				tempMenu=curentMenu;
+			}
+
+			protected function addMenu_clickHandler(event:MouseEvent):void
+			{
+				currentState='s2';
+				tempMenu=new MenuVO();
+				tempMenu.begin_date=api.now;
+				tempMenu.end_date=api.now;
+			}
+
+			protected function cancelMenu_clickHandler(event:MouseEvent):void
+			{
+				currentState='s1';
+			}
+
+			protected function confirmMenu_clickHandler(event:MouseEvent):void
+			{
+				if (!menuName.text)
+				{
+					PAlert.show('列表名称不能为空');
+					return;
+				}
+				tempMenu.name=menuName.text;
+				tempMenu.begin_date=DateUtil.getDateByYMD(beginDate.text);
+				tempMenu.end_date=DateUtil.getDateByYMD(endDate.text);
+				if (!tempMenu.begin_date || !tempMenu.end_date)
+				{
+					PAlert.show('列表开始截止日期不能为空');
+					return;
+				}
+				else if (tempMenu.begin_date.getTime() > tempMenu.end_date.getTime())
+				{
+					PAlert.show('列表开始日期不能超过截止日期');
+				}
+				if (tempMenu == curentMenu)
+				{
+				}
+				else
+				{
+					menus.push(tempMenu);
+					curentMenu=tempMenu;
+				}
+				api.updateLocalDMS(menus);
+//				tempMenu.selected=true;
+				insertedMenus=new ArrayCollection(menus);
+				menuList.selectedItem=tempMenu;
+				currentState='s1';
+				updateLable();
+			}
+
+			protected function insertDM_addHandler(event:ODataEvent):void
+			{
+				var arr:Array=event.data as Array;
+				if (!curentMenu.dm_list)
+					curentMenu.dm_list=[];
+				curentMenu.dm_list=curentMenu.dm_list.concat(arr);
+				refresh();
+			}
+
+			private function refresh():void
+			{
+				api.updateLocalDMS(menus);
+				api.updateForRecord=true;
+				api.initMenu();
+				updateLable();
+			}
+		]]>
+	</fx:Script>
+
+	<components:layout>
+		<s:VerticalLayout paddingLeft="25"
+						  paddingRight="25"
+						  paddingBottom="25"
+						  paddingTop="25"
+						  gap="20"/>
+	</components:layout>
+	<components:states>
+		<s:State name="s1"/>
+		<s:State name="s2"/>
+		<s:State name="s3"/>
+	</components:states>
+
+	<s:HGroup includeIn="s1"
+			  width="100%"
+			  verticalAlign="middle">
+		<components:NativeMenuButton toolTip="列表名称，点击切换列表"
+									 id="menuList"
+									 labelField="name"
+									 change="nativemenubutton1_changeHandler(event)"
+									 skinClass="skins.buttons.PrimaryButtonSkin"
+									 dataProvider="{insertedMenus}"/>
+		<s:Label fontSize="12"
+				 text="{label}"
+				 width="100%"/>
+		<s:Button skinClass="skins.buttons.DefaultButtonSkin"
+				  label="编辑"
+				  id="editMenu"
+				  click="editMenu_clickHandler(event)"/>
+		<s:Button skinClass="skins.buttons.DefaultButtonSkin"
+				  label="新增"
+				  toolTip="新增插播列表"
+				  id="addMenu"
+				  click="addMenu_clickHandler(event)"/>
+	</s:HGroup>
+	<s:HGroup includeIn="s2"
+			  width="100%"
+			  verticalAlign="middle">
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="menuName"
+					 text="{tempMenu.name}"
+					 prompt="输入列表名称"
+					 toolTip="插播列表名称"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="beginDate"
+					 toolTip="开始日期"
+					 text="{DateUtil.getYMD(tempMenu.begin_date)}"
+					 width="100"
+					 restrict="0-9/"
+					 prompt="2014/9/9"
+					 maxChars="10"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="endDate"
+					 toolTip="结束日期"
+					 text="{DateUtil.getYMD(tempMenu.end_date)}"
+					 width="100"
+					 restrict="0-9/"
+					 prompt="2014/9/9"
+					 maxChars="10"/>
+		<s:Spacer width="100%"/>
+		<s:Button id="confirmMenu"
+				  enabled="{menuName.text}"
+				  click="confirmMenu_clickHandler(event)"
+				  skinClass="skins.buttons.PrimaryButtonSkin"
+				  label="保存"/>
+		<s:Button id="cancelMenu"
+				  click="cancelMenu_clickHandler(event)"
+				  skinClass="skins.buttons.WarningButtonSkin"
+				  label="取消"/>
+	</s:HGroup>
+	<components1:InsertDM id="insertDM"
+						  vo="{dmsList.selectedItem}"
+						  addDMS="insertDM_addHandler(event)"/>
+	<s:List width="100%"
+			id="dmsList"
+			itemRenderer="views.components.itemRenderers.DMItem"
+			dataProvider="{dms}"
+			height="100%"/>
+
+</components:PopupBox>

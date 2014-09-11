@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%">
+
+	<fx:Metadata>
+		[Event(name="addDMS", type="events.ODataEvent")]
+	</fx:Metadata>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.components.controls.SoundPlayer;
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.utils.DateUtil;
+			import com.pamakids.utils.FileHelper;
+
+			import controllers.API;
+
+			import events.ODataEvent;
+
+			import models.InsertVO;
+
+			[Bindable]
+			public var vo:Object;
+
+			protected function addInsert_clickHandler(event:MouseEvent):void
+			{
+				currentState='s2';
+				vo=null;
+			}
+
+			protected function removeInsert_clickHandler(event:MouseEvent):void
+			{
+
+			}
+
+			protected function choose_clickHandler(event:MouseEvent):void
+			{
+				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择插播声音文件', [new FileFilter('插播声音文件', '*.mp3')]);
+			}
+
+			private var selectedFile:File;
+			[Bindable]
+			private var fname:String;
+
+			private var sp:SoundPlayer;
+
+			private function selectedHandler(f:File):void
+			{
+				selectedFile=f;
+				fname=f.name;
+				fname=fname.replace('.mp3', '');
+				if (!sp)
+				{
+					sp=new SoundPlayer();
+					sp.muted=true;
+					sp.autoPlay=true;
+					sp.addEventListener("playing", playingHandler);
+				}
+				sp.url=f.url;
+			}
+
+			[Bindable]
+			private var soundLength:Number;
+
+			protected function playingHandler(event:DataEvent):void
+			{
+				if (sp && sp.soundLength)
+				{
+					soundLength=sp.soundLength;
+					clearSP();
+				}
+			}
+
+			private function clearSP():void
+			{
+				if (sp)
+				{
+					sp.stop();
+					sp=null;
+				}
+			}
+
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+				if (!broName.text)
+				{
+					PAlert.show('插播名称不能为空');
+					return;
+				}
+
+				if (!checkTime())
+				{
+					PAlert.show('播放时间格式不对，请按 小时:分钟 24小时格式输入，比如18:00表示下午6点');
+					return;
+				}
+				var nurl:String='inserted/' + selectedFile.name;
+				var path:String=FileManager.savedDir + nurl;
+				var o:Object;
+
+				var arr:Array=[];
+				var r:int=int(repeatTime.text);
+				var ri:int=int(repeatInterval.text);
+				if (r)
+				{
+					var pt:Date=DateUtil.getDateByHHMMSS(playTime.text);
+					for (var i:int; i < r; i++)
+					{
+						o={playTime: pt.getHours() + ':' + pt.getMinutes()};
+						o.dm={duration: soundLength, type: InsertVO.CUSTOMIZE_INSERT, url: nurl, name: broName.text};
+						arr.push(o);
+						pt.minutes+=ri;
+					}
+				}
+				else
+				{
+					o={playTime: playTime.text};
+					o.dm={duration: soundLength, type: InsertVO.CUSTOMIZE_INSERT, url: nurl, name: broName.text};
+					arr.push(o);
+				}
+
+				var dms:Array=API.instance.dmMenu.dm_list;
+				if (dms)
+				{
+					for each (o in dms)
+					{
+						var d1:Date=o.playTime;
+						var v1:Number=d1.getTime();
+						d1.seconds+=o.duration;
+						var v2:Number=d1.getTime();
+						for each (var o2:Object in arr)
+						{
+							var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
+							var v3:Number=d.getTime();
+							if (v3 > v1 && v3 < v2)
+							{
+								PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + o.name + '插播冲突');
+								return;
+							}
+						}
+					}
+				}
+
+				dispatchEvent(new ODataEvent(arr, 'addDMS'));
+
+				selectedFile.copyTo(new File(path), true);
+				currentState='s1';
+			}
+
+			private function checkTime():Boolean
+			{
+				var p:String=playTime.text;
+				p=p.replace('：', ':');
+				var wrong:Boolean;
+				if (p.indexOf(':') == -1)
+				{
+					wrong=true;
+				}
+				else
+				{
+					var a1:Array=p.split(':');
+					if (a1.length != 2)
+					{
+						wrong=true;
+					}
+					else
+					{
+						var h:int=parseInt(a1[0]);
+						var m:int=parseInt(a1[1]);
+						if (h < 0 || h > 23 || m < 0 || m > 60)
+						{
+							wrong=true;
+						}
+					}
+				}
+				if (wrong)
+				{
+					confirm.toolTip='播放时间格式不对，请按 小时:分钟 24小时格式输入，比如18:00表示下午6点';
+					return false;
+				}
+				playTime.text=p;
+				confirm.toolTip='';
+				return true
+			}
+
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+				currentState='s1';
+			}
+		]]>
+	</fx:Script>
+
+	<s:states>
+		<s:State name="s1"/>
+		<s:State name="s2"/>
+	</s:states>
+
+	<s:HGroup includeIn="s1">
+		<s:Button skinClass="skins.buttons.DefaultButtonSkin"
+				  label="添加插播"
+				  id="addInsert"
+				  click="addInsert_clickHandler(event)"/>
+	</s:HGroup>
+
+	<s:HGroup includeIn="s2"
+			  verticalAlign="middle">
+
+		<s:Button id="choose"
+				  click="choose_clickHandler(event)"
+				  toolTip="{fname}"
+				  skinClass="skins.buttons.PrimaryButtonSkin"
+				  label="选择插播文件"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="broName"
+					 text="{fname}"
+					 width="130"
+					 prompt="输入插播名称"
+					 toolTip="插播名称"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="playTime"
+					 toolTip="插播时间，比如 18:00"
+					 width="88"
+					 restrict="0-9:："
+					 maxChars="5"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="repeatTime"
+					 toolTip="循环次数，比如 1"
+					 width="50"
+					 restrict="0-9"
+					 maxChars="2"/>
+		<s:TextInput skinClass="skins.textinput.DefaultTextInputSkin"
+					 id="repeatInterval"
+					 toolTip="间隔时间(分钟)，比如 15"
+					 width="50"
+					 restrict="0-9"
+					 maxChars="2"/>
+		<s:Spacer width="100%"/>
+		<s:Button id="confirm"
+				  enabled="{soundLength &amp;&amp; broName.text &amp;&amp; playTime.text}"
+				  rollOver="checkTime()"
+				  click="confirm_clickHandler(event)"
+				  skinClass="skins.buttons.PrimaryButtonSkin"
+				  label="确认"/>
+		<s:Button id="cancel"
+				  click="cancel_clickHandler(event)"
+				  skinClass="skins.buttons.WarningButtonSkin"
+				  label="取消"/>
+	</s:HGroup>
+</s:Group>

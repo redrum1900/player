@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				width="100%"
+				autoDrawBackground="false">
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.utils.DateUtil;
+
+			import events.ODataEvent;
+
+			override public function set data(value:Object):void
+			{
+				super.data=value;
+				if (data)
+				{
+					var s:String='插播名称：' + data.dm.name + '    播放时间：' + data.playTime;
+					var d:Date=DateUtil.getDateByHHMMSS(data.playTime);
+					d.seconds+=data.dm.duration;
+					s+='    结束时间：' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+					labelInfo=s;
+				}
+			}
+
+			[Bindable]
+			private var labelInfo:String;
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				PAlert.show('确认移除吗？', '提示', null, function(v:String):void
+				{
+					if (v == PAlert.YES)
+					{
+						dispatchEvent(new ODataEvent(data, ODataEvent.DELETED, true));
+					}
+				}, PAlert.YESNO);
+
+			}
+		]]>
+	</fx:Script>
+
+	<s:HGroup verticalAlign="middle"
+			  paddingLeft="10"
+			  paddingRight="10"
+			  paddingBottom="5"
+			  width="100%"
+			  paddingTop="5">
+		<s:Label text="{labelInfo}"
+				 width="100%"/>
+		<s:Button label="移除"
+				  skinClass="skins.buttons.DangerButtonSkin"
+				  click="button1_clickHandler(event)"/>
+	</s:HGroup>
+
+</s:ItemRenderer>

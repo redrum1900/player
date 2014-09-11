@@ -16,7 +16,6 @@
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
@@ -30,7 +29,6 @@
 
 			import models.InsertVO;
 			import models.LogVO;
-			import models.MenuVO;
 			import models.TimeVO;
 
 			import skins.buttons.DangerButtonSkin;
@@ -112,15 +110,18 @@
 					}
 				}
 
-				if (o.type == 1)
+				if (o.type == InsertVO.CUSTOMIZE_BRO || o.type == InsertVO.CUSTOMIZE_INSERT)
 				{
 					b.setStyle('skinClass', WarningButtonSkin);
-					var bm:NativeMenu=new NativeMenu();
-					bm.addEventListener(Event.SELECT, navHandler);
-					var ni:NativeMenuItem=new NativeMenuItem('编辑');
-					ni.data=o;
-					bm.addItem(ni);
-					b.contextMenu=bm;
+					if (o.type == InsertVO.CUSTOMIZE_BRO)
+					{
+						var bm:NativeMenu=new NativeMenu();
+						bm.addEventListener(Event.SELECT, navHandler);
+						var ni:NativeMenuItem=new NativeMenuItem('编辑');
+						ni.data=o;
+						bm.addItem(ni);
+						b.contextMenu=bm;
+					}
 				}
 				else
 				{
@@ -210,7 +211,7 @@
 				}
 				else
 				{
-					if (o.type == 1)
+					if (o.type == InsertVO.CUSTOMIZE_BRO)
 					{
 						if (o.url)
 						{
@@ -224,6 +225,16 @@
 						}
 						else
 							record(o as InsertVO);
+					}
+					else if (o.type == InsertVO.CUSTOMIZE_INSERT)
+					{
+						liv=new LocalInsertsView();
+						PopupBoxManager.popup(liv, function():void
+						{
+							api.updateForRecord=true;
+							api.initMenu();
+							liv=null;
+						});
 					}
 					else if (o.url)
 						dispatchEvent(new ODataEvent(o));
@@ -270,6 +281,7 @@
 							lp.dispatchEvent(new Event('stopRecord'));
 							api.updateForRecord=true;
 							api.initMenu();
+							rbv=null;
 						});
 					}
 				}, PAlert.YESNO);
@@ -309,6 +321,7 @@
 //					trace('all bro loaded', loaded);
 //				}
 //			}
+			private var liv:LocalInsertsView;
 
 			protected function bb_changeHandler(event:IndexChangeEvent):void
 			{
