@@ -850,7 +850,7 @@ package controllers
 			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			var n:Date=now;
-			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
+			n=new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0, 0);
 			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
 		}
 
@@ -1047,6 +1047,60 @@ package controllers
 		public var dmMenu:Object;
 		public var updateForRecord:Boolean;
 
+		private function getLocalInsertedMenu():MenuVO
+		{
+			var mvo:MenuVO;
+			var arr:Array=getLocalDMS();
+			var latest:Number;
+			for each (var vo:MenuVO in arr)
+			{
+				trace(DateUtil.getYMD(vo.begin_date));
+				trace(DateUtil.getYMD(vo.end_date));
+				trace(DateUtil.getYMD(now));
+				if (menuValid(vo))
+				{
+					if (!mvo && vo.dm_list && vo.dm_list.length)
+						mvo=vo;
+					else if (vo.dm_list && vo.dm_list.length)
+						mvo.dm_list=mvo.dm_list.concat(vo.dm_list);
+				}
+			}
+			return mvo;
+		}
+
+		public function checkLocalInsert(locals:Array, others:Array):Boolean
+		{
+			var dms:Array=others
+			if (dms)
+			{
+				for each (var o:Object in dms)
+				{
+					var d1:Date;
+					if (o.playTime is Date)
+						d1=o.playTime;
+					else
+						d1=DateUtil.getDateByHHMMSS(o.playTime);
+					var v1:Number=d1.getTime();
+					d1.seconds+=o.duration;
+					var v2:Number=d1.getTime();
+					for each (var o2:Object in locals)
+					{
+						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
+						var v3:Number=d.getTime();
+						d.seconds+=o2.dm.duration;
+						var v4:Number=d.getTime();
+						if ((v3 > v1 && v3 < v2) || (v4 > v1 && v4 < v2))
+						{
+							var op:String=d1.getHours() + ':' + d1.getMinutes();
+							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的' + o.name + ' 时间冲突，请调整您的播放时间');
+							return false;
+						}
+					}
+				}
+			}
+			return true;
+		}
+
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
 			var o:Object=songMenu;
@@ -1062,8 +1116,17 @@ package controllers
 			parseBroadcasts();
 			var ivo:InsertVO;
 			var a:Array=[];
+			var localInsertedMenu:MenuVO;
+			if (local || enabledInsert())
+			{
+				localInsertedMenu=getLocalInsertedMenu();
+				if (!dmMenu)
+					dmMenu=localInsertedMenu;
+			}
 			if (dmMenu && dmMenu.dm_list)
 			{
+				if (localInsertedMenu && dmMenu != localInsertedMenu)
+					dmMenu.dm_list=dmMenu.dm_list.concat(localInsertedMenu.dm_list);
 				for each (var dm:Object in dmMenu.dm_list)
 				{
 					if (dm.day)
@@ -1077,6 +1140,8 @@ package controllers
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
 					ivo.duration=dm.dm.duration;
+					if (dm.type)
+						ivo.type=dm.type;
 					if (dm.dm.url.indexOf('inserted') != -1)
 						ivo.url=new File(FileManager.savedDir + dm.dm.url).url;
 					else
@@ -1087,10 +1152,6 @@ package controllers
 					a.push(ivo);
 				}
 				dmMenu.dm_list=a;
-			}
-			else if (local || enabledInsert())
-			{
-				dmMenu=getLocalDMS()
 			}
 
 			if (needInsert() && insertBro)
@@ -1107,7 +1168,7 @@ package controllers
 					ivo=new InsertVO();
 					ivo.type=InsertVO.AUTO_INSERT;
 					ivo.name=insertBro.name;
-					ivo.url=insertBro.url;
+					ivo.url=new File(FileManager.savedDir + insertBro.url).url;
 					ivo.playTime=DateUtil.clone(bd);
 					a.push(ivo);
 					if (isLQ())
@@ -1117,11 +1178,26 @@ package controllers
 				}
 			}
 
+			if (dmMenu && dmMenu)
+			{
+				dmMenu.dm_list.sort(function(a:Object, b:Object):int
+				{
+					if (a.playTime.getTime() < b.playTime.getTime())
+						return -1
+					else if (a.playTime.getTime() > b.playTime.getTime())
+						return 1
+					else
+						return 0
+				});
+			}
+
 			if (o && o.list)
 			{
 				var dms:Array=[];
 				if (dmMenu && dmMenu.dm_list)
+				{
 					dms=dmMenu.dm_list.concat();
+				}
 				var playTime:Date;
 				var i:int;
 				for (i=0; i < o.list.length; i++)
@@ -1163,7 +1239,6 @@ package controllers
 							arr.push(song);
 							songs.push(song);
 							duration=s.duration;
-							trace(playTime);
 							if (dmMenu && dmMenu.dm_list && !oo.loop)
 							{
 								var t1:Number=playTime.getTime();
@@ -1193,7 +1268,7 @@ package controllers
 					}
 					oo.songs=arr;
 				}
-				trace(dms.length);
+				trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			if (!onlyParse)

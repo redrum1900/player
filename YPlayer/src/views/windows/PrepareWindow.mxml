@@ -173,8 +173,8 @@
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
-					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
-						vo.url=QNService.HOST + vo.url;
+//					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
+//						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					file=new File(s);
 

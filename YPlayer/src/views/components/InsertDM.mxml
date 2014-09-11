@@ -69,7 +69,7 @@
 			{
 				if (sp && sp.soundLength)
 				{
-					soundLength=sp.soundLength;
+					soundLength=sp.soundLength / 1000;
 					clearSP();
 				}
 			}
@@ -121,27 +121,13 @@
 					arr.push(o);
 				}
 
-				var dms:Array=API.instance.dmMenu.dm_list;
-				if (dms)
-				{
-					for each (o in dms)
-					{
-						var d1:Date=o.playTime;
-						var v1:Number=d1.getTime();
-						d1.seconds+=o.duration;
-						var v2:Number=d1.getTime();
-						for each (var o2:Object in arr)
-						{
-							var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
-							var v3:Number=d.getTime();
-							if (v3 > v1 && v3 < v2)
-							{
-								PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + o.name + '插播冲突');
-								return;
-							}
-						}
-					}
-				}
+				var b:Boolean;
+				b=API.instance.checkLocalInsert(arr, arr);
+				if (!b)
+					return;
+				b=API.instance.checkLocalInsert(arr, API.instance.dmMenu.dm_list);
+				if (!b)
+					return;
 
 				dispatchEvent(new ODataEvent(arr, 'addDMS'));
 
