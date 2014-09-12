@@ -60,7 +60,7 @@
 
 			protected function updater_errorHandler(event:ErrorEvent):void
 			{
-				trace(event.toString());
+				Log.trace(event.toString());
 			}
 
 			private function enter():void
@@ -71,6 +71,16 @@
 			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
 			{
 				API.instance.initUncaughtErrorListener(loaderInfo);
+				if (API.instance.showTrace)
+					Log.trace=function(... args):void
+					{
+						if (ta.text.length > 2000)
+							ta.text='';
+						for each (var o:Object in args)
+						{
+							ta.appendText(o + '\n');
+						}
+					}
 			}
 		]]>
 	</fx:Script>
@@ -155,5 +165,12 @@
 			 verticalAlign="middle"
 			 paddingTop="180"
 			 color="0x2E80D5"/>
+
+	<s:TextArea id="ta"
+				alpha="0.8"
+				visible="{API.instance.showTrace}"
+				includeInLayout="{API.instance.showTrace}"
+				width="50%"
+				height="50%"/>
 
 </s:WindowedApplication>

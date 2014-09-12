@@ -57,6 +57,8 @@ package controllers
 		public var online:Boolean=true;
 		public var isTest:Boolean=false;
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
+		[Bindable]
+		public var showTrace:Boolean=false; //是否显示trace信息面板
 
 		public var enableFunctions:Array=['record'];
 //		public var enableFunctions:Array=['record', 'insert'];
@@ -78,6 +80,7 @@ package controllers
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
+			showTrace=o.trace;
 			config=o;
 
 			if (isTest)
