@@ -71,7 +71,7 @@
 			private function checkStatus():void
 			{
 				var s:Object=API.instance.playingSong;
-				if (s && s.playTime.getTime() == data.playTime.getTime())
+				if (data && s && s.playTime.getTime() == data.playTime.getTime())
 					c=0x2E80D5;
 				else if (data is SongVO)
 					c=0xd9dee3;

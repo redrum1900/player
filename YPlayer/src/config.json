@@ -1,5 +1,5 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"swf":"AndroidPlayer.swf",
 	"debug":false,
