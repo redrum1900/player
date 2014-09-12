@@ -3,5 +3,6 @@
 	"local":false,
 	"swf":"AndroidPlayer.swf",
 	"debug":false,
+	"autoUpadte":true,
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json"
 }

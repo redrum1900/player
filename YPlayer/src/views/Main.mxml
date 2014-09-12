@@ -198,9 +198,9 @@
 				if (song1)
 					time=time + '正在播放：' + song1.name;
 				else
-					trace(song1);
+					Log.trace(song1);
 				var value:Number=tt - pt;
-				trace(value);
+				Log.trace(value);
 				if (value < 0)
 					play();
 				else if (dms)
@@ -384,10 +384,10 @@
 					AA.say('play');
 					time='准备开始播放 ' + vo.name;
 					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					trace(vo.name);
+					Log.trace(vo.name);
 					var f:File=new File(path);
 					now=api.now;
-					trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
+					Log.trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
 					var s:Number=now.getTime() - vo.playTime.getTime();
 					if (f.exists)
 					{
@@ -414,7 +414,7 @@
 
 			protected function randomPlay_changeHandler(event:Event):void
 			{
-//				trace(randomPlay.selected);
+//				Log.trace(randomPlay.selected);
 				if (!song1)
 					play();
 			}
@@ -559,7 +559,7 @@
 
 			protected function selectedHandler(event:Event):void
 			{
-				trace(event.target.data);
+				Log.trace(event.target.data);
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:

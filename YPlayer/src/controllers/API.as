@@ -105,7 +105,7 @@ package controllers
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
-					trace(FileManager.readFile(file.nativePath, false, true));
+					Log.trace(FileManager.readFile(file.nativePath, false, true));
 				ServiceBase.HOST='http://localhost:18080/api';
 			}
 			else
@@ -244,7 +244,7 @@ package controllers
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				trace('Now Offset:' + nowOffset);
+				Log.trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -376,7 +376,7 @@ package controllers
 			{
 				if (vo.status && !pv)
 				{
-					var menus:Array=FileManager.readFile('menus.yp') as Array;
+					var menus:Array=getMenus();
 					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
 					{
@@ -388,7 +388,7 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						trace('Day Changed');
+						Log.trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -518,7 +518,7 @@ package controllers
 			}
 			catch (error:Error)
 			{
-				trace('save file error', error);
+				Log.trace('save file error', error);
 			}
 
 		}
@@ -532,7 +532,7 @@ package controllers
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
-				trace("FileCache - Directory not found, create it !");
+				Log.trace("FileCache - Directory not found, create it !");
 				file.createDirectory();
 			}
 		}
@@ -604,11 +604,14 @@ package controllers
 			var changed:Boolean=false;
 			if (!newMenus)
 				return false;
+			var so:SharedObject=SharedObject.getLocal('yp');
 			if (!menus || menus.length != newMenus.length)
 			{
-				FileManager.saveFile('menus.yp', newMenus);
+				so.data.savedMenus=newMenus;
+				so.flush();
+//				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				trace('menu changed');
+				Log.trace('menu changed');
 			}
 			else
 			{
@@ -619,8 +622,10 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						trace('menu changed');
-						FileManager.saveFile('menus.yp', newMenus);
+						Log.trace('menu changed');
+						so.data.savedMenus=newMenus;
+						so.flush();
+//						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
 				}
@@ -628,15 +633,21 @@ package controllers
 			return changed;
 		}
 
+		private function getMenus():Array
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			return so.data.savedMenus as Array;
+		}
+
 		public function getMenuList():void
 		{
-			trace('saved_dir', FileManager.savedDir);
+			Log.trace('saved_dir', FileManager.savedDir);
 			progress='连接云系统成功，开始获取新内容';
 			if (menu || !FileManager.savedDir)
 				return;
 			try
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				var menus:Array=getMenus();
 
 				if (online && !local)
 				{
@@ -806,6 +817,8 @@ package controllers
 			var o:Object;
 			var so:SharedObject=cachedSO;
 			var arr:Array=so.data.menus;
+			if (!arr)
+				arr=[];
 			if (menu && !menuValid(menu))
 			{
 				arr.splice(arr.indexOf(menu._id), 1);
@@ -817,7 +830,7 @@ package controllers
 						if (o.url && o.url.indexOf('http') != -1)
 						{
 							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
-							trace(f.name, f.size);
+							Log.trace(f.name, f.size);
 							clearedSize+=f.size;
 							f.deleteFileAsync()
 						}
@@ -856,7 +869,7 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				trace(clearedSize / 1024, clearInfo);
+				Log.trace(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo));
 			}
 			return b;
@@ -871,7 +884,7 @@ package controllers
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus() as Array;
 			if (menus && menus.length)
 			{
 				var i:int;
@@ -1110,13 +1123,13 @@ package controllers
 							else if (s.duration)
 								playTime.seconds+=s.duration;
 							else
-								trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
+								Log.trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
 						}
 
 					}
 					oo.songs=arr;
 				}
-				trace(dms.length);
+				Log.trace(dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			if (!onlyParse)
@@ -1309,7 +1322,7 @@ package controllers
 
 		private function checkMenuToUpdate():void
 		{
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus() as Array;
 			var cached:Array=cachedSO.data.menus;
 			for each (var m:Object in menus)
 			{
@@ -1499,7 +1512,7 @@ package controllers
 		{
 			if (!ServiceBase.id || !QNService.token || local)
 				return;
-			trace('CheckLog');
+			Log.trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
 			if (file.exists && file.isDirectory)
 			{
@@ -1565,7 +1578,7 @@ package controllers
 				var o:Object=JSON.parse(s);
 				if (o.version != version)
 				{
-					trace('New Version:' + o.version);
+					Log.trace('New Version:' + o.version);
 					newVersion=o.version;
 					if (autoUpadte && !Capabilities.isDebugger)
 					{
