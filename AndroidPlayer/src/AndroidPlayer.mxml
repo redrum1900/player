@@ -25,6 +25,16 @@
 				PAlert.PARENT=this.c
 				PopupBoxManager.PARENT=this.c
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
+
+				Log.trace=function(... args):void
+				{
+					if (ta.text.length > 2000)
+						ta.text='';
+					for each (var o:Object in args)
+					{
+						ta.appendText(o + '\n');
+					}
+				}
 			}
 
 			public function getAndroidSize(width:Number=700, height:Number=507):Array
@@ -111,6 +121,12 @@
 				 verticalAlign="middle"
 				 paddingTop="180"
 				 color="0x2E80D5"/>
+		<s:TextArea width="400"
+					alpha=".8"
+					id="ta"
+					height="300"
+					horizontalCenter="0"
+					verticalCenter="0"/>
 	</s:Group>
 
 
