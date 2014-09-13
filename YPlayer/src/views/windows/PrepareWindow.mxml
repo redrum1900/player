@@ -124,7 +124,7 @@
 					label='更新广播';
 				}
 
-				titleS='更新 ' + label + ' 共计 ' + Math.round(size / 1024) + ' M'
+				titleS='更新 ' + label + ' 预计 ' + Math.round(size / 1024) + ' M'
 
 				autoLoad();
 
@@ -160,7 +160,7 @@
 			private function updatePVInfo(percent:Number=0):void
 			{
 				if (length)
-					info='媒资初始化进度：' + loaded + '/' + length + ' 当前进度：' + Math.round(percent * 100) + '%';
+					info='媒资更新校验进度：' + loaded + '/' + length + ' 当前下载进度：' + Math.round(percent * 100) + '%';
 			}
 
 			private var startLoad:Number=0;
@@ -285,7 +285,6 @@
 					count++;
 					return;
 				}
-				file: ///Users/mani/yf/Projects/YPlayer/bin-debug/local/cache/o_190h1ci0s13131lmg13dt1ss91unq11r.mp3p1avthumbmp3ab64k	
 
 				isAutoloading=false;
 				trace(sp.soundLength, autoLoading.duration, autoLoading.name);
