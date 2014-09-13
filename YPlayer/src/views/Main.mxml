@@ -86,6 +86,30 @@
 
 				autoPlayTimer=new Timer(1000);
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
+				
+				AA.listen('UPDATE', function():void
+				{
+					var arr:Array = api.songs;
+					var s1ok:Boolean;
+					var s2ok:Boolean;
+					for each(var o:Object in arr)
+					{
+						if(song1 && song1.url == o.url){
+							song1 = o as SongVO;
+							s1ok = true;
+						}else if(!song1){
+							s1ok = true;
+						}
+						if(song2 && song2.url == o.url){
+							song2 = o as SongVO;
+							s2ok = true;
+						}else if(!song2){
+							s2ok = true;
+						}
+						if(s1ok && s2ok)
+							break;
+					}
+				});
 			}
 
 			private var autoPlayTimer:Timer;
@@ -197,10 +221,10 @@
 				time=randomPlay.selected ? '[随机播放] ' : '';
 				var value:Number=tt - pt;
 				if (song1)
-					time=time + '正在播放：' + song1.name + ' ' +value;
+					time=time + '正在播放：' + song1.name;
 				else
-					Log.trace(song1);
-				Log.trace(value);
+					Log.Trace(song1);
+				Log.Trace(value);
 				if (value < 0)
 					play();
 				else if (dms)
@@ -391,10 +415,10 @@
 					AA.say('play');
 					time='准备开始播放 ' + vo.name;
 					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					Log.trace(vo.name);
+					Log.Trace(vo.name);
 					var f:File=new File(path);
 					now=api.now;
-					Log.trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
+					Log.Trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
 					var s:Number=now.getTime() - vo.playTime.getTime();
 					if (f.exists)
 					{
@@ -421,7 +445,7 @@
 
 			protected function randomPlay_changeHandler(event:Event):void
 			{
-//				Log.trace(randomPlay.selected);
+//				Log.Trace(randomPlay.selected);
 				if (!song1)
 					play();
 			}
@@ -566,7 +590,7 @@
 
 			protected function selectedHandler(event:Event):void
 			{
-				Log.trace(event.target.data);
+				Log.Trace(event.target.data);
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:

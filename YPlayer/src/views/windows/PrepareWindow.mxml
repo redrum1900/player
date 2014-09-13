@@ -11,6 +11,7 @@
 		<![CDATA[
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
+			import com.pamakids.components.controls.SoundPlayer;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
@@ -35,9 +36,17 @@
 			public var label:String;
 			private var retryTimes:int;
 
+			private var sp:SoundPlayer;
+
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				api=API.instance;
+
+				sp=new SoundPlayer();
+				sp.autoPlay=true;
+				sp.muted=true;
+				sp.addEventListener("playing", plaingHandler);
+				sp.addEventListener("error", errorHandler);
 
 				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void
 				{
@@ -53,9 +62,8 @@
 						{
 							trace('retry loaded:' + autoLoading.name);
 							retried=false;
-							isAutoloading=false;
-							loaded++;
-							autoLoad();
+							loadingFile=new File(FileManager.savedDir + getCachePath(autoLoading));
+							sp.url=loadingFile.url;
 						}, getCachePath(autoLoading), null, loadingHandler);
 					}
 					else if (autoLoading)
@@ -70,6 +78,7 @@
 						}
 						else
 						{
+							retryTimes=0;
 							PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
 							{
 								autoLoad();
@@ -162,6 +171,8 @@
 				return api.isTool ? 'cache/' + vo.name : URLUtil.getCachePath(vo.url)
 			}
 
+			private var loadingFile:File;
+
 			private function autoLoad():void
 			{
 				if (isAutoloading)
@@ -169,33 +180,30 @@
 				isAutoloading=true;
 				updatePVInfo();
 				var vo:Object;
-				var file:File;
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
 //					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
 //						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					file=new File(s);
+					loadingFile=new File(s);
+					autoLoading=vo;
 
-					if (!file.exists)
+					if (!loadingFile.exists)
 					{
 						if (!startLoad)
 							starRecord();
-						autoLoading=vo;
+						trace('to load:' + vo.name);
 						LoadManager.instance.load(vo.url, function():void
 						{
 							trace('loaded:' + vo.name);
-							loaded++;
-							isAutoloading=false;
-							autoLoad();
+							loadingFile=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
+							sp.url=loadingFile.url;
 						}, getCachePath(vo), null, loadingHandler);
 					}
 					else
 					{
-						isAutoloading=false;
-						loaded++;
-						autoLoad();
+						sp.url=loadingFile.url;
 					}
 				}
 				else
@@ -208,6 +216,13 @@
 					allLoaded();
 //					});
 				}
+			}
+
+			private function successLoaded():void
+			{
+				loaded++;
+				isAutoloading=false;
+				autoLoad();
 			}
 
 			private function loadingHandler(value:Number):void
@@ -260,10 +275,50 @@
 				});
 				recordTimer.start();
 			}
+
+			private var count:int;
+
+			protected function plaingHandler(event:Event):void
+			{
+				if (count != 1)
+				{
+					count++;
+					return;
+				}
+				file: ///Users/mani/yf/Projects/YPlayer/bin-debug/local/cache/o_190h1ci0s13131lmg13dt1ss91unq11r.mp3p1avthumbmp3ab64k	
+
+				isAutoloading=false;
+				trace(sp.soundLength, autoLoading.duration, autoLoading.name);
+				if (loadingFile)
+					trace(autoLoading.size, loadingFile.size);
+				sp.stop();
+				if (sp.soundLength && ((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || !autoLoading))
+				{
+					successLoaded();
+				}
+				else
+				{
+					trace('Length Error:' + autoLoading.name);
+					if (loadingFile.exists)
+						loadingFile.deleteFile();
+					autoLoad();
+				}
+				count=0;
+			}
+
+			protected function errorHandler(event:DataEvent):void
+			{
+				sp.stop();
+				trace("Error:" + autoLoading.name);
+				isAutoloading=false;
+				if (loadingFile.exists)
+					loadingFile.deleteFile();
+				autoLoad();
+			}
 		]]>
 	</fx:Script>
 
-	<components:PopupBox title="更新媒资"
+	<components:PopupBox title="更新校验媒资"
 						 disableClose="true"
 						 updateComplete="vc_updateCompleteHandler(event)"
 						 id="vc">

@@ -99,7 +99,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.8';
+					so.data.version='1.5.9';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -142,8 +142,8 @@ package controllers
 				{
 					var dmm:MenuVO=new MenuVO();
 					dmm.type=MenuVO.DM;
-					dmm.begin_date=now;
-					dmm.end_date=now;
+					dmm.begin_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+					dmm.end_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
 					dmm.name='默认列表';
 					so.data.localDMS=[dmm];
 					so.flush();
@@ -1240,7 +1240,11 @@ package controllers
 							}
 							else
 							{
-								song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+								username=SharedObject.getLocal('yp').data.username;
+								if (username.indexOf('老娘舅') != -1)
+									song.url=QNService.HOST + s.url;
+								else
+									song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
 								song.name=s.name
 							}
 							song.duration=s.duration;

@@ -60,7 +60,7 @@
 
 			protected function updater_errorHandler(event:ErrorEvent):void
 			{
-				Log.trace(event.toString());
+				Log.Trace(event.toString());
 			}
 
 			private function enter():void
@@ -72,7 +72,7 @@
 			{
 				API.instance.initUncaughtErrorListener(loaderInfo);
 				if (API.instance.showTrace)
-					Log.trace=function(... args):void
+					Log.Trace=function(... args):void
 					{
 						if (ta.text.length > 2000)
 							ta.text='';
