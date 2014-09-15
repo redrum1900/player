@@ -3,39 +3,50 @@
 					 xmlns:s="library://ns.adobe.com/flex/spark"
 					 xmlns:mx="library://ns.adobe.com/flex/mx"
 					 xmlns:components="com.pamakids.components.*"
-					 title="准备媒资"
+					 title="更新校验媒资"
 					 disableClose="true"
 					 minWidth="380"
 					 creationComplete="popupbox1_creationCompleteHandler(event)">
-
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
+			import com.pamakids.components.controls.SoundPlayer;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
 			import com.pamakids.utils.URLUtil;
-
+			
 			import flash.utils.getTimer;
-
+			
 			import mx.events.FlexEvent;
-
+			
 			import controllers.API;
+			
+			import models.InsertVO;
+			import models.LogVO;
 			private var api:API;
 			[Bindable]
 			public var info:String;
-
+			
 			private var retried:Boolean;
 			public var dms:Array;
 			public var menuID:String;
 			public var label:String;
 			private var retryTimes:int;
-
+			
+			private var sp:SoundPlayer;
+			
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				api=API.instance;
-
+				
+				sp=new SoundPlayer();
+				sp.autoPlay=true;
+				sp.muted=true;
+				sp.addEventListener("playing", plaingHandler);
+				sp.addEventListener("error", errorHandler);
+				
 				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void
 				{
 					if (api.local)
@@ -50,10 +61,9 @@
 						{
 							trace('retry loaded:' + autoLoading.name);
 							retried=false;
-							isAutoloading=false;
-							loaded++;
-							autoLoad();
-						}, URLUtil.getCachePath(autoLoading.url), null, loadingHandler);
+							loadingFile=new File(FileManager.savedDir + getCachePath(autoLoading));
+							sp.url=loadingFile.url;
+						}, getCachePath(autoLoading), null, loadingHandler);
 					}
 					else if (autoLoading)
 					{
@@ -67,6 +77,7 @@
 						}
 						else
 						{
+							retryTimes=0;
 							PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
 							{
 								autoLoad();
@@ -74,7 +85,7 @@
 						}
 					}
 				});
-
+				
 				var size:Number=0;
 				var avaibleSize:Number=Math.round(new File(FileManager.savedDir).spaceAvailable / 1024);
 				if (!songs)
@@ -91,54 +102,76 @@
 				{
 					for each (var bro:Object in broadcasts)
 					{
-						if (bro.type != 1)
+						if (bro.type != InsertVO.CUSTOMIZE_BRO && bro.type != InsertVO.CUSTOMIZE_INSERT)
 							songs.push(bro);
 					}
 				}
 				for each (var o:Object in songs)
 				{
-					trace(o.size);
 					if (o.size)
 						size+=o.size;
 				}
 				size=size / 1024
-				trace(size, avaibleSize);
 				if (avaibleSize - size < 512000)
 				{
 					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
+					api.recordLog(new LogVO(LogVO.WARNING, Math.round(avaibleSize / 1024) + '', '磁盘空间预警'));
 				}
 				length=songs.length;
-
-				titleS='更新 ' + label + ' 共计 ' + Math.round(size / 1024) + ' M'
-
+				if (!label)
+				{
+					label='更新广播';
+				}
+				
+				titleS='更新 ' + label + ' 预计 ' + Math.round(size / 1024) + ' M'
+				
 				autoLoad();
+				
+				//				stage.addEventListener(MouseEvent.MOUSE_DOWN, dd);
 			}
-
+			
+			private function get so():SharedObject
+			{
+				return SharedObject.getLocal('yp');
+			}
+			
 			public var dmMenu:String;
-
+			
 			private function allLoaded():void
 			{
 				var data:Object=null;
-				if ((startLoad && (menuID || dmMenu)) || !api.hasCached(menuID) || !api.hasCached(dmMenu))
+				if ((startLoad && (menuID || dmMenu)) || (menuID && !api.hasCached(menuID)) || (dmMenu && !api.hasCached(dmMenu)))
 				{
 					data={};
 					data.duration=(getTimer() - startLoad) / 1000;
+					if (this.haveStoredTime)
+						data.duration+=this.haveStoredTime;
+					so.data.duration=0;
+					so.flush()
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
 				dispatchEvent(new ODataEvent(data, 'loaded'));
 			}
-
+			
 			private var length:Number;
-
+			
 			private function updatePVInfo(percent:Number=0):void
 			{
 				if (length)
-					info='媒资初始化进度：' + loaded + '/' + length + ' 当前进度：' + Math.round(percent * 100) + '%';
+					info='媒资更新校验进度：' + loaded + '/' + length + ' 当前下载进度：' + Math.round(percent * 100) + '%';
 			}
-
+			
 			private var startLoad:Number=0;
-
+			private var recordTimer:Timer=new Timer(1000);
+			
+			private function getCachePath(vo:Object):String
+			{
+				return URLUtil.getCachePath(vo.url)
+			}
+			
+			private var loadingFile:File;
+			
 			private function autoLoad():void
 			{
 				if (isAutoloading)
@@ -146,60 +179,142 @@
 				isAutoloading=true;
 				updatePVInfo();
 				var vo:Object;
-				var file:File;
 				if (loaded <= songs.length - 1)
 				{
 					vo=songs[loaded];
+					//					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
+					//						vo.url=QNService.HOST + vo.url;
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					file=new File(s);
-
-					if (!file.exists)
+					loadingFile=new File(s);
+					autoLoading=vo;
+					
+					if (!loadingFile.exists)
 					{
 						if (!startLoad)
-							startLoad=getTimer();
-						autoLoading=vo;
+							starRecord();
+						trace('to load:' + vo.name);
 						LoadManager.instance.load(vo.url, function():void
 						{
 							trace('loaded:' + vo.name);
-							loaded++;
-							isAutoloading=false;
-							autoLoad();
-						}, URLUtil.getCachePath(vo.url), null, loadingHandler);
+							loadingFile=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
+							sp.url=loadingFile.url;
+						}, getCachePath(vo), null, loadingHandler);
 					}
 					else
 					{
-						isAutoloading=false;
-						loaded++;
-						autoLoad();
+						sp.url=loadingFile.url;
 					}
 				}
 				else
 				{
-					TweenLite.delayedCall(0.1, function():void
-					{
-						close();
-						LoadManager.instance.allLoadingHandler=null
-						allLoaded();
-					});
+					var pw:PrepareView=this;
+					//					TweenLite.delayedCall(0.1, function():void
+					//					{
+					pw.close();
+					LoadManager.instance.allLoadingHandler=null
+					allLoaded();
+					//					});
 				}
 			}
-
+			
+			private function successLoaded():void
+			{
+				loaded++;
+				isAutoloading=false;
+				autoLoad();
+			}
+			
 			private function loadingHandler(value:Number):void
 			{
 				updatePVInfo(value);
 			}
-
+			
 			public var loaded:int=0;
 			public var autoLoading:Object;
 			private var isAutoloading:Boolean;
 			public var songs:Array;
 			public var broadcasts:Array;
-
+			
 			[Bindable]
 			private var titleS:String;
+			
+			protected function vc_updateCompleteHandler(event:FlexEvent):void
+			{
+//				if (this.nativeWindow.width != vc.width || this.nativeWindow.height != vc.height)
+//				{
+//					this.nativeWindow.width=vc.width;
+//					this.nativeWindow.height=vc.height;
+//					this.nativeWindow.orderToFront();
+//					postion();
+//				}
+			}
+			
+			private function postion():void
+			{
+//				this.nativeWindow.x=(Capabilities.screenResolutionX - nativeWindow.width) / 2;
+//				this.nativeWindow.y=(Capabilities.screenResolutionY - nativeWindow.height) / 2;
+			}
+			
+			protected function group1_mouseDownHandler(event:MouseEvent):void
+			{
+//				this.nativeWindow.startMove();
+			}
+			
+			private var haveStoredTime:Number;
+			
+			private function starRecord():void
+			{
+				if (so.data.duration)
+					haveStoredTime=so.data.duration;
+				startLoad=getTimer();
+				recordTimer.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
+				{
+					so.data.duration=recordTimer.currentCount;
+					so.flush();
+				});
+				recordTimer.start();
+			}
+			
+			private var count:int;
+			
+			protected function plaingHandler(event:Event):void
+			{
+				if (count != 1)
+				{
+					count++;
+					return;
+				}
+				
+				isAutoloading=false;
+				trace(sp.soundLength, autoLoading.duration, autoLoading.name);
+				if (loadingFile)
+					trace(autoLoading.size, loadingFile.size);
+				sp.stop();
+				if (sp.soundLength && ((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || !autoLoading))
+				{
+					successLoaded();
+				}
+				else
+				{
+					trace('Length Error:' + autoLoading.name);
+					if (loadingFile.exists)
+						loadingFile.deleteFile();
+					autoLoad();
+				}
+				count=0;
+			}
+			
+			protected function errorHandler(event:DataEvent):void
+			{
+				sp.stop();
+				trace("Error:" + autoLoading.name);
+				isAutoloading=false;
+				if (loadingFile.exists)
+					loadingFile.deleteFile();
+				autoLoad();
+			}
 		]]>
 	</fx:Script>
-
 	<components:layout>
 		<s:VerticalLayout horizontalAlign="center"
 						  paddingLeft="40"

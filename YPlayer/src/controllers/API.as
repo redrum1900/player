@@ -91,7 +91,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.8';
+					so.data.version='1.6.0';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -105,7 +105,7 @@ package controllers
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
-					Log.trace(FileManager.readFile(file.nativePath, false, true));
+					Log.Trace(FileManager.readFile(file.nativePath, false, true));
 				ServiceBase.HOST='http://localhost:18080/api';
 			}
 			else
@@ -244,7 +244,7 @@ package controllers
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				Log.trace('Now Offset:' + nowOffset);
+				Log.Trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -388,7 +388,7 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						Log.trace('Day Changed');
+						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -518,7 +518,7 @@ package controllers
 			}
 			catch (error:Error)
 			{
-				Log.trace('save file error', error);
+				Log.Trace('save file error', error);
 			}
 
 		}
@@ -532,7 +532,7 @@ package controllers
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
-				Log.trace("FileCache - Directory not found, create it !");
+				Log.Trace("FileCache - Directory not found, create it !");
 				file.createDirectory();
 			}
 		}
@@ -611,7 +611,7 @@ package controllers
 				so.flush();
 //				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.trace('menu changed');
+				Log.Trace('menu changed');
 			}
 			else
 			{
@@ -622,7 +622,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.trace('menu changed');
+						Log.Trace('menu changed');
 						so.data.savedMenus=newMenus;
 						so.flush();
 //						FileManager.saveFile('menus.yp', newMenus);
@@ -641,7 +641,7 @@ package controllers
 
 		public function getMenuList():void
 		{
-			Log.trace('saved_dir', FileManager.savedDir);
+			Log.Trace('saved_dir', FileManager.savedDir);
 			progress='连接云系统成功，开始获取新内容';
 			if (menu || !FileManager.savedDir)
 				return;
@@ -664,7 +664,7 @@ package controllers
 							{
 								if (!menus || !menus.length)
 								{
-									PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加', '初始化失败', null, function():void
+									PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加', '初始化失败1', null, function():void
 									{
 										getMenuList();
 									}, PAlert.CONFIRM, '再试一次', '', true);
@@ -686,7 +686,7 @@ package controllers
 				{
 					if (!menus)
 					{
-						PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败', null, function():void
+						PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败2', null, function():void
 						{
 							online=true
 							getMenuList();
@@ -830,7 +830,7 @@ package controllers
 						if (o.url && o.url.indexOf('http') != -1)
 						{
 							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
-							Log.trace(f.name, f.size);
+							Log.Trace(f.name, f.size);
 							clearedSize+=f.size;
 							f.deleteFileAsync()
 						}
@@ -869,7 +869,7 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				Log.trace(clearedSize / 1024, clearInfo);
+				Log.Trace(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo));
 			}
 			return b;
@@ -1123,13 +1123,13 @@ package controllers
 							else if (s.duration)
 								playTime.seconds+=s.duration;
 							else
-								Log.trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
+								Log.Trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
 						}
 
 					}
 					oo.songs=arr;
 				}
-				Log.trace(dms.length);
+				Log.Trace(dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			if (!onlyParse)
@@ -1348,7 +1348,7 @@ package controllers
 		private function noPlayList():void
 		{
 			initializing=false;
-			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败', null, function():void
+			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败3', null, function():void
 			{
 				online=true
 				getMenuList();
@@ -1512,7 +1512,7 @@ package controllers
 		{
 			if (!ServiceBase.id || !QNService.token || local)
 				return;
-			Log.trace('CheckLog');
+			Log.Trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
 			if (file.exists && file.isDirectory)
 			{
@@ -1578,7 +1578,7 @@ package controllers
 				var o:Object=JSON.parse(s);
 				if (o.version != version)
 				{
-					Log.trace('New Version:' + o.version);
+					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					if (autoUpadte && !Capabilities.isDebugger)
 					{
