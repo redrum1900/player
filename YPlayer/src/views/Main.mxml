@@ -874,7 +874,11 @@
 				api.playingInfo = '';
 				api.recordDM(ivo);
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
-				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
+				var url:String;
+				if(URLUtil.isHttp(ivo.url))
+					url = new File(FileManager.savedDir + URLUtil.getCachePath(ivo.url)).url
+				else
+					url = ivo.url;
 				if (!brodcasting)
 				{
 					player1.muted=false;

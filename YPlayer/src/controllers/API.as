@@ -99,7 +99,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.5.9';
+					so.data.version='1.6.0';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -1328,6 +1328,15 @@ package controllers
 					}
 					if (playingSong)
 						initBroadcasts();
+					if (local && !playingSong)
+					{
+						progress='';
+						initializing=false;
+						initBroadcasts();
+						dmChanged=false;
+						dispatchEvent(new Event('PLAY'));
+						return {songs: songs, dmMenu: dmMenu};
+					}
 					toPrepare(o, dmMenu);
 				}
 			}
