@@ -114,7 +114,7 @@
 				size=size / 1024
 				if (avaibleSize - size < 512000)
 				{
-					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
+//					PAlert.show('您的磁盘空间仅剩 ' + Math.round(avaibleSize / 1024) + ' M了，请注意扩容');
 					api.recordLog(new LogVO(LogVO.WARNING, Math.round(avaibleSize / 1024) + '', '磁盘空间预警'));
 				}
 				length=songs.length;
