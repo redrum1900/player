@@ -17,7 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-
+	
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -35,16 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-
+	
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-
+	
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-
+	
 	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
@@ -99,7 +99,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.6.0';
+					so.data.version='1.6.1';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -851,14 +851,21 @@ package controllers
 			}
 			return b;
 		}
-
-		private function menuValid(menu:Object):Boolean
+		
+		private function menuDateValid(menu:Object):Boolean
 		{
 			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			var n:Date=now;
 			n=new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0, 0);
-			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
+			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime();
+		}
+
+		private function menuValid(menu:Object):Boolean
+		{
+			if (!menu || !menu.begin_date || !menu.end_date)
+				return false;
+			return menuDateValid(menu) && dayValidate(menu.tags);
 		}
 
 		private function checkPlayingValid():Boolean
@@ -870,7 +877,7 @@ package controllers
 			var o:Object;
 			var so:SharedObject=cachedSO;
 			var arr:Array=so.data.menus;
-			if (menu && !menuValid(menu))
+			if (menu && !menuDateValid(menu))
 			{
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
@@ -896,7 +903,7 @@ package controllers
 			{
 				for each (var dm:Object in dmMenus)
 				{
-					if (!menuValid(dm))
+					if (!menuDateValid(dm))
 					{
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
@@ -921,7 +928,7 @@ package controllers
 				so.data.menus=arr;
 				so.flush();
 				trace(clearedSize / 1024, clearInfo);
-				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo));
+				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo+' '+DateUtil.getYMD(now)));
 			}
 			return b;
 		}
@@ -1416,11 +1423,11 @@ package controllers
 			pv.label=label;
 			pv.open();
 
-//			if (Capabilities.isDebugger)
-//			{
-//				dispatchEvent(new Event('PLAY'));
-//				initBroadcasts();
-//			}
+			if (Capabilities.isDebugger)
+			{
+				dispatchEvent(new Event('PLAY'));
+				initBroadcasts();
+			}
 //			PopupBoxManager.popup(pv);
 		}
 

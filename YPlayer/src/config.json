@@ -1,6 +1,6 @@
 {
 	"test":false,
-	"local":false,
+	"local":true,
 	"auto_update":true,
 	"debug":false,
 	"trace":false,

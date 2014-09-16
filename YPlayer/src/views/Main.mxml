@@ -197,22 +197,6 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-//				if (!preMics)
-//				{
-//					preMics=Microphone.names;
-//				}
-//				else if (preMics.length != Microphone.names.length)
-//				{
-//					preVolume=volume;
-//					toVolume(0);
-//					micChanged++;
-//				}
-//				else if (micChanged >= 2)
-//				{
-//					micChanged=0;
-//					toVolume(preVolume);
-//				}
-
 				if (brodcasting || playingDM)
 					return;
 				var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
@@ -764,7 +748,53 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!player1.playing && !song1)
+				var gotoPlayDM:Boolean;
+				if(!player1.playing && !playingDM){
+					var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
+					time=randomPlay.selected ? '[随机播放] ' : '';
+					var value:Number;
+					if (dms)
+					{
+						var now:Date=api.now;
+						var min:Number;
+						var dmName:String;
+						var tt:Number;
+						var pt:Number;
+						for each (var dm:InsertVO in dms)
+						{
+							if(dm != plaiedDM)
+							{
+								var ns:Number=now.getTime() / 1000;
+								if (dm.playTime.date != now.date)
+									dm.playTime.date=now.date;
+								var ds:Number=dm.playTime.getTime() / 1000;
+								value=ns - ds;
+								var absValue:int=Math.abs(value);
+								if(!min)
+									min = absValue;
+								if(min >= absValue){
+									min = absValue;
+									dmName = dm.name;
+								}
+								if (absValue <= 1)
+								{
+									gotoPlayDM = true;
+									playingDM=true;
+									plaiedDM = dm;
+									insertBroOrDM(dm);
+									break;
+								}
+							}
+						}
+						value=min;
+						if (value > 0 && value < 60 && !playingDM)
+						{
+							gotoPlayDM = true;
+							time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dmName;
+						}
+					}
+				}
+				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
 			}
 
