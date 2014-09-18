@@ -1718,13 +1718,15 @@ package controllers
 				if (files.length)
 				{
 					var f:File=files.shift() as File;
-					var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
-					QNService.instance.upload(f, function(r:Object):void
-					{
-						var re:ResultVO=r as ResultVO;
-						if (re && re.status && f.exists)
-							f.deleteFile();
-					}, {key: upName});
+					if(f.creationDate.date != now.date){
+						var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
+						QNService.instance.upload(f, function(r:Object):void
+						{
+							var re:ResultVO=r as ResultVO;
+							if (re && re.status && f.exists)
+								f.deleteFile();
+						}, {key: upName});
+					}
 				}
 			}
 		}
