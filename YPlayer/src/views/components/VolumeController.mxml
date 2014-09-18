@@ -16,7 +16,7 @@
 
 
 			[Bindable]
-			public var volume:Number=50;
+			public var volume:Number=100;
 
 			private var downX:Number;
 

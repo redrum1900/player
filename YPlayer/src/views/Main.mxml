@@ -805,8 +805,8 @@
 					hide(menuListPanel);
 			}
 			
-			private var vc1Volume:Number=50.0;
-			private var vc2Volume:Number=50.0;
+			private var vc1Volume:Number=100.0;
+			private var vc2Volume:Number=100.0;
 
 			protected function vc1_changingHandler(event:ODataEvent):void
 			{
@@ -993,7 +993,7 @@
 					 fontSize="18"
 					 left="20"
 					 verticalCenter="0"/>
-			<s:Label text="客服电话：010-51244052 010-58699501"
+			<s:Label text="客服电话：010-51244052 010-58699501 （周一至周五 早9点30到晚5点30）"
 					 color="0xd9dee3"
 					 fontSize="14"
 					 right="20"
