@@ -276,16 +276,8 @@
 				recordTimer.start();
 			}
 
-			private var count:int;
-
 			protected function plaingHandler(event:Event):void
 			{
-				if (count != 1)
-				{
-					count++;
-					return;
-				}
-
 				isAutoloading=false;
 				trace(sp.soundLength, autoLoading.duration, autoLoading.name);
 				if (loadingFile)
@@ -298,11 +290,17 @@
 				else
 				{
 					trace('Length Error:' + autoLoading.name);
-					if (loadingFile.exists)
-						loadingFile.deleteFile();
+					try
+					{
+						if (loadingFile.exists)
+							loadingFile.deleteFile();
+					} 
+					catch(error:Error) 
+					{
+						api.appendLog('Prepare Delete Error:'+error.message);
+					}
 					autoLoad();
 				}
-				count=0;
 			}
 
 			protected function errorHandler(event:DataEvent):void
@@ -310,8 +308,15 @@
 				sp.stop();
 				trace("Error:" + autoLoading.name);
 				isAutoloading=false;
-				if (loadingFile.exists && !loadingFile.isDirectory)
-					loadingFile.deleteFile();
+				try
+				{
+					if (loadingFile.exists)
+						loadingFile.deleteFile();
+				} 
+				catch(error:Error) 
+				{
+					api.appendLog('Prepare Delete Error:'+error.message);
+				}
 				autoLoad();
 			}
 		]]>

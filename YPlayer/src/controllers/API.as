@@ -196,6 +196,7 @@ package controllers
 		{
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
+				checkingUpdate=false;
 				if (b && b.length)
 				{
 					try
@@ -209,22 +210,14 @@ package controllers
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
-						version=newVersion
-						if (autoUpadte)
-						{
+						if(version!=newVersion){
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
 							if (!playingSong)
 								reboot();
 							else
 								needReboot=true;
 						}
-						else
-						{
-							PAlert.show(newVersion + '版本更新完毕，重启后生效。\n如果软件正在播放建议您先暂不重启，下次开启软件的时候也会自动生效', '提示', null, function(value:String):void
-							{
-								reboot();
-							}, PAlert.YESNO, '重启播放器', '暂时不重启');
-						}
+						version=newVersion
 					}
 					catch (error:Error)
 					{
@@ -244,6 +237,7 @@ package controllers
 				}
 			}, 'update/' + newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
 			{
+				checkingUpdate=false;
 				if (autoUpadte)
 				{
 					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
@@ -251,7 +245,6 @@ package controllers
 				}
 				if (callback != null)
 					callback(0)
-				PAlert.show('更新失败，请检查网络连接');
 			});
 		}
 
@@ -293,6 +286,7 @@ package controllers
 			});
 		}
 
+		private var gotServerTime:Boolean;
 
 		private function getNowTime():void
 		{
@@ -302,6 +296,7 @@ package controllers
 			{
 				if (ul.data)
 				{
+					gotServerTime = true;
 					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
 					setYPData('startup', now.getTime());
@@ -385,10 +380,9 @@ package controllers
 			}
 			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
 			{
-				if (needReboot && !playingSong)
-					reboot(rebootByCommand);
-				else
-					checkUpdate();
+				if(!gotServerTime)
+					getNowTime();
+				checkUpdate();
 			}
 		}
 
@@ -488,7 +482,7 @@ package controllers
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 		}
 
-		private var rebootByCommand:Boolean;
+//		private var rebootByCommand:Boolean;
 
 		public var playingInfo:String;
 
@@ -871,6 +865,8 @@ package controllers
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
+			if(!gotServerTime)
+				return b;
 			var clearedSize:Number=0;
 			var f:File;
 			var clearInfo:String='';
@@ -1046,6 +1042,8 @@ package controllers
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
+			if(!menu)
+				return b;
 			for each (var o:Object in menu.list)
 			{
 				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
@@ -1296,11 +1294,12 @@ package controllers
 				{
 					if (!this.menu || this.menu._id == o._id)
 					{
+						if(!pv && this.menu)
+							AA.say('UPDATE');
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
 						this.songs=songs;
 						this.songDMDic=songDMDic;
-						AA.say('UPDATE');
 					}
 					initializing=false;
 				}
@@ -1423,11 +1422,11 @@ package controllers
 			pv.label=label;
 			pv.open();
 
-			if (Capabilities.isDebugger)
-			{
-				dispatchEvent(new Event('PLAY'));
-				initBroadcasts();
-			}
+//			if (Capabilities.isDebugger)
+//			{
+//				dispatchEvent(new Event('PLAY'));
+//				initBroadcasts();
+//			}
 //			PopupBoxManager.popup(pv);
 		}
 
@@ -1767,11 +1766,14 @@ package controllers
 			serviceDic[uri + method]=s;
 			return s;
 		}
+		
+		private var checkingUpdate:Boolean;
 
 		public function checkUpdate():void
 		{
-			if (local)
+			if (local || checkingUpdate)
 				return;
+			checkingUpdate = true;
 			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
@@ -1779,15 +1781,11 @@ package controllers
 				{
 					trace('New Version:' + o.version);
 					newVersion=o.version;
-					if (autoUpadte && !Capabilities.isDebugger)
-					{
-						recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+					if(!Capabilities.isDebugger)
 						downloadUpdate();
-					}
-					else
-					{
-						updatable=true;
-					}
+				}else{
+					checkingUpdate=false;
 				}
 			});
 		}

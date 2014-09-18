@@ -62,8 +62,8 @@
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				mic=Microphone.getMicrophone();
-				mic.setSilenceLevel(0);
-				mic.gain=100;
+				mic.setSilenceLevel(100);
+				mic.gain=0;
 				mic.rate=44;
 				mic.setLoopBack(false);
 				mic.setUseEchoSuppression(true);
