@@ -17,7 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-	
+
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -35,16 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-	
+
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-	
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-	
+
 	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
@@ -80,7 +80,8 @@ package controllers
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
-			showTrace=o.trace;
+//			showTrace=o.trace;
+			showTrace=true;
 			config=o;
 
 			if (isTest)
@@ -99,7 +100,7 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.6.1';
+					so.data.version='1.6.3';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -197,6 +198,12 @@ package controllers
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
 				checkingUpdate=false;
+				if (updateFileSize != b.length)
+				{
+					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本更新文件大小有问题'));
+					downloadUpdate();
+					return;
+				}
 				if (b && b.length)
 				{
 					try
@@ -210,7 +217,8 @@ package controllers
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
 						so.flush();
-						if(version!=newVersion){
+						if (version != newVersion)
+						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
 							if (!playingSong)
 								reboot();
@@ -296,7 +304,7 @@ package controllers
 			{
 				if (ul.data)
 				{
-					gotServerTime = true;
+					gotServerTime=true;
 					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
 					setYPData('startup', now.getTime());
@@ -380,9 +388,8 @@ package controllers
 			}
 			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
 			{
-				if(!gotServerTime)
+				if (!gotServerTime)
 					getNowTime();
-				checkUpdate();
 			}
 		}
 
@@ -449,7 +456,24 @@ package controllers
 							songs=null;
 							songDMDic=null;
 						}
-						initMenu();
+						var readyToUpdate:Boolean=true;
+						var ut:String=vo.results.update_time;
+						if (ut)
+						{
+							try
+							{
+								var h:int=now.getHours();
+								var arr:Array=ut.split(' ');
+								if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+									readyToUpdate=false;
+							}
+							catch (error:Error)
+							{
+								appendLog('UpdateTime Error:' + error);
+							}
+						}
+						if (readyToUpdate)
+							initMenu();
 					}
 					else if (brosChanged)
 					{
@@ -845,7 +869,7 @@ package controllers
 			}
 			return b;
 		}
-		
+
 		private function menuDateValid(menu:Object):Boolean
 		{
 			if (!menu || !menu.begin_date || !menu.end_date)
@@ -865,7 +889,7 @@ package controllers
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if(!gotServerTime)
+			if (!gotServerTime || now.fullYear != 2014)
 				return b;
 			var clearedSize:Number=0;
 			var f:File;
@@ -924,7 +948,7 @@ package controllers
 				so.data.menus=arr;
 				so.flush();
 				trace(clearedSize / 1024, clearInfo);
-				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo+' '+DateUtil.getYMD(now)));
+				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
 			return b;
 		}
@@ -1042,7 +1066,7 @@ package controllers
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
-			if(!menu)
+			if (!menu)
 				return b;
 			for each (var o:Object in menu.list)
 			{
@@ -1246,10 +1270,7 @@ package controllers
 							else
 							{
 								username=SharedObject.getLocal('yp').data.username;
-								if (username.indexOf('老娘舅') != -1)
-									song.url=QNService.HOST + s.url;
-								else
-									song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+								song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
 								song.name=s.name
 							}
 							song.duration=s.duration;
@@ -1294,7 +1315,7 @@ package controllers
 				{
 					if (!this.menu || this.menu._id == o._id)
 					{
-						if(!pv && this.menu)
+						if (!pv && this.menu)
 							AA.say('UPDATE');
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
@@ -1718,7 +1739,8 @@ package controllers
 				if (files.length)
 				{
 					var f:File=files.shift() as File;
-					if(f.creationDate.date != now.date){
+					if (f.creationDate.date != now.date)
+					{
 						var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
 						QNService.instance.upload(f, function(r:Object):void
 						{
@@ -1768,25 +1790,32 @@ package controllers
 			serviceDic[uri + method]=s;
 			return s;
 		}
-		
+
 		private var checkingUpdate:Boolean;
+		private var updateFileSize:Number;
 
 		public function checkUpdate():void
 		{
-			if (local || checkingUpdate)
+			if (local || checkingUpdate || config.trace)
 				return;
-			checkingUpdate = true;
-			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
+			checkingUpdate=true;
+			var url:String=config.update;
+			if (isTest)
+				url=url.replace('update', 'test');
+			LoadManager.instance.loadText(url + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
+				updateFileSize=o.size;
 				if (o.version != version)
 				{
 					trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
-					if(!Capabilities.isDebugger)
+					if (!Capabilities.isDebugger)
 						downloadUpdate();
-				}else{
+				}
+				else
+				{
 					checkingUpdate=false;
 				}
 			});

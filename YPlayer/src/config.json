@@ -1,5 +1,5 @@
 {
-	"test":false,
+	"test":true,
 	"local":false,
 	"auto_update":true,
 	"debug":false,
@@ -7,6 +7,6 @@
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
 	"update":"http://yfcdn.qiniudn.com/file/update.json",
-	"version":"1.6.0",
+	"version":"1.6.3",
 	"username":"本地版本：分部名称"
 }
