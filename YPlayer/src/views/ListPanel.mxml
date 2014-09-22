@@ -16,7 +16,6 @@
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.managers.PopupBoxManager;
-			import com.pamakids.services.ServiceBase;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
@@ -30,7 +29,6 @@
 
 			import models.InsertVO;
 			import models.LogVO;
-			import models.MenuVO;
 			import models.TimeVO;
 
 			import skins.buttons.DangerButtonSkin;
@@ -69,11 +67,11 @@
 				{
 					return;
 				}
-				TweenLite.delayedCall(1, function():void
+				TweenLite.delayedCall(3, function():void
 				{
 					try
 					{
-						songs.ensureIndexIsVisible(index);
+						songs.ensureIndexIsVisible(api.playingIndex);
 					}
 					catch (error:Error)
 					{
@@ -112,15 +110,18 @@
 					}
 				}
 
-				if (o.type == 1)
+				if (o.type == InsertVO.CUSTOMIZE_BRO || o.type == InsertVO.CUSTOMIZE_INSERT)
 				{
 					b.setStyle('skinClass', WarningButtonSkin);
-					var bm:NativeMenu=new NativeMenu();
-					bm.addEventListener(Event.SELECT, navHandler);
-					var ni:NativeMenuItem=new NativeMenuItem('编辑');
-					ni.data=o;
-					bm.addItem(ni);
-					b.contextMenu=bm;
+					if (o.type == InsertVO.CUSTOMIZE_BRO)
+					{
+						var bm:NativeMenu=new NativeMenu();
+						bm.addEventListener(Event.SELECT, navHandler);
+						var ni:NativeMenuItem=new NativeMenuItem('编辑');
+						ni.data=o;
+						bm.addItem(ni);
+						b.contextMenu=bm;
+					}
 				}
 				else
 				{
@@ -210,7 +211,7 @@
 				}
 				else
 				{
-					if (o.type == 1)
+					if (o.type == InsertVO.CUSTOMIZE_BRO)
 					{
 						if (o.url)
 						{
@@ -244,17 +245,17 @@
 						{
 							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
 							var so:SharedObject=SharedObject.getLocal('yp');
-							var bros:Array=api.broadcasts;
-							var arr:Array=[];
-							for each (var o:Object in bros)
-							{
-								if (o.type == 1)
-								{
-									arr.push(o);
-								}
-							}
-							trace(vo.name);
-							so.data.records=arr;
+//							var bros:Array=api.broadcasts;
+//							var arr:Array=[];
+//							for each (var o:Object in bros)
+//							{
+//								if (o.type == 1)
+//								{
+//									arr.push(o);
+//								}
+//							}
+							trace(vo.name, vo.url);
+							so.data.records=[vo];
 							so.flush();
 
 							buttonsGroup.removeAllElements();
@@ -270,6 +271,7 @@
 							lp.dispatchEvent(new Event('stopRecord'));
 							api.updateForRecord=true;
 							api.initMenu();
+							rbv=null;
 						});
 					}
 				}, PAlert.YESNO);

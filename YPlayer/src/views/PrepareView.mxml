@@ -16,37 +16,37 @@
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
 			import com.pamakids.utils.URLUtil;
-			
+
 			import flash.utils.getTimer;
-			
+
 			import mx.events.FlexEvent;
-			
+
 			import controllers.API;
-			
+
 			import models.InsertVO;
 			import models.LogVO;
 			private var api:API;
 			[Bindable]
 			public var info:String;
-			
+
 			private var retried:Boolean;
 			public var dms:Array;
 			public var menuID:String;
 			public var label:String;
 			private var retryTimes:int;
-			
+
 			private var sp:SoundPlayer;
-			
+
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				api=API.instance;
-				
+
 				sp=new SoundPlayer();
 				sp.autoPlay=true;
 				sp.muted=true;
 				sp.addEventListener("playing", plaingHandler);
 				sp.addEventListener("error", errorHandler);
-				
+
 				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void
 				{
 					if (api.local)
@@ -85,7 +85,7 @@
 						}
 					}
 				});
-				
+
 				var size:Number=0;
 				var avaibleSize:Number=Math.round(new File(FileManager.savedDir).spaceAvailable / 1024);
 				if (!songs)
@@ -122,21 +122,21 @@
 				{
 					label='更新广播';
 				}
-				
+
 				titleS='更新 ' + label + ' 预计 ' + Math.round(size / 1024) + ' M'
-				
+
 				autoLoad();
-				
+
 				//				stage.addEventListener(MouseEvent.MOUSE_DOWN, dd);
 			}
-			
+
 			private function get so():SharedObject
 			{
 				return SharedObject.getLocal('yp');
 			}
-			
+
 			public var dmMenu:String;
-			
+
 			private function allLoaded():void
 			{
 				var data:Object=null;
@@ -153,25 +153,25 @@
 				}
 				dispatchEvent(new ODataEvent(data, 'loaded'));
 			}
-			
+
 			private var length:Number;
-			
+
 			private function updatePVInfo(percent:Number=0):void
 			{
 				if (length)
 					info='媒资更新校验进度：' + loaded + '/' + length + ' 当前下载进度：' + Math.round(percent * 100) + '%';
 			}
-			
+
 			private var startLoad:Number=0;
 			private var recordTimer:Timer=new Timer(1000);
-			
+
 			private function getCachePath(vo:Object):String
 			{
 				return URLUtil.getCachePath(vo.url)
 			}
-			
+
 			private var loadingFile:File;
-			
+
 			private function autoLoad():void
 			{
 				if (isAutoloading)
@@ -187,7 +187,7 @@
 					var s:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
 					loadingFile=new File(s);
 					autoLoading=vo;
-					
+
 					if (!loadingFile.exists)
 					{
 						if (!startLoad)
@@ -202,7 +202,8 @@
 					}
 					else
 					{
-						sp.url=loadingFile.url;
+//						sp.url=loadingFile.url;
+						successLoaded();
 					}
 				}
 				else
@@ -213,31 +214,31 @@
 					pw.close();
 					LoadManager.instance.allLoadingHandler=null
 					allLoaded();
-					//					});
+						//					});
 				}
 			}
-			
+
 			private function successLoaded():void
 			{
 				loaded++;
 				isAutoloading=false;
 				autoLoad();
 			}
-			
+
 			private function loadingHandler(value:Number):void
 			{
 				updatePVInfo(value);
 			}
-			
+
 			public var loaded:int=0;
 			public var autoLoading:Object;
 			private var isAutoloading:Boolean;
 			public var songs:Array;
 			public var broadcasts:Array;
-			
+
 			[Bindable]
 			private var titleS:String;
-			
+
 			protected function vc_updateCompleteHandler(event:FlexEvent):void
 			{
 //				if (this.nativeWindow.width != vc.width || this.nativeWindow.height != vc.height)
@@ -248,20 +249,20 @@
 //					postion();
 //				}
 			}
-			
+
 			private function postion():void
 			{
 //				this.nativeWindow.x=(Capabilities.screenResolutionX - nativeWindow.width) / 2;
 //				this.nativeWindow.y=(Capabilities.screenResolutionY - nativeWindow.height) / 2;
 			}
-			
+
 			protected function group1_mouseDownHandler(event:MouseEvent):void
 			{
 //				this.nativeWindow.startMove();
 			}
-			
+
 			private var haveStoredTime:Number;
-			
+
 			private function starRecord():void
 			{
 				if (so.data.duration)
@@ -274,21 +275,11 @@
 				});
 				recordTimer.start();
 			}
-			
-			private var count:int;
-			
+
 			protected function plaingHandler(event:Event):void
 			{
-				if (count != 1)
-				{
-					count++;
-					return;
-				}
-				
 				isAutoloading=false;
 				trace(sp.soundLength, autoLoading.duration, autoLoading.name);
-				if (loadingFile)
-					trace(autoLoading.size, loadingFile.size);
 				sp.stop();
 				if (sp.soundLength && ((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || !autoLoading))
 				{
@@ -301,9 +292,8 @@
 						loadingFile.deleteFile();
 					autoLoad();
 				}
-				count=0;
 			}
-			
+
 			protected function errorHandler(event:DataEvent):void
 			{
 				sp.stop();

@@ -20,7 +20,7 @@
 
 			protected function application1_creationCompleteHandler(event:FlexEvent):void
 			{
-				API.instance.checkUpdate();
+//				API.instance.checkUpdate();
 				ToolTipManager.showDelay=0;
 				PAlert.PARENT=this.c
 				PopupBoxManager.PARENT=this.c
@@ -62,10 +62,14 @@
 			protected function application1_addedToStageHandler(event:Event):void
 			{
 				var arr:Array=getAndroidSize();
-				var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
-				var dpi:Number=o.densityDPI;
-				c.scaleX=c.scaleY=arr[0] / (dpi / 160);
-				API.instance.initUncaughtErrorListener(loaderInfo);
+				if (ANEToolkit.systemInfo)
+				{
+					var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
+					var dpi:Number=o.densityDPI;
+					API.instance.scale=arr[0] / (dpi / 160);
+					c.scaleX=c.scaleY=API.instance.scale;
+					API.instance.initUncaughtErrorListener(loaderInfo);
+				}
 			}
 		]]>
 	</fx:Script>

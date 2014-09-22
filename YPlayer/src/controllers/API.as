@@ -91,12 +91,14 @@ package controllers
 				if (o.version)
 					so.data.version=o.version;
 				else
-					so.data.version='1.6.0';
+					so.data.version='1.6.3';
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
 			if (so.data.id)
 				ServiceBase.id=so.data.id;
+			so.data.username='Nitori:shop1';
+			so.data.password="383370";
 			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
 			so.flush();
 			serviceDic=new Dictionary();
@@ -229,6 +231,7 @@ package controllers
 			});
 		}
 
+		private var gotServerTime:Boolean;
 
 		private function getNowTime():void
 		{
@@ -238,13 +241,14 @@ package controllers
 			{
 				if (ul.data)
 				{
+					gotServerTime=true;
 					var date:Date=NodeUtil.getLocalDate(ul.data);
 					nowOffset=date.getTime() - now.getTime();
 					setYPData('startup', now.getTime());
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				Log.Trace('Now Offset:' + nowOffset);
+				trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -330,10 +334,8 @@ package controllers
 			}
 			if (autoUpadte && refreshTimer.currentCount % 3600 == 0)
 			{
-				if (needReboot && !playingSong)
-					reboot(rebootByCommand);
-				else
-					checkUpdate();
+				if (!gotServerTime)
+					getNowTime();
 			}
 		}
 
@@ -388,7 +390,7 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						Log.Trace('Day Changed');
+						trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -401,7 +403,24 @@ package controllers
 							songs=null;
 							songDMDic=null;
 						}
-						initMenu();
+						var readyToUpdate:Boolean=true;
+						var ut:String=vo.results.update_time;
+						if (ut)
+						{
+							try
+							{
+								var h:int=now.getHours();
+								var arr:Array=ut.split(' ');
+								if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+									readyToUpdate=false;
+							}
+							catch (error:Error)
+							{
+								appendLog('UpdateTime Error:' + error);
+							}
+						}
+						if (readyToUpdate)
+							initMenu();
 					}
 					else if (brosChanged)
 					{
@@ -452,7 +471,7 @@ package controllers
 
 		public function recordLog(o:LogVO, callbck:Function=null):void
 		{
-			if (local)
+			if (local || Capabilities.isDebugger)
 			{
 				if (callbck != null)
 					callbck();
@@ -518,7 +537,7 @@ package controllers
 			}
 			catch (error:Error)
 			{
-				Log.Trace('save file error', error);
+				trace('save file error', error);
 			}
 
 		}
@@ -532,7 +551,7 @@ package controllers
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
-				Log.Trace("FileCache - Directory not found, create it !");
+				trace("FileCache - Directory not found, create it !");
 				file.createDirectory();
 			}
 		}
@@ -799,27 +818,34 @@ package controllers
 			return b;
 		}
 
-		private function menuValid(menu:Object):Boolean
+		private function menuDateValid(menu:Object):Boolean
 		{
 			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			var n:Date=now;
-			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
-			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime() && dayValidate(menu.tags);
+			n=new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0, 0);
+			return n.getTime() >= menu.begin_date.getTime() && n.getTime() <= menu.end_date.getTime();
+		}
+
+		private function menuValid(menu:Object):Boolean
+		{
+			if (!menu || !menu.begin_date || !menu.end_date)
+				return false;
+			return menuDateValid(menu) && dayValidate(menu.tags);
 		}
 
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
+			if (!gotServerTime || now.fullYear != 2014)
+				return b;
 			var clearedSize:Number=0;
 			var f:File;
 			var clearInfo:String='';
 			var o:Object;
 			var so:SharedObject=cachedSO;
 			var arr:Array=so.data.menus;
-			if (!arr)
-				arr=[];
-			if (menu && !menuValid(menu))
+			if (menu && !menuDateValid(menu))
 			{
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
@@ -830,7 +856,7 @@ package controllers
 						if (o.url && o.url.indexOf('http') != -1)
 						{
 							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
-							Log.Trace(f.name, f.size);
+							trace(f.name, f.size);
 							clearedSize+=f.size;
 							f.deleteFileAsync()
 						}
@@ -845,7 +871,7 @@ package controllers
 			{
 				for each (var dm:Object in dmMenus)
 				{
-					if (!menuValid(dm))
+					if (!menuDateValid(dm))
 					{
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
@@ -869,8 +895,8 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				Log.Trace(clearedSize / 1024, clearInfo);
-				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo));
+				trace(clearedSize / 1024, clearInfo);
+				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
 			return b;
 		}
@@ -988,6 +1014,8 @@ package controllers
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
+			if (!menu)
+				return b;
 			for each (var o:Object in menu.list)
 			{
 				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
@@ -1033,7 +1061,7 @@ package controllers
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
 					ivo.duration=dm.dm.duration;
-					ivo.url=QNService.HOST + dm.dm.url;
+					ivo.url=dm.dm.url;
 					ivo.repeat=dm.repeat;
 					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime);
 					ivo.interval=dm.interval;
@@ -1056,7 +1084,7 @@ package controllers
 					ivo=new InsertVO();
 					ivo.type=5;
 					ivo.name=insertBro.name;
-					ivo.url=insertBro.url;
+					ivo.url=new File(FileManager.savedDir + insertBro.url).url;
 					ivo.playTime=DateUtil.clone(bd);
 					a.push(ivo);
 					bd.minutes+=30;
@@ -1129,20 +1157,24 @@ package controllers
 					}
 					oo.songs=arr;
 				}
-				Log.Trace(dms.length);
+				trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
+			trace(2);
 			if (!onlyParse)
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
 				{
 					if (!this.menu || this.menu._id == o._id)
 					{
+						if (!pv && this.menu)
+							AA.say('UPDATE');
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
 						this.songs=songs;
 						this.songDMDic=songDMDic;
 					}
+					initializing=false;
 				}
 				else if (dmMenu && dateValidate(dmMenu.begin_date, dmMenu.end_date))
 				{
@@ -1150,28 +1182,19 @@ package controllers
 					this.songs=songs;
 					this.songDMDic=songDMDic;
 					dmChanged=true;
-				}
-				if (updateForRecord)
-				{
-					this.songs=songs;
-					this.songDMDic=songDMDic;
-					this.dmMenu=dmMenu;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
 					AA.say('UPDATE');
-					updateForRecord=false;
+					initializing=false;
 				}
-				else
+				if (!this.menu)
 				{
-					if (!this.menu)
-					{
-						noPlayList();
-						return {};
-					}
-					if (playingSong)
-						initBroadcasts();
-					toPrepare(o, dmMenu);
+					noPlayList();
+					return {};
 				}
+				if (playingSong)
+					initBroadcasts();
+				toPrepare(o, dmMenu);
 			}
 			return {songs: songs, dmMenu: dmMenu};
 		}
@@ -1539,6 +1562,9 @@ package controllers
 		public var playingSong:SongVO;
 		private var pv:PrepareView;
 		public var version:String;
+		private var updateFileSize:Number;
+		private var checkingUpdate:Boolean;
+		public var scale:Number;
 		[Bindable]
 		public var progress:String='系统初始化';
 
@@ -1576,19 +1602,18 @@ package controllers
 			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
+				updateFileSize=o.size;
 				if (o.version != version)
 				{
-					Log.Trace('New Version:' + o.version);
+					trace('New Version:' + o.version);
 					newVersion=o.version;
-					if (autoUpadte && !Capabilities.isDebugger)
-					{
-						recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
+					if (!Capabilities.isDebugger)
 						downloadUpdate();
-					}
-					else
-					{
-						updatable=true;
-					}
+				}
+				else
+				{
+					checkingUpdate=false;
 				}
 			});
 		}

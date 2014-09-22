@@ -62,8 +62,8 @@
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				mic=Microphone.getMicrophone();
-				mic.setSilenceLevel(0);
-				mic.gain=100;
+				mic.setSilenceLevel(100);
+				mic.gain=0;
 				mic.rate=44;
 				mic.setLoopBack(false);
 				mic.setUseEchoSuppression(true);
@@ -222,11 +222,18 @@
 
 			protected function mp3EncodedHandler(event:Event):void
 			{
-				var nurl:String='recorded/' + UIDUtil.createUID() + '.mp3';
-				FileManager.saveFile(nurl, mp3Encoder.mp3Data);
-				vo.url=nurl;
-				vo.name=broName.text;
-				close();
+				try
+				{
+					var nurl:String='recorded/' + UIDUtil.createUID() + '.mp3';
+					FileManager.saveFile(nurl, mp3Encoder.mp3Data);
+					vo.url=nurl;
+					vo.name=broName.text;
+					close();
+				}
+				catch (error:Error)
+				{
+					PAlert.show('保存失败：' + error);
+				}
 			}
 
 			protected function chooseFile_clickHandler(event:MouseEvent):void

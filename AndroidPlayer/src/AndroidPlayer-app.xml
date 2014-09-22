@@ -61,6 +61,7 @@
 				<!--应同时切换 ACCESS_NETWORK_STATE 和 ACCESS_WIFI_STATE 权限，才能使用 AIR的 NetworkInfo API-->
 				<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 				<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+				<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 			</manifest>
 		]]>
 		</manifestAdditions>

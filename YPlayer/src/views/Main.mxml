@@ -71,7 +71,7 @@
 
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
-				panelGroup.height=height - 57 - 48*2;
+				panelGroup.height=height;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
 
@@ -197,22 +197,6 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-//				if (!preMics)
-//				{
-//					preMics=Microphone.names;
-//				}
-//				else if (preMics.length != Microphone.names.length)
-//				{
-//					preVolume=volume;
-//					toVolume(0);
-//					micChanged++;
-//				}
-//				else if (micChanged >= 2)
-//				{
-//					micChanged=0;
-//					toVolume(preVolume);
-//				}
-
 				if (brodcasting || playingDM)
 					return;
 				var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
@@ -222,9 +206,6 @@
 				var value:Number=tt - pt;
 				if (song1)
 					time=time + '正在播放：' + song1.name;
-				else
-					Log.Trace(song1);
-				Log.Trace(value);
 				if (value < 0)
 					play();
 				else if (dms)
@@ -314,6 +295,7 @@
 			{
 				var p:SoundPlayer=new SoundPlayer(1000);
 				p.addEventListener("playing", player2PlayingHandler);
+				p.addEventListener("error", errorHandler);
 				p.volume=vc2Volume / 100;
 				p.autoPlay=true;
 				return p;
@@ -415,10 +397,8 @@
 					AA.say('play');
 					time='准备开始播放 ' + vo.name;
 					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-					Log.Trace(vo.name);
 					var f:File=new File(path);
 					now=api.now;
-					Log.Trace(DateUtil.getHMS(now), DateUtil.getHMS(vo.playTime));
 					var s:Number=now.getTime() - vo.playTime.getTime();
 					if (f.exists)
 					{
@@ -590,7 +570,6 @@
 
 			protected function selectedHandler(event:Event):void
 			{
-				Log.Trace(event.target.data);
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:
@@ -764,7 +743,53 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (!player1.playing && !song1)
+				var gotoPlayDM:Boolean;
+				if(!player1.playing && !playingDM){
+					var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
+					time=randomPlay.selected ? '[随机播放] ' : '';
+					var value:Number;
+					if (dms)
+					{
+						var now:Date=api.now;
+						var min:Number;
+						var dmName:String;
+						var tt:Number;
+						var pt:Number;
+						for each (var dm:InsertVO in dms)
+						{
+							if(dm != plaiedDM)
+							{
+								var ns:Number=now.getTime() / 1000;
+								if (dm.playTime.date != now.date)
+									dm.playTime.date=now.date;
+								var ds:Number=dm.playTime.getTime() / 1000;
+								value=ns - ds;
+								var absValue:int=Math.abs(value);
+								if(!min)
+									min = absValue;
+								if(min >= absValue){
+									min = absValue;
+									dmName = dm.name;
+								}
+								if (absValue <= 1)
+								{
+									gotoPlayDM = true;
+									playingDM=true;
+									plaiedDM = dm;
+									insertBroOrDM(dm);
+									break;
+								}
+							}
+						}
+						value=min;
+						if (value > 0 && value < 60 && !playingDM)
+						{
+							gotoPlayDM = true;
+							time+=' ' + DateUtil.formateTime(value) + ' 后将插播：'+dmName;
+						}
+					}
+				}
+				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
 			}
 
@@ -874,7 +899,11 @@
 				api.playingInfo = '';
 				api.recordDM(ivo);
 				var naiveURL:String=FileManager.savedDir + URLUtil.getCachePath(ivo.url);
-				var url:String=ivo.url.indexOf('recorded') == -1 ? new File(naiveURL).url : new File(FileManager.savedDir + ivo.url).url;
+				var url:String;
+				if(URLUtil.isHttp(ivo.url))
+					url = new File(FileManager.savedDir + URLUtil.getCachePath(ivo.url)).url
+				else
+					url = ivo.url;
 				if (!brodcasting)
 				{
 					player1.muted=false;
@@ -967,6 +996,11 @@
 			[Bindable]
 			private var titleLabel:String;
 			
+			protected function errorHandler(event:DataEvent):void
+			{
+				playingDM = false;
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -993,7 +1027,7 @@
 					 fontSize="18"
 					 left="20"
 					 verticalCenter="0"/>
-			<s:Label text="客服电话：010-51244052 010-58699501 （周一至周五 早9点30到晚5点30）"
+			<s:Label text="客服电话：010-51244052 010-58699501"
 					 color="0xd9dee3"
 					 fontSize="14"
 					 right="20"
@@ -1002,7 +1036,7 @@
 		<s:Group id="info"
 				 y="{topBG.height+topinfo.height}"
 				 width="100%">
-			<s:BitmapImage x="1"
+			<s:BitmapImage x="1" width="100%"
 						   source="@Embed('/assets/trasBG.png')"/>
 			<s:Label text="{time}"
 					 color="0xd9dee3"
@@ -1010,7 +1044,7 @@
 					 left="20"
 					 width="615"
 					 verticalCenter="0"/>
-			<s:HGroup right="20"
+			<s:HGroup right="20" visible="false"
 					  verticalCenter="0"
 					  verticalAlign="middle">
 				<s:ToggleButton skinClass="skins.ListButton"

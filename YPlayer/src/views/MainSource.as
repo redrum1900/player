@@ -31,10 +31,7 @@ private function getSongWhileTimeNotLoop():Boolean
 			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
 			var nn:Number=nearestSong.playTime.getTime() - now.getTime();
 			var vn:Number=vo.playTime.getTime() - now.getTime();
-			if (now.getHours() <= 12)
-				nearestSong=nn > vn ? nearestSong : vo;
-			else
-				nearestSong=nn < vn ? nearestSong : vo;
+			nearestSong=nn < vn ? nearestSong : vo;
 			if (temp)
 			{
 				result-=temp;
