@@ -78,6 +78,7 @@
 						else
 						{
 							retryTimes=0;
+							isAutoloading=false;
 							PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
 							{
 								autoLoad();

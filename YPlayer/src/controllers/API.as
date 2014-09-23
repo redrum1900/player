@@ -12,6 +12,7 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
+	import com.pamakids.utils.QiNiuService;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
@@ -58,7 +59,7 @@ package controllers
 		public var online:Boolean=true;
 		public var isTest:Boolean=false;
 
-		public var enableFunctions:Array=['record'];
+		public var enableFunctions:Array=[];
 
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
@@ -97,8 +98,8 @@ package controllers
 			so=SharedObject.getLocal('yp');
 			if (so.data.id)
 				ServiceBase.id=so.data.id;
-			so.data.username='Nitori:shop1';
-			so.data.password="383370";
+//			so.data.username='Nitori:shop1';
+//			so.data.password="383370";
 			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
 			so.flush();
 			serviceDic=new Dictionary();
@@ -1061,7 +1062,7 @@ package controllers
 					ivo.size=dm.size;
 					ivo.name=dm.dm.name;
 					ivo.duration=dm.dm.duration;
-					ivo.url=dm.dm.url;
+					ivo.url=QNService.HOST + dm.dm.url;
 					ivo.repeat=dm.repeat;
 					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime);
 					ivo.interval=dm.interval;
@@ -1089,6 +1090,19 @@ package controllers
 					a.push(ivo);
 					bd.minutes+=30;
 				}
+			}
+
+			if (dmMenu && dmMenu)
+			{
+				dmMenu.dm_list.sort(function(a:Object, b:Object):int
+				{
+					if (a.playTime.getTime() < b.playTime.getTime())
+						return -1
+					else if (a.playTime.getTime() > b.playTime.getTime())
+						return 1
+					else
+						return 0
+				});
 			}
 
 			if (o && o.list)

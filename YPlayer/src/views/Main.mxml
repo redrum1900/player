@@ -71,7 +71,7 @@
 
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
-				panelGroup.height=height;
+				panelGroup.height=height-panelGroup.y+info.height;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
 
