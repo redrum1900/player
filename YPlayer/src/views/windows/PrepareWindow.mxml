@@ -17,13 +17,13 @@
 			import com.pamakids.manager.LoadManager;
 			import com.pamakids.services.QNService;
 			import com.pamakids.utils.URLUtil;
-			
+
 			import flash.utils.getTimer;
-			
+
 			import mx.events.FlexEvent;
-			
+
 			import controllers.API;
-			
+
 			import models.InsertVO;
 			import models.LogVO;
 			private var api:API;
@@ -70,9 +70,9 @@
 					{
 						retried=false;
 						retryTimes++;
+						isAutoloading=false
 						if (retryTimes <= 10)
 						{
-							isAutoloading=false
 							TweenLite.killDelayedCallsTo(autoLoad);
 							TweenLite.delayedCall(3, autoLoad);
 						}
@@ -185,7 +185,7 @@
 					vo=songs[loaded];
 //					if (vo.url.indexOf('http') == -1 && vo.type != InsertVO.AUTO_INSERT && vo.type != InsertVO.CUSTOMIZE_INSERT)
 //						vo.url=QNService.HOST + vo.url;
-					var s:String= URLUtil.isHttp(vo.url) ? FileManager.savedDir + URLUtil.getCachePath(vo.url) : vo.url;
+					var s:String=URLUtil.isHttp(vo.url) ? FileManager.savedDir + URLUtil.getCachePath(vo.url) : vo.url;
 					loadingFile=new File(s);
 					autoLoading=vo;
 
@@ -295,11 +295,11 @@
 					{
 						if (loadingFile.exists)
 							loadingFile.deleteFile();
-					} 
-					catch(error:Error) 
+					}
+					catch (error:Error)
 					{
-						Log.Trace('Prepare Delete Error:'+error.message);
-						api.appendLog('Prepare Delete Error:'+error.message);
+						Log.Trace('Prepare Delete Error:' + error.message);
+						api.appendLog('Prepare Delete Error:' + error.message);
 					}
 					autoLoad();
 				}
@@ -314,11 +314,11 @@
 				{
 					if (loadingFile.exists)
 						loadingFile.deleteFile();
-				} 
-				catch(error:Error) 
+				}
+				catch (error:Error)
 				{
-					Log.Trace('Prepare Delete Error:'+error.message);
-					api.appendLog('Prepare Delete Error:'+error.message);
+					Log.Trace('Prepare Delete Error:' + error.message);
+					api.appendLog('Prepare Delete Error:' + error.message);
 				}
 				autoLoad();
 			}

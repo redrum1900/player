@@ -58,7 +58,7 @@ package controllers
 		public var isTest:Boolean=false;
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
 		[Bindable]
-		public var showTrace:Boolean=false; //是否显示trace信息面板
+		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
 
 		public var enableFunctions:Array=['record'];
 //		public var enableFunctions:Array=['record', 'insert'];
@@ -80,8 +80,8 @@ package controllers
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
-//			showTrace=o.trace;
-			showTrace=true;
+//			showTrace=o.Log.Trace;
+//			showTrace=true;
 			config=o;
 
 			if (isTest)
@@ -110,7 +110,7 @@ package controllers
 //			so.clear();
 //			so.flush();
 //			var file:File=File.applicationStorageDirectory.resolvePath('log');
-//			trace('log dir:' + file.nativePath);
+//			Log.Trace('log dir:' + file.nativePath);
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 //			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
@@ -119,7 +119,7 @@ package controllers
 			{
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
-					trace('log:' + FileManager.readFile(file.nativePath, false, true));
+					Log.Trace('log:' + FileManager.readFile(file.nativePath, false, true));
 				ServiceBase.HOST='http://localhost:18080/api';
 			}
 			else
@@ -311,7 +311,7 @@ package controllers
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				trace('Now Offset:' + nowOffset);
+				Log.Trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -429,6 +429,7 @@ package controllers
 
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
+				Log.Trace('Refreshed');
 				if (vo.status && !pv)
 				{
 					var menus:Array=FileManager.readFile('menus.yp') as Array;
@@ -443,7 +444,7 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						trace('Day Changed');
+						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -600,7 +601,7 @@ package controllers
 			}
 			catch (error:Error)
 			{
-				trace('save file error', error);
+				Log.Trace('save file error', error);
 			}
 
 		}
@@ -614,7 +615,7 @@ package controllers
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
-				trace("FileCache - Directory not found, create it !");
+				Log.Trace("FileCache - Directory not found, create it !");
 				file.createDirectory();
 			}
 		}
@@ -690,7 +691,7 @@ package controllers
 			{
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				trace('menu changed');
+				Log.Trace('menu changed');
 			}
 			else
 			{
@@ -701,7 +702,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						trace('menu changed');
+						Log.Trace('menu changed');
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -712,7 +713,7 @@ package controllers
 
 		public function getMenuList():void
 		{
-			trace('saved_dir', FileManager.savedDir);
+			Log.Trace('saved_dir', FileManager.savedDir);
 			progress='连接云系统成功，开始获取新内容';
 			if (menu || !FileManager.savedDir)
 				return;
@@ -908,7 +909,7 @@ package controllers
 						if (o.url && o.url.indexOf('http') != -1)
 						{
 							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
-							trace(f.name, f.size);
+							Log.Trace(f.name, f.size);
 							clearedSize+=f.size;
 							f.deleteFileAsync()
 						}
@@ -947,7 +948,7 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				trace(clearedSize / 1024, clearInfo);
+				Log.Trace(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
 			return b;
@@ -1090,9 +1091,9 @@ package controllers
 			var latest:Number;
 			for each (var vo:MenuVO in arr)
 			{
-				trace(DateUtil.getYMD(vo.begin_date));
-				trace(DateUtil.getYMD(vo.end_date));
-				trace(DateUtil.getYMD(now));
+				Log.Trace(DateUtil.getYMD(vo.begin_date));
+				Log.Trace(DateUtil.getYMD(vo.end_date));
+				Log.Trace(DateUtil.getYMD(now));
 				if (menuValid(vo))
 				{
 					if (!mvo && vo.dm_list && vo.dm_list.length)
@@ -1115,13 +1116,13 @@ package controllers
 					if (o.playTime is Date)
 						d1=DateUtil.clone(o.playTime);
 					else
-						d1=DateUtil.getDateByHHMMSS(o.playTime);
+						d1=DateUtil.getDateByHHMMSS(o.playTime, now);
 					var v1:Number=d1.getTime();
 					d1.seconds+=o.duration;
 					var v2:Number=d1.getTime();
 					for each (var o2:Object in locals)
 					{
-						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
+						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime, now);
 						var v3:Number=d.getTime();
 						d.seconds+=o2.dm.duration;
 						var v4:Number=d.getTime();
@@ -1184,7 +1185,7 @@ package controllers
 					else
 						ivo.url=QNService.HOST + dm.dm.url;
 					ivo.repeat=dm.repeat;
-					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime);
+					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime, now);
 					ivo.interval=dm.interval;
 					a.push(ivo);
 				}
@@ -1198,8 +1199,8 @@ package controllers
 					dmMenu=new MenuVO();
 					dmMenu.dm_list=a;
 				}
-				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00');
-				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00');
+				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00', now);
+				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00', now);
 				while (bd.getTime() < ed.getTime())
 				{
 					ivo=new InsertVO();
@@ -1240,8 +1241,8 @@ package controllers
 				for (i=0; i < o.list.length; i++)
 				{
 					var oo:Object=o.list[i]
-					oo.begin=DateUtil.getDateByHHMMSS(oo.begin);
-					oo.end=DateUtil.getDateByHHMMSS(oo.end);
+					oo.begin=DateUtil.getDateByHHMMSS(oo.begin, now);
+					oo.end=DateUtil.getDateByHHMMSS(oo.end, now);
 					if (!playingSong && dateValidate(o.begin_date, o.end_date))
 						times.push({begin: oo.begin, end: oo.end, loop: Boolean(oo.loop)});
 					playTime=DateUtil.clone(oo.begin);
@@ -1300,13 +1301,13 @@ package controllers
 							else if (s.duration)
 								playTime.seconds+=s.duration;
 							else
-								trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
+								Log.Trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
 						}
 
 					}
 					oo.songs=arr;
 				}
-				trace('DMS:' + dms.length);
+				Log.Trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			if (!onlyParse)
@@ -1583,7 +1584,7 @@ package controllers
 			{
 				for each (var o:Object in bs)
 				{
-					o.playTime=DateUtil.getDateByHHMMSS(o.playTime);
+					o.playTime=DateUtil.getDateByHHMMSS(o.playTime, now);
 					if (o.url.indexOf('http') == -1)
 						o.url=QNService.HOST + o.url;
 				}
@@ -1656,6 +1657,38 @@ package controllers
 		public var playingIndex:int;
 
 		public var username:String;
+
+		public function saveUserInfo(name:String, pwd:String, cacheDir:String, id:String):void
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			so.data.username=name;
+			so.data.password=pwd;
+			so.data.so.flush();
+			config.username=name;
+			config.password=pwd;
+			FileManager.saveFile(File.applicationDirectory.resolvePath('config.json').nativePath, JSON.stringify(config));
+		}
+
+		public function getUserInfo():Object
+		{
+			var o:Object={};
+			var so:SharedObject=SharedObject.getLocal('yp');
+			if (so.data.username)
+			{
+				o.username=so.data.username;
+				o.password=so.data.password;
+			}
+			else
+			{
+				config=FileManager.readFile('config.json', true, true);
+				if (config.username)
+				{
+					o.username=config.username;
+					o.password=config.password;
+				}
+			}
+			return o;
+		}
 
 		public function login(username:String, password:String, callback:Function):void
 		{
@@ -1731,7 +1764,7 @@ package controllers
 		{
 			if (!ServiceBase.id || !QNService.token || local || Capabilities.isDebugger)
 				return;
-			trace('CheckLog');
+			Log.Trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
 			if (file.exists && file.isDirectory)
 			{
@@ -1808,7 +1841,7 @@ package controllers
 				updateFileSize=o.size;
 				if (o.version != version)
 				{
-					trace('New Version:' + o.version);
+					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
 					if (!Capabilities.isDebugger)
