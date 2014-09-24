@@ -137,6 +137,7 @@ package controllers
 		{
 			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function(e:UncaughtErrorEvent):void
 			{
+				Log.Trace(e);
 				if (e.error is Error)
 				{
 					var stack:String=Error(e.error).getStackTrace();
@@ -249,7 +250,7 @@ package controllers
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				trace('Now Offset:' + nowOffset);
+				Log.Trace('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -391,7 +392,7 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						trace('Day Changed');
+						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -538,7 +539,7 @@ package controllers
 			}
 			catch (error:Error)
 			{
-				trace('save file error', error);
+				Log.Trace('save file error', error);
 			}
 
 		}
@@ -552,7 +553,7 @@ package controllers
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
-				trace("FileCache - Directory not found, create it !");
+				Log.Trace("FileCache - Directory not found, create it !");
 				file.createDirectory();
 			}
 		}
@@ -857,7 +858,7 @@ package controllers
 						if (o.url && o.url.indexOf('http') != -1)
 						{
 							f=new File(FileManager.savedDir + URLUtil.getCachePath(o.url));
-							trace(f.name, f.size);
+							Log.Trace(f.name, f.size);
 							clearedSize+=f.size;
 							f.deleteFileAsync()
 						}
@@ -896,7 +897,7 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				trace(clearedSize / 1024, clearInfo);
+				Log.Trace(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
 			return b;
@@ -1064,7 +1065,7 @@ package controllers
 					ivo.duration=dm.dm.duration;
 					ivo.url=QNService.HOST + dm.dm.url;
 					ivo.repeat=dm.repeat;
-					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime);
+					ivo.playTime=DateUtil.getDateByHHMMSS(dm.playTime, now);
 					ivo.interval=dm.interval;
 					a.push(ivo);
 				}
@@ -1078,8 +1079,8 @@ package controllers
 					dmMenu=new MenuVO();
 					dmMenu.dm_list=a;
 				}
-				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00');
-				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00');
+				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00', now);
+				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00', now);
 				while (bd.getTime() < ed.getTime())
 				{
 					ivo=new InsertVO();
@@ -1092,7 +1093,7 @@ package controllers
 				}
 			}
 
-			if (dmMenu && dmMenu)
+			if (dmMenu && dmMenu && dmMenu.dm_list)
 			{
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
@@ -1115,8 +1116,8 @@ package controllers
 				for (i=0; i < o.list.length; i++)
 				{
 					var oo:Object=o.list[i]
-					oo.begin=DateUtil.getDateByHHMMSS(oo.begin);
-					oo.end=DateUtil.getDateByHHMMSS(oo.end);
+					oo.begin=DateUtil.getDateByHHMMSS(oo.begin, now);
+					oo.end=DateUtil.getDateByHHMMSS(oo.end, now);
 					if (!playingSong && dateValidate(o.begin_date, o.end_date))
 						times.push({begin: oo.begin, end: oo.end, loop: Boolean(oo.loop)});
 					playTime=DateUtil.clone(oo.begin);
@@ -1171,10 +1172,10 @@ package controllers
 					}
 					oo.songs=arr;
 				}
-				trace('DMS:' + dms.length);
+				Log.Trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
-			trace(2);
+			Log.Trace(2);
 			if (!onlyParse)
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
@@ -1208,6 +1209,8 @@ package controllers
 				}
 				if (playingSong)
 					initBroadcasts();
+//				dispatchEvent(new Event('PLAY'));
+//				return {};
 				toPrepare(o, dmMenu);
 			}
 			return {songs: songs, dmMenu: dmMenu};
@@ -1419,7 +1422,7 @@ package controllers
 			{
 				for each (var o:Object in bs)
 				{
-					o.playTime=DateUtil.getDateByHHMMSS(o.playTime);
+					o.playTime=DateUtil.getDateByHHMMSS(o.playTime, now);
 					if (o.url.indexOf('http') == -1)
 						o.url=QNService.HOST + o.url;
 				}
@@ -1611,7 +1614,7 @@ package controllers
 
 		public function checkUpdate():void
 		{
-			if (local)
+			if (local || config.trace)
 				return;
 			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
 			{
@@ -1619,7 +1622,7 @@ package controllers
 				updateFileSize=o.size;
 				if (o.version != version)
 				{
-					trace('New Version:' + o.version);
+					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
 					if (!Capabilities.isDebugger)

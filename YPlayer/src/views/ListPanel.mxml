@@ -71,7 +71,10 @@
 				{
 					try
 					{
-						songs.ensureIndexIsVisible(api.playingIndex);
+						if (songs.dataProvider.length)
+							songs.ensureIndexIsVisible(api.playingIndex);
+						else
+							to(index);
 					}
 					catch (error:Error)
 					{
