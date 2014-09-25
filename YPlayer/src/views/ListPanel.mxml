@@ -71,7 +71,10 @@
 				{
 					try
 					{
-						songs.ensureIndexIsVisible(index);
+						if (songs.dataProvider && songs.dataProvider.length)
+							songs.ensureIndexIsVisible(index);
+						else
+							to(index);
 					}
 					catch (error:Error)
 					{

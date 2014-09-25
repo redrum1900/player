@@ -121,38 +121,13 @@
 					api.getMenuList();
 					return;
 				}
-				var so:SharedObject=SharedObject.getLocal('yp');
-				if (so.data.username && so.data.password)
+				var o:Object = api.getUserInfo();
+				if (o.username && o.password)
 				{
 					if (api.online)
-					{
-						api.login(so.data.username, so.data.password, function(vo:ResultVO):void
-						{
-							if (vo.status)
-							{
-								so.data.id=ServiceBase.id;
-//								so.data.broadcasts=vo.results.broadcasts;
-								so.flush();
-							}
-							else
-							{
-//								if (vo.errCode)
-//								{
-								api.online=false;
-								api.getMenuList();
-//								}
-//								else
-//								{
-//									var l:LoginView=new LoginView();
-//									PopupBoxManager.popup(l);
-//								}
-							}
-						});
-					}
+						api.login(o.username, o.password);
 					else
-					{
 						api.getMenuList();
-					}
 				}
 				else
 				{
@@ -607,9 +582,7 @@
 						{
 							if (value == PAlert.YES)
 							{
-								var so:SharedObject=SharedObject.getLocal('yp');
-								so.clear();
-								so.flush();
+								api.clearInfo();
 								NativeApplication.nativeApplication.exit();
 							}
 						}, PAlert.YESNO);

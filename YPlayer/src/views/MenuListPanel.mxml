@@ -18,6 +18,7 @@
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 
+			import controllers.AA;
 			import controllers.API;
 
 			import skins.SongListSkin;
@@ -30,10 +31,12 @@
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				api=API.instance;
+
 				showMenus();
+				AA.listen('CACHED', showMenus);
 			}
 
-			private function showMenus():void
+			private function showMenus(e:Object=null):void
 			{
 				var menus:Array=FileManager.readFile('menus.yp') as Array;
 				this.menus.label='请选择您要查看的信息';

@@ -194,8 +194,11 @@
 						if (!startLoad)
 							starRecord();
 						Log.Trace('to load:' + vo.name);
-						LoadManager.instance.load(vo.url, function():void
+						var url:String=isReloadForError ? autoLoading.url.split('?')[0] + '?' + Math.random() : vo.url;
+
+						LoadManager.instance.load(url, function():void
 						{
+							isReloadForError=false;
 							Log.Trace('loaded:' + vo.name);
 							loadingFile=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
 							sp.url=loadingFile.url;
@@ -277,6 +280,8 @@
 				recordTimer.start();
 			}
 
+			private var isReloadForError:Boolean;
+
 			protected function plaingHandler(event:Event):void
 			{
 				isAutoloading=false;
@@ -301,6 +306,7 @@
 						Log.Trace('Prepare Delete Error:' + error.message);
 						api.appendLog('Prepare Delete Error:' + error.message);
 					}
+					isReloadForError=true;
 					autoLoad();
 				}
 			}
@@ -320,6 +326,7 @@
 					Log.Trace('Prepare Delete Error:' + error.message);
 					api.appendLog('Prepare Delete Error:' + error.message);
 				}
+				isReloadForError=true;
 				autoLoad();
 			}
 		]]>

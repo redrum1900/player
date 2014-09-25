@@ -46,11 +46,9 @@
 
 			protected function pre(event:FlexEvent):void
 			{
-				var v:String=API.instance.isTest ? 'test' : 'update';
-				updateURL='http://yfcdn.qiniudn.com/file/' + v + '.xml' + '?' + Math.random();
 				AA.centerWindow(nativeWindow);
 //				updater.initialize();
-				API.instance.checkUpdate();
+//				API.instance.checkUpdate();
 				ToolTipManager.showEffect=fadeIn;
 				ToolTipManager.hideEffect=fadeOut;
 				ToolTipManager.showDelay=0;
