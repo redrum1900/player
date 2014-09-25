@@ -58,6 +58,9 @@ package controllers
 		public var local:Boolean=false;
 		public var online:Boolean=true;
 		public var isTest:Boolean=false;
+		public var isTool:Boolean=false; //是否作为下载mp3工具使用
+		[Bindable]
+		public var showTrace:Boolean=false; //是否显示trace信息面板
 
 		public var enableFunctions:Array=[];
 
@@ -71,6 +74,8 @@ package controllers
 		public var serial_number:String;
 		private var day:Number;
 
+		private var noCacheDirInConfig:Boolean;
+
 		public function API()
 		{
 			var o:Object=FileManager.readFile('config.json', true, true);
@@ -78,7 +83,13 @@ package controllers
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
+			showTrace=o.trace;
+//			showTrace=true;
 			config=o;
+
+			if (isTest)
+				enableFunctions.push('insert');
+
 			var so:SharedObject;
 			so=SharedObject.getLocal('sn');
 			if (!so.data.sn)
@@ -86,13 +97,14 @@ package controllers
 				so.data.sn=UIDUtil.createUID();
 				so.flush();
 			}
+			else if (config.sn)
+			{
+				so.data.sn=config.sn;
+			}
+			config.sn=so.data.sn;
 			serial_number=so.data.sn;
 			so=SharedObject.getLocal('version');
-			if (!so.data.version)
-				if (o.version)
-					so.data.version=o.version;
-				else
-					so.data.version='1.6.3';
+			so.data.version=o.version;
 			so.flush();
 			version=so.data.version;
 			so=SharedObject.getLocal('yp');
@@ -113,9 +125,16 @@ package controllers
 			}
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
+
+			if (config.username && config.password)
+			{
+				so.data.username=config.username;
+				so.data.password=config.password;
+				so.flush();
+			}
+
 			if (local)
 			{
-				so=SharedObject.getLocal('yp');
 				so.data.username=o.username;
 				so.flush();
 				online=false;
@@ -156,6 +175,13 @@ package controllers
 		{
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
+				checkingUpdate=false;
+				if (updateFileSize != b.length)
+				{
+					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本更新文件大小有问题'));
+					TweenLite.delayedCall(3, downloadUpdate);
+					return;
+				}
 				if (b && b.length)
 				{
 					try
@@ -165,9 +191,18 @@ package controllers
 						version=newVersion;
 						var so:SharedObject=SharedObject.getLocal('version');
 						so.data.version=newVersion;
+						config.version=newVersion;
+						saveConfig();
 						so.flush();
-						recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新成功'));
-						needReboot=true;
+						if (version != newVersion)
+						{
+							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
+							if (!playingSong)
+								reboot();
+							else
+								needReboot=true;
+						}
+						version=newVersion
 					}
 					catch (error:Error)
 					{
@@ -187,6 +222,7 @@ package controllers
 				}
 			}, 'update/' + newVersion + '.swf', null, callback, false, 'binary', function(e:Event, par:Object):void
 			{
+				checkingUpdate=false;
 				if (autoUpadte)
 				{
 					recordLog(new LogVO(LogVO.WARNING, newVersion, '版本自动更新失败'));
@@ -194,7 +230,6 @@ package controllers
 				}
 				if (callback != null)
 					callback(0)
-				PAlert.show('更新失败，请检查网络连接');
 			});
 		}
 
@@ -256,14 +291,14 @@ package controllers
 			{
 				appendLog('GetNow Error' + e.toString());
 				TweenLite.killDelayedCallsTo(getNowTime);
-				TweenLite.delayedCall(60, getNowTime);
+				TweenLite.delayedCall(600, getNowTime);
 			});
 			ul.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void
 			{
 				if (e.status && e.status != 200)
 				{
 					TweenLite.killDelayedCallsTo(getNowTime);
-					TweenLite.delayedCall(60, getNowTime);
+					TweenLite.delayedCall(600, getNowTime);
 					appendLog('GetNow Error' + e.toString());
 				}
 			});
@@ -288,14 +323,14 @@ package controllers
 			{
 				appendLog('GetUploadToken Error' + e.toString());
 				TweenLite.killDelayedCallsTo(getUploadToken);
-				TweenLite.delayedCall(60, getUploadToken);
+				TweenLite.delayedCall(600, getUploadToken);
 			});
 			ul.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void
 			{
 				if (e.status && e.status != 200)
 				{
 					TweenLite.killDelayedCallsTo(getUploadToken);
-					TweenLite.delayedCall(60, getUploadToken);
+					TweenLite.delayedCall(600, getUploadToken);
 					appendLog('GetUploadToken Error' + e.toString());
 				}
 			});
@@ -378,6 +413,7 @@ package controllers
 
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
+				Log.Trace('Refreshed');
 				if (vo.status && !pv)
 				{
 					var menus:Array=getMenus();
@@ -422,7 +458,7 @@ package controllers
 							}
 						}
 						if (readyToUpdate)
-							initMenu();
+							checkUncachedMenu();
 					}
 					else if (brosChanged)
 					{
@@ -524,6 +560,7 @@ package controllers
 
 		public function appendLog(log:String):void
 		{
+			Log.Trace(log);
 			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
 			if (path.charAt(0) == '/')
@@ -907,6 +944,29 @@ package controllers
 
 		private var initializing:Boolean;
 
+		private function getUncachedMenu():Object
+		{
+			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menu:Object;
+			var o:Object;
+			var n:Date=now;
+			n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
+			var i:int;
+			for (i=0; i < menus.length; i++)
+			{
+				o=menus[i];
+				if (o.end_date && o.begin_date)
+				{
+					if (!hasCached(o._id))
+					{
+						menu=o;
+						break;
+					}
+				}
+			}
+			return menu;
+		}
+
 		public function initMenu():void
 		{
 			if (initializing)
@@ -1033,6 +1093,61 @@ package controllers
 		public var dmMenu:Object;
 		public var updateForRecord:Boolean;
 
+//		private function getLocalInsertedMenu():MenuVO
+//		{
+//			var mvo:MenuVO;
+//			var arr:Array=getLocalDMS();
+//			var latest:Number;
+//			for each (var vo:MenuVO in arr)
+//			{
+//				trace(DateUtil.getYMD(vo.begin_date));
+//				trace(DateUtil.getYMD(vo.end_date));
+//				trace(DateUtil.getYMD(now));
+//				if (menuValid(vo))
+//				{
+//					if (!mvo && vo.dm_list && vo.dm_list.length)
+//						mvo=vo;
+//					else if (vo.dm_list && vo.dm_list.length)
+//						mvo.dm_list=mvo.dm_list.concat(vo.dm_list);
+//				}
+//			}
+//			return mvo;
+//		}
+//
+//		public function checkLocalInsert(locals:Array, others:Array):Boolean
+//		{
+//			var dms:Array=others
+//			if (dms)
+//			{
+//				for each (var o:Object in dms)
+//				{
+//					var d1:Date;
+//					if (o.playTime is Date)
+//						d1=DateUtil.clone(o.playTime);
+//					else
+//						d1=DateUtil.getDateByHHMMSS(o.playTime);
+//					var v1:Number=d1.getTime();
+//					d1.seconds+=o.duration;
+//					var v2:Number=d1.getTime();
+//					for each (var o2:Object in locals)
+//					{
+//						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
+//						var v3:Number=d.getTime();
+//						d.seconds+=o2.dm.duration;
+//						var v4:Number=d.getTime();
+//						if ((v3 >= v1 && v3 <= v2) || (v4 >= v1 && v4 <= v2))
+//						{
+//							d1.seconds-=o.duration;
+//							var op:String=d1.getHours() + ':' + d1.getMinutes();
+//							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的 ' + o.name + ' 时间冲突，请调整您的播放时间');
+//							return false;
+//						}
+//					}
+//				}
+//			}
+//			return true;
+//		}
+
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
 			var o:Object=songMenu;
@@ -1093,7 +1208,7 @@ package controllers
 				}
 			}
 
-			if (dmMenu && dmMenu && dmMenu.dm_list)
+			if (dmMenu && dmMenu)
 			{
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
@@ -1154,10 +1269,10 @@ package controllers
 									var t3:Number=dmivo.playTime.getTime();
 									if (t1 <= t3 && t3 <= t2)
 									{
-										dmarr.push(dmivo);
-										songs.push(dmivo);
-										dms.splice(dms.indexOf(dmivo), 1);
-										break;
+										if (dmarr.indexOf(dmivo) == -1)
+											dmarr.push(dmivo);
+										if (songs.indexOf(dmivo) == -1)
+											songs.push(dmivo);
 									}
 								}
 								if (dmarr.length)
@@ -1175,7 +1290,6 @@ package controllers
 				Log.Trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
-			Log.Trace(2);
 			if (!onlyParse)
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
@@ -1202,21 +1316,42 @@ package controllers
 					AA.say('UPDATE');
 					initializing=false;
 				}
-				if (!this.menu)
+				if (updateForRecord)
 				{
-					noPlayList();
-					return {};
+					this.songs=songs;
+					this.songDMDic=songDMDic;
+					this.dmMenu=dmMenu;
+					if (playingSong)
+						playingIndex=songs.indexOf(playingSong);
+					AA.say('UPDATE');
+					initializing=false;
+					updateForRecord=false;
 				}
-				if (playingSong)
-					initBroadcasts();
-//				dispatchEvent(new Event('PLAY'));
-//				return {};
-				toPrepare(o, dmMenu);
+				else
+				{
+					if (!this.menu)
+					{
+						noPlayList();
+						return {};
+					}
+					if (playingSong)
+						initBroadcasts();
+					if (local && !playingSong)
+					{
+						progress='';
+						initializing=false;
+						initBroadcasts();
+						dmChanged=false;
+						dispatchEvent(new Event('PLAY'));
+						return {songs: songs, dmMenu: dmMenu};
+					}
+					toPrepare(o, dmMenu, songs);
+				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
 		}
 
-		private function toPrepare(menu:Object, dmMenu:Object):void
+		private function toPrepare(menu:Object, dmMenu:Object, songs:Array):void
 		{
 			if (playingSong && !dmChanged)
 			{
@@ -1240,7 +1375,8 @@ package controllers
 				}
 			}
 
-			progress='开始初始化内容';
+			if (!playingSong)
+				progress='开始初始化内容';
 
 			pv=new PrepareView();
 			var label:String;
@@ -1265,16 +1401,18 @@ package controllers
 					so.flush();
 					uploadUpdateLog();
 				}
-				else
-				{
-					checkMenuToUpdate();
-				}
+//				else
+//				{
+//					checkMenuToUpdate();
+//				}
 				if (!playingSong || dmChanged)
 				{
 					initBroadcasts();
 					dmChanged=false;
 					dispatchEvent(new Event('PLAY'));
 				}
+				checkUncachedMenu();
+				AA.say('CACHED');
 				pv=null;
 			});
 			if (dmMenu && dmMenu.dm_list)
@@ -1288,6 +1426,22 @@ package controllers
 				pv.broadcasts=broadcasts.concat();
 			pv.label=label;
 			PopupBoxManager.popup(pv);
+		}
+
+		private function checkUncachedMenu():void
+		{
+			var menu:Object=getUncachedMenu();
+			if (menu)
+			{
+				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
+				{
+					var o:Object=JSON.parse(data);
+					if (o.type == 1)
+						parseMenu(o, null);
+					else if (o.type == 2)
+						parseMenu(null, o);
+				}, menu._id + '.json', online);
+			}
 		}
 
 		private function get dmLogSO():SharedObject
@@ -1326,7 +1480,7 @@ package controllers
 
 		private function uploadUpdateLog():void
 		{
-			if (local)
+			if (local || (Capabilities.isDebugger && !isTest))
 				return;
 			var so:SharedObject=updateLogSO;
 			var cached:SharedObject=cachedSO;
@@ -1348,7 +1502,7 @@ package controllers
 					if (vo.status)
 					{
 						so.clear();
-						checkMenuToUpdate();
+//						checkMenuToUpdate();
 					}
 					else
 					{
@@ -1360,26 +1514,26 @@ package controllers
 			}
 		}
 
-		private function checkMenuToUpdate():void
-		{
-			var menus:Array=getMenus() as Array;
-			var cached:Array=cachedSO.data.menus;
-			for each (var m:Object in menus)
-			{
-				if (cached.indexOf(m._id) == -1)
-				{
-					if (m.type == 1)
-					{
-						parseMenu(m, null);
-					}
-					else
-					{
-						parseMenu(null, m);
-					}
-					break;
-				}
-			}
-		}
+//		private function checkMenuToUpdate():void
+//		{
+//			var menus:Array=FileManager.readFile('menus.yp') as Array;
+//			var cached:Array=cachedSO.data.menus;
+//			for each (var m:Object in menus)
+//			{
+//				if (cached.indexOf(m._id) == -1)
+//				{
+//					if (m.type == 1)
+//					{
+//						parseMenu(m, null);
+//					}
+//					else
+//					{
+//						parseMenu(null, m);
+//					}
+//					break;
+//				}
+//			}
+//		}
 
 		public var songDMDic:Dictionary;
 
@@ -1388,7 +1542,7 @@ package controllers
 		private function noPlayList():void
 		{
 			initializing=false;
-			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败3', null, function():void
+			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败', null, function():void
 			{
 				online=true
 				getMenuList();
@@ -1442,15 +1596,28 @@ package controllers
 				}
 				else
 				{
-					if (isJKL() && records[0].url)
-						insertBro=records[0];
-					else if (Capabilities.isDebugger && records[0].url)
-						insertBro=records[0];
-					else
-						insertBro=null;
+//					var f:File;
+//					if (needInsert() && records[0].url)
+//					{
+//						f=new File(FileManager.savedDir + records[0].url);
+//						if (f.exists)
+//							insertBro=records[0];
+//					}
+//					else if (Capabilities.isDebugger && records[0].url)
+//					{
+//						f=new File(FileManager.savedDir + records[0].url);
+//						if (f.exists)
+//							insertBro=records[0];
+//					}
+//					else
+//						insertBro=null;
 				}
 				bs=bs.concat(records);
 			}
+//			if (enabledInsert())
+//			{
+//				bs.push({name: '定制插播', type: 2});
+//			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
 			var arr:Array=[];
 			if (broadcasts)
@@ -1466,11 +1633,11 @@ package controllers
 
 		private function isJKL():Boolean
 		{
-			if (Capabilities.isDebugger)
+			if (Capabilities.isDebugger || config.insert)
 				return true;
 			var so:SharedObject=SharedObject.getLocal('yp');
 			var un:String=so.data.username;
-			return un.indexOf('京客隆') != -1;
+			return un.indexOf('京客隆') != -1 || un.indexOf('潍百集团佳乐家') != -1;
 		}
 
 		[Bindable]
@@ -1478,7 +1645,70 @@ package controllers
 
 		public var username:String;
 
-		public function login(username:String, password:String, callback:Function):void
+		public function saveUserInfo(name:String, pwd:String, cacheDir:String, id:String):void
+		{
+			try
+			{
+				var so:SharedObject=SharedObject.getLocal('yp');
+				so.data.username=name;
+				so.data.password=pwd;
+				so.data.cacheDir=cacheDir;
+				so.data.id=id;
+				config.cacheDir=cacheDir;
+				config.id=id;
+				config.username=name;
+				config.password=pwd;
+				saveConfig();
+			}
+			catch (error:Error)
+			{
+				appendLog('SaveUserInfoError:' + error);
+			}
+		}
+
+		public function saveConfig():void
+		{
+			try
+			{
+				var f:File=new File(File.applicationDirectory.resolvePath('config.json').nativePath);
+				var fs:FileStream=new FileStream();
+				fs.open(f, FileMode.WRITE);
+				fs.writeMultiByte(JSON.stringify(config), 'utf-8');
+				fs.close();
+			}
+			catch (error:Error)
+			{
+				appendLog('SaveConfigError:' + error);
+			}
+		}
+
+		public function getUserInfo():Object
+		{
+			var o:Object={};
+			var so:SharedObject=SharedObject.getLocal('yp');
+			if (so.data.username)
+			{
+				o.username=so.data.username;
+				o.password=so.data.password;
+				o.cacheDir=so.data.cacheDir;
+				o.id=so.data.id;
+			}
+			else
+			{
+				config=FileManager.readFile('config.json', true, true);
+				config=JSON.parse(config + '');
+				if (config.username)
+				{
+					o.username=config.username;
+					o.password=config.password;
+					o.cacheDir=config.cacheDir;
+					o.id=config.id;
+				}
+			}
+			return o;
+		}
+
+		public function login(username:String, password:String, callback:Function=null):void
 		{
 			username=username.replace(' ', '');
 			username=username.replace('：', ':');
@@ -1487,8 +1717,8 @@ package controllers
 			progress='连接云系统';
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				var cd:String=so.data.cacheDir;
+				var info:Object=getUserInfo();
+				var cd:String=info.cacheDir;
 				var exists:Boolean;
 				try
 				{
@@ -1508,7 +1738,8 @@ package controllers
 					ServiceBase.id=vo.results.id + '';
 					if (cd && exists)
 					{
-						FileManager.savedDir=so.data.cacheDir;
+						saveUserInfo(username, password, cd, vo.results.id);
+						FileManager.savedDir=cd;
 						FileManager.saveFile('bros.yp', broadcasts);
 						getMenuList();
 					}
@@ -1520,24 +1751,39 @@ package controllers
 				{
 					FileManager.savedDir=cd;
 				}
+
 				if (!cd || !exists)
 				{
-					if (vo.status)
+					if (vo.status || noCacheDirInConfig)
 					{
 						var sv:SelectCacheView=new SelectCacheView();
 						PopupBoxManager.popup(sv, function():void
 						{
-							so=SharedObject.getLocal('yp');
+							var so:SharedObject=SharedObject.getLocal('yp');
 							FileManager.savedDir=so.data.cacheDir;
+							if (vo.results && vo.results.hasOwnProperty('id'))
+								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
+							else
+							{
+								config.cacheDir=so.data.cacheDir;
+								saveConfig();
+							}
 							if (broadcasts)
 								FileManager.saveFile('bros.yp', broadcasts);
 							getMenuList();
 						});
 					}
 				}
-				if (!vo.status)
+
+				if (!vo.status && !noCacheDirInConfig)
+				{
+					online=false;
+					getMenuList();
 					appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
-				callback(vo);
+				}
+
+				if (callback != null)
+					callback(vo);
 			}, {username: username, password: password, serial_number: serial_number});
 		}
 
@@ -1550,7 +1796,7 @@ package controllers
 
 		private function checkLog():void
 		{
-			if (!ServiceBase.id || !QNService.token || local)
+			if (!ServiceBase.id || !QNService.token || local || Capabilities.isDebugger)
 				return;
 			Log.Trace('CheckLog');
 			var file:File=File.applicationStorageDirectory.resolvePath('log');
@@ -1560,13 +1806,16 @@ package controllers
 				if (files.length)
 				{
 					var f:File=files.shift() as File;
-					var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
-					QNService.instance.upload(f, function(r:Object):void
+					if (f.creationDate.date != now.date)
 					{
-						var re:ResultVO=r as ResultVO;
-						if (re && re.status && f.exists)
-							f.deleteFile();
-					}, {key: upName});
+						var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
+						QNService.instance.upload(f, function(r:Object):void
+						{
+							var re:ResultVO=r as ResultVO;
+							if (re && re.status && f.exists)
+								f.deleteFile();
+						}, {key: upName});
+					}
 				}
 			}
 		}
@@ -1614,9 +1863,13 @@ package controllers
 
 		public function checkUpdate():void
 		{
-			if (local || config.trace)
+			if (local || checkingUpdate || config.trace)
 				return;
-			LoadManager.instance.loadText(config.update + '?' + Math.random(), function(s:String):void
+			checkingUpdate=true;
+			var url:String=config.update;
+			if (isTest)
+				url=url.replace('update', 'test');
+			LoadManager.instance.loadText(url + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
 				updateFileSize=o.size;
@@ -1633,6 +1886,19 @@ package controllers
 					checkingUpdate=false;
 				}
 			});
+		}
+
+		public function clearInfo():void
+		{
+			var so:SharedObject=SharedObject.getLocal('yp');
+			so.clear();
+			cachedSO.clear();
+			updateLogSO.clear();
+			config.username='';
+			config.password='';
+			config.cacheDir='';
+			config.id='';
+			saveConfig();
 		}
 	}
 }

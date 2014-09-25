@@ -78,7 +78,17 @@ private function switchSong():Boolean
 	{
 		song1=song2;
 		var index:int=api.songs.indexOf(song2);
-		if (index != api.songs.length - 1)
+		if (api.isCurrentTimeLoop)
+		{
+			var songs:Array=api.getCurrentTimeSongs();
+			index=songs.indexOf(song2);
+			if (index == songs.length - 1)
+				index=0;
+			else
+				index+=1;
+			song2=songs[index];
+		}
+		else if (index != api.songs.length - 1)
 		{
 			for (index++; i < api.songs.length - 1; index++)
 			{
@@ -87,10 +97,6 @@ private function switchSong():Boolean
 					break;
 			}
 		}
-		else if (api.isCurrentTimeLoop)
-		{
-			song2=api.songs[0];
-		}
 		else
 		{
 			song2=null;
@@ -98,9 +104,7 @@ private function switchSong():Boolean
 	}
 	else if (api.isCurrentTimeLoop)
 	{
-		song1=api.songs[0];
-		if (api.songs.length > 1)
-			song2=api.songs[1] as SongVO;
+		initSongWhileTimeLoop();
 	}
 	else
 	{
