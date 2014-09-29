@@ -87,9 +87,6 @@ package controllers
 //			showTrace=true;
 			config=o;
 
-			if (isTest)
-				enableFunctions.push('insert');
-
 			var so:SharedObject;
 			so=SharedObject.getLocal('sn');
 			if (!so.data.sn)
@@ -110,10 +107,11 @@ package controllers
 			so=SharedObject.getLocal('yp');
 			if (so.data.id)
 				ServiceBase.id=so.data.id;
-//			so.data.username='Nitori:shop1';
-//			so.data.password="383370";
+//			so.data.username='LaChapelle:shop2';
+//			so.data.password="244471";
 			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
-			so.flush();
+			config.cacheDir=so.data.cacheDir;
+			FileManager.savedDir=config.cacheDir;
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 			if (o.debug)
@@ -130,13 +128,11 @@ package controllers
 			{
 				so.data.username=config.username;
 				so.data.password=config.password;
-				so.flush();
 			}
 
 			if (local)
 			{
 				so.data.username=o.username;
-				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
 			}
@@ -145,11 +141,13 @@ package controllers
 				getUploadToken();
 				getNowTime();
 			}
+
+			so.flush();
+
 			setYPData('startup', now.getTime());
 			setYPData('refreshTime', now.getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
-			startAtLogin();
 		}
 
 		public function initUncaughtErrorListener(loaderInfo:Object):void
@@ -667,7 +665,7 @@ package controllers
 			{
 				so.data.savedMenus=newMenus;
 				so.flush();
-//				FileManager.saveFile('menus.yp', newMenus);
+				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
 				Log.Trace('menu changed');
 			}
@@ -683,7 +681,7 @@ package controllers
 						Log.Trace('menu changed');
 						so.data.savedMenus=newMenus;
 						so.flush();
-//						FileManager.saveFile('menus.yp', newMenus);
+						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
 				}
@@ -694,7 +692,10 @@ package controllers
 		private function getMenus():Array
 		{
 			var so:SharedObject=SharedObject.getLocal('yp');
-			return so.data.savedMenus as Array;
+			var arr:Array=so.data.savedMenus as Array;
+			if (!arr)
+				arr=FileManager.readFile('menus.yp') as Array;
+			return arr;
 		}
 
 		public function getMenuList():void
@@ -946,7 +947,7 @@ package controllers
 
 		private function getUncachedMenu():Object
 		{
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus();
 			var menu:Object;
 			var o:Object;
 			var n:Date=now;
@@ -1080,7 +1081,7 @@ package controllers
 				return b;
 			for each (var o:Object in menu.list)
 			{
-				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
+				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime() && o.songs.length)
 				{
 					b=o.loop;
 					currentTime=o;
@@ -1668,18 +1669,18 @@ package controllers
 
 		public function saveConfig():void
 		{
-			try
-			{
-				var f:File=new File(File.applicationDirectory.resolvePath('config.json').nativePath);
-				var fs:FileStream=new FileStream();
-				fs.open(f, FileMode.WRITE);
-				fs.writeMultiByte(JSON.stringify(config), 'utf-8');
-				fs.close();
-			}
-			catch (error:Error)
-			{
-				appendLog('SaveConfigError:' + error);
-			}
+//			try
+//			{
+			var f:File=File.applicationStorageDirectory.resolvePath('config.json');
+			var fs:FileStream=new FileStream();
+			fs.open(f, FileMode.WRITE);
+			fs.writeMultiByte(JSON.stringify(config), 'utf-8');
+			fs.close();
+//			}
+//			catch (error:Error)
+//			{
+//				appendLog('SaveConfigError:' + error);
+//			}
 		}
 
 		public function getUserInfo():Object
@@ -1695,9 +1696,10 @@ package controllers
 			}
 			else
 			{
-				config=FileManager.readFile('config.json', true, true);
+				var config:Object;
+				config=FileManager.readFile('config.json');
 				config=JSON.parse(config + '');
-				if (config.username)
+				if (config && config.username)
 				{
 					o.username=config.username;
 					o.password=config.password;
@@ -1718,62 +1720,40 @@ package controllers
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var info:Object=getUserInfo();
-				var cd:String=info.cacheDir;
-				var exists:Boolean;
-				try
-				{
-					if (cd)
-					{
-						cd=cd.replace(/\\/g, '/');
-						f=new File(cd);
-						exists=f.isDirectory;
-					}
-				}
-				catch (error:Error)
-				{
-				}
 				if (vo.status)
 				{
 					broadcasts=vo.results.broadcasts;
 					ServiceBase.id=vo.results.id + '';
-					if (cd && exists)
-					{
-						saveUserInfo(username, password, cd, vo.results.id);
-						FileManager.savedDir=cd;
-						FileManager.saveFile('bros.yp', broadcasts);
-						getMenuList();
-					}
+					saveUserInfo(username, password, config.cacheDir, vo.results.id);
+					FileManager.saveFile('bros.yp', broadcasts);
+					getMenuList();
 					checkLog();
 					uploadUpdateLog();
 					test();
 				}
-				else if (cd)
-				{
-					FileManager.savedDir=cd;
-				}
 
-				if (!cd || !exists)
-				{
-					if (vo.status || noCacheDirInConfig)
-					{
-						var sv:SelectCacheView=new SelectCacheView();
-						PopupBoxManager.popup(sv, function():void
-						{
-							var so:SharedObject=SharedObject.getLocal('yp');
-							FileManager.savedDir=so.data.cacheDir;
-							if (vo.results && vo.results.hasOwnProperty('id'))
-								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
-							else
-							{
-								config.cacheDir=so.data.cacheDir;
-								saveConfig();
-							}
-							if (broadcasts)
-								FileManager.saveFile('bros.yp', broadcasts);
-							getMenuList();
-						});
-					}
-				}
+//				if (!cd || !exists)
+//				{
+//					if (vo.status || noCacheDirInConfig)
+//					{
+//						var sv:SelectCacheView=new SelectCacheView();
+//						PopupBoxManager.popup(sv, function():void
+//						{
+//							var so:SharedObject=SharedObject.getLocal('yp');
+//							FileManager.savedDir=so.data.cacheDir;
+//							if (vo.results && vo.results.hasOwnProperty('id'))
+//								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
+//							else
+//							{
+//								config.cacheDir=so.data.cacheDir;
+//								saveConfig();
+//							}
+//							if (broadcasts)
+//								FileManager.saveFile('bros.yp', broadcasts);
+//							getMenuList();
+//						});
+//					}
+//				}
 
 				if (!vo.status && !noCacheDirInConfig)
 				{
