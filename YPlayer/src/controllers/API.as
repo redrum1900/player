@@ -804,11 +804,18 @@ package controllers
 			var arr:Array=[];
 			for each (var t:TimeVO in menu.list)
 			{
+				sameDate(t.begin);
+				sameDate(t.end);
 				var bt:Number=t.begin.getTime();
 				var nt:Number=now.getTime();
 				var et:Number=t.end.getTime();
 				if (bt > et)
-					et+=24 * 60 * 60 * 1000;
+				{
+					if (now.hours > 12)
+						et+=24 * 60 * 60 * 1000;
+					else
+						bt-=24 * 60 * 60 * 1000;
+				}
 				if (bt <= nt && et >= nt)
 				{
 					for each (var s:SongVO in t.songs)
@@ -1117,6 +1124,8 @@ package controllers
 		private function sameDate(date:Date):void
 		{
 			date.date=now.date;
+			date.month = now.month;
+			date.fullYear = now.fullYear;
 		}
 		
 		public function get isCurrentTimeLoop():Boolean
