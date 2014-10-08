@@ -507,7 +507,7 @@ package controllers
 
 		public function recordLog(o:LogVO, callbck:Function=null):void
 		{
-			if (local || Capabilities.isDebugger)
+			if (local)
 			{
 				if (callbck != null)
 					callbck();
@@ -660,11 +660,11 @@ package controllers
 			var changed:Boolean=false;
 			if (!newMenus)
 				return false;
-			var so:SharedObject=SharedObject.getLocal('yp');
+//			var so:SharedObject=SharedObject.getLocal('yp');
 			if (!menus || menus.length != newMenus.length)
 			{
-				so.data.savedMenus=newMenus;
-				so.flush();
+//				so.data.savedMenus=newMenus;
+//				so.flush();
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
 				Log.Trace('menu changed');
@@ -679,8 +679,8 @@ package controllers
 					{
 						changed=true;
 						Log.Trace('menu changed');
-						so.data.savedMenus=newMenus;
-						so.flush();
+//						so.data.savedMenus=newMenus;
+//						so.flush();
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -691,10 +691,10 @@ package controllers
 
 		private function getMenus():Array
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			var arr:Array=so.data.savedMenus as Array;
-			if (!arr)
-				arr=FileManager.readFile('menus.yp') as Array;
+//			var so:SharedObject=SharedObject.getLocal('yp');
+//			var arr:Array=so.data.savedMenus as Array;
+//			if (!arr)
+			var arr:Array=FileManager.readFile('menus.yp') as Array;
 			return arr;
 		}
 
@@ -1868,8 +1868,8 @@ package controllers
 					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
-					if (!Capabilities.isDebugger)
-						downloadUpdate();
+//					if (!Capabilities.isDebugger)
+					downloadUpdate();
 				}
 				else
 				{
