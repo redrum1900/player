@@ -804,7 +804,12 @@ package controllers
 			var arr:Array=[];
 			for each (var t:TimeVO in menu.list)
 			{
-				if (t.begin.getTime() < now.getTime() && t.end.getTime() > now.getTime())
+				var bt:Number=t.begin.getTime();
+				var nt:Number=now.getTime();
+				var et:Number=t.end.getTime();
+				if (bt > et)
+					et+=24 * 60 * 60 * 1000;
+				if (bt <= nt && et >= nt)
 				{
 					for each (var s:SongVO in t.songs)
 					{
@@ -1113,7 +1118,12 @@ package controllers
 				return b;
 			for each (var o:Object in menu.list)
 			{
-				if (o.begin.getTime() < now.getTime() && o.end.getTime() > now.getTime())
+				var bt:Number=o.begin.getTime();
+				var nt:Number=now.getTime();
+				var et:Number=o.end.getTime();
+				if (bt > et)
+					et+=24 * 60 * 60 * 1000;
+				if (bt <= nt && et >= nt)
 				{
 					b=o.loop;
 					currentTime=o;
