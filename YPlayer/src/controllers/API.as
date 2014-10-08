@@ -1963,6 +1963,8 @@ package controllers
 			var url:String=config.update;
 			if (isTest)
 				url=url.replace('update', 'test');
+			else
+				url=url.replace('update', 'update_swf');
 			LoadManager.instance.loadText(url + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
