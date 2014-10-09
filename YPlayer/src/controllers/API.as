@@ -1111,6 +1111,14 @@ package controllers
 		public var times:Array=[];
 		public var currentTime:Object;
 
+		/**
+		 * 同步日期
+		 */
+		private function sameDate(date:Date):void
+		{
+			date.date=now.date;
+		}
+		
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
@@ -1118,11 +1126,18 @@ package controllers
 				return b;
 			for each (var o:Object in menu.list)
 			{
+				sameDate(o.begin);
+				sameDate(o.end);
 				var bt:Number=o.begin.getTime();
 				var nt:Number=now.getTime();
 				var et:Number=o.end.getTime();
 				if (bt > et)
-					et+=24 * 60 * 60 * 1000;
+				{
+					if (now.hours > 12)
+						et+=24 * 60 * 60 * 1000;
+					else
+						bt-=24 * 60 * 60 * 1000;
+				}
 				if (bt <= nt && et >= nt)
 				{
 					b=o.loop;
