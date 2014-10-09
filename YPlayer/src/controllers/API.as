@@ -12,7 +12,6 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
-	import com.pamakids.utils.QiNiuService;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
@@ -36,6 +35,7 @@ package controllers
 	import flash.utils.Timer;
 
 	import mx.formatters.DateFormatter;
+	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
 
 	import models.InsertVO;
@@ -48,7 +48,6 @@ package controllers
 
 	import views.Main;
 	import views.PrepareView;
-	import views.SelectCacheView;
 
 //	import views.windows.PrepareWindow;
 
@@ -76,9 +75,34 @@ package controllers
 
 		private var noCacheDirInConfig:Boolean;
 
+		/**
+		 * 遍历文件夹
+		 */
+		private function retriveDir(f:File):void
+		{
+			if (f.isDirectory)
+			{
+				trace('D:' + f.name);
+				var arr:Array=f.getDirectoryListing();
+				for each (var ff:File in arr)
+				{
+					retriveDir(ff);
+				}
+			}
+			else
+			{
+				trace('F:' + f.name, f.nativePath);
+			}
+		}
+
 		public function API()
 		{
-			var o:Object=FileManager.readFile('config.json', true, true);
+			var cd:String=File.applicationStorageDirectory.nativePath + '/';
+			FileManager.savedDir=cd;
+			var o:Object=FileManager.readFile('config.json');
+			if (!o)
+				o=FileManager.readFile('config.json', true, true);
+			Log.Trace(o);
 			o=JSON.parse(o + '');
 			isTest=o.test;
 			local=o.local;
@@ -100,16 +124,16 @@ package controllers
 			}
 			config.sn=so.data.sn;
 			serial_number=so.data.sn;
-			so=SharedObject.getLocal('version');
-			so.data.version=o.version;
-			so.flush();
-			version=so.data.version;
+//			so=SharedObject.getLocal('version');
+//			so.data.version=o.version;
+//			so.flush();
+			version=config.version;
 			so=SharedObject.getLocal('yp');
 			if (so.data.id)
 				ServiceBase.id=so.data.id;
 //			so.data.username='LaChapelle:shop2';
 //			so.data.password="244471";
-			so.data.cacheDir=File.applicationStorageDirectory.nativePath + '/';
+			so.data.cacheDir=cd;
 			config.cacheDir=so.data.cacheDir;
 			FileManager.savedDir=config.cacheDir;
 			serviceDic=new Dictionary();
@@ -171,7 +195,7 @@ package controllers
 
 		public function downloadUpdate(callback:Function=null):void
 		{
-			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
+			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf + '?' + Math.random(), function(b:ByteArray):void
 			{
 				checkingUpdate=false;
 				if (updateFileSize != b.length)
@@ -186,12 +210,11 @@ package controllers
 					{
 						var __dir:String=ANEToolkit.storage.getInternal().filesDir;
 						ANEToolkit.storage.writeFile(__dir + '/' + config.swf, b);
-						version=newVersion;
-						var so:SharedObject=SharedObject.getLocal('version');
-						so.data.version=newVersion;
+						var f:File=new File(__dir + '/' + config.swf);
+						version=config.version;
+						Log.Trace(f.size, version, newVersion, f.nativePath);
 						config.version=newVersion;
 						saveConfig();
-						so.flush();
 						if (version != newVersion)
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
@@ -247,8 +270,15 @@ package controllers
 
 		private function get formatedNow():String
 		{
-			var df:DateFormatter=new DateFormatter('YY-MM-DD HH:MM:SS');
-			return df.format(now);
+			return formatDate(now);
+		}
+
+		private function formatDate(date:Date):String
+		{
+			if (!date)
+				return '';
+			var dateString:String=date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+			return dateString;
 		}
 
 		public function reboot(forUpdate:Boolean=true):void
@@ -745,7 +775,7 @@ package controllers
 				{
 					if (!menus)
 					{
-						PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败2', null, function():void
+						PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并连接网络', '初始化失败', null, function():void
 						{
 							online=true
 							getMenuList();
@@ -772,11 +802,18 @@ package controllers
 			var arr:Array=[];
 			for each (var t:TimeVO in menu.list)
 			{
+				sameDate(t.begin);
+				sameDate(t.end);
 				var bt:Number=t.begin.getTime();
 				var nt:Number=now.getTime();
 				var et:Number=t.end.getTime();
 				if (bt > et)
-					et+=24 * 60 * 60 * 1000;
+				{
+					if (now.hours > 12)
+						et+=24 * 60 * 60 * 1000;
+					else
+						bt-=24 * 60 * 60 * 1000;
+				}
 				if (bt <= nt && et >= nt)
 				{
 					for each (var s:SongVO in t.songs)
@@ -1079,6 +1116,14 @@ package controllers
 		public var times:Array=[];
 		public var currentTime:Object;
 
+		/**
+		 * 同步日期
+		 */
+		private function sameDate(date:Date):void
+		{
+			date.date=now.date;
+		}
+
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
@@ -1086,11 +1131,18 @@ package controllers
 				return b;
 			for each (var o:Object in menu.list)
 			{
+				sameDate(o.begin);
+				sameDate(o.end);
 				var bt:Number=o.begin.getTime();
 				var nt:Number=now.getTime();
 				var et:Number=o.end.getTime();
 				if (bt > et)
-					et+=24 * 60 * 60 * 1000;
+				{
+					if (now.hours > 12)
+						et+=24 * 60 * 60 * 1000;
+					else
+						bt-=24 * 60 * 60 * 1000;
+				}
 				if (bt <= nt && et >= nt)
 				{
 					b=o.loop;
@@ -1660,11 +1712,11 @@ package controllers
 		{
 			try
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				so.data.username=name;
-				so.data.password=pwd;
-				so.data.cacheDir=cacheDir;
-				so.data.id=id;
+//				var so:SharedObject=SharedObject.getLocal('yp');
+//				so.data.username=name;
+//				so.data.password=pwd;
+//				so.data.cacheDir=cacheDir;
+//				so.data.id=id;
 				config.cacheDir=cacheDir;
 				config.id=id;
 				config.username=name;
@@ -1696,27 +1748,27 @@ package controllers
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-			var so:SharedObject=SharedObject.getLocal('yp');
-			if (so.data.username)
+//			var so:SharedObject=SharedObject.getLocal('yp');
+//			if (so.data.username)
+//			{
+//				o.username=so.data.username;
+//				o.password=so.data.password;
+//				o.cacheDir=so.data.cacheDir;
+//				o.id=so.data.id;
+//			}
+//			else
+//			{
+			var config:Object;
+			config=FileManager.readFile('config.json');
+			config=JSON.parse(config + '');
+			if (config && config.username)
 			{
-				o.username=so.data.username;
-				o.password=so.data.password;
-				o.cacheDir=so.data.cacheDir;
-				o.id=so.data.id;
+				o.username=config.username;
+				o.password=config.password;
+				o.cacheDir=config.cacheDir;
+				o.id=config.id;
 			}
-			else
-			{
-				var config:Object;
-				config=FileManager.readFile('config.json');
-				config=JSON.parse(config + '');
-				if (config && config.username)
-				{
-					o.username=config.username;
-					o.password=config.password;
-					o.cacheDir=config.cacheDir;
-					o.id=config.id;
-				}
-			}
+//			}
 			return o;
 		}
 
@@ -1765,7 +1817,10 @@ package controllers
 //					}
 //				}
 
-				if (!vo.status && !noCacheDirInConfig)
+				var cached:SharedObject=cachedSO;
+				var arr:Array=cached.data.menus;
+
+				if (!vo.status && arr)
 				{
 					online=false;
 					getMenuList();

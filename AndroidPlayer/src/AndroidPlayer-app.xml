@@ -4,7 +4,7 @@
 	<id>com.yuefu.player</id>
 	<filename>AndroidPlayer</filename>
 	<name>乐播</name>
-	<versionNumber>1.7.1</versionNumber>
+	<versionNumber>1.7.2</versionNumber>
 
 	<initialWindow>
 		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>

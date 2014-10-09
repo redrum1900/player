@@ -1,11 +1,11 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"swf":"AndroidPlayer.swf",
 	"trace":false,
 	"insert":false,
 	"insert_list":false,
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json",
-	"version":"1.7.0",
+	"version":"1.7.2",
 	"username":"本地版本：分部名称"
 }

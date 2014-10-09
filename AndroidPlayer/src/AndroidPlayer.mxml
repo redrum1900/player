@@ -17,6 +17,7 @@
 			import controllers.API;
 
 			import org.zengrong.ane.ANEToolkit;
+			[Bindable]
 			private var showT:Boolean;
 
 			protected function application1_creationCompleteHandler(event:FlexEvent):void
@@ -27,7 +28,7 @@
 				PopupBoxManager.PARENT=this.c
 				PreloaderMessenger.say(PreloaderMessenger.SHOW_APP);
 
-				showT=false;
+				showT=API.instance.showTrace;
 				if (showT)
 					Log.Trace=function(... args):void
 					{
