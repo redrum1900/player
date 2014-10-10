@@ -21,6 +21,8 @@
 			import mx.events.FlexEvent;
 			import mx.utils.UIDUtil;
 
+			import controllers.API;
+
 			import fr.kikko.lab.ShineMP3Encoder;
 
 			import models.InsertVO;
@@ -59,8 +61,11 @@
 			private var waveEncoder:WaveEncoder=new WaveEncoder();
 			private var recorder:MicRecorder=new MicRecorder(waveEncoder);
 
+			private var timeLimit:Number;
+
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
+				timeLimit=API.instance.getRecordLimit();
 				mic=Microphone.getMicrophone();
 				mic.setSilenceLevel(100);
 				mic.gain=0;
@@ -196,7 +201,7 @@
 
 			protected function onTimer(event:TimerEvent):void
 			{
-				if (timer.currentCount == 360)
+				if (timer.currentCount == timeLimit)
 					stopRecord();
 				info='已录制：' + DateUtil.formateTime(timer.currentCount);
 			}
@@ -272,10 +277,10 @@
 
 			protected function playingHandler(event:DataEvent):void
 			{
-				if (sp && sp.soundLength / 60000 > 6)
+				if (sp && sp.soundLength / 1000 > 180)
 				{
 					selectedFile=null;
-					PAlert.show('选择的广播文件不可超出6分钟，请重新选择');
+					PAlert.show('选择的广播文件不可超出' + (timeLimit / 60) + '分钟，请重新选择');
 				}
 				clearSP();
 			}

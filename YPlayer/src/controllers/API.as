@@ -66,7 +66,7 @@ package controllers
 		private var serviceDic:Dictionary;
 		private var refreshTimer:Timer;
 
-		public var contactInfo:String='客服电话1：010-51244052\n客服电话2：010-58699501\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
+		public var contactInfo:String='客服电话1：010-51244395\n客服电话2：010-51244052\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
 		private var config:Object;
 		private var autoUpadte:Boolean;
@@ -93,34 +93,18 @@ package controllers
 
 			var so:SharedObject;
 			so=SharedObject.getLocal('sn');
-			if (!so.data.sn)
-			{
-				so.data.sn=UIDUtil.createUID();
-				so.flush();
-			}
-			else if (config.sn)
-			{
-				so.data.sn=config.sn;
-			}
-			config.sn=so.data.sn;
-			serial_number=so.data.sn;
-			so=SharedObject.getLocal('version');
-			so.data.version=o.version;
-			so.flush();
-			version=so.data.version;
+			if (so.data.sn)
+				config.sn=so.data.sn;
+			if (!config.sn)
+				config.sn=UIDUtil.createUID();
+			serial_number=config.sn;
+			version=config.version;
 			so=SharedObject.getLocal('yp');
-			if (so.data.id)
-				ServiceBase.id=so.data.id;
-			else if (config.id)
+			if (config.id)
 				ServiceBase.id=config.id;
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			so.clear();
-//			so.flush();
-//			var file:File=File.applicationStorageDirectory.resolvePath('log');
-//			Log.Trace('log dir:' + file.nativePath);
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
-//			QNService.token='xyGeW-ThOyxd7OIkwVKoD4tHZmX0K0cYJ6g1kq4J:ipn0o9U2O5eifFaiHhKpfZvqS8Q=:eyJzY29wZSI6InlmY2RuIiwiZGVhZGxpbmUiOjE0MDI1OTUxMjJ9';
+
 			var b:Boolean=o.debug == null ? Capabilities.isDebugger : o.debug;
 			if (b)
 			{
@@ -151,6 +135,7 @@ package controllers
 				getUploadToken();
 				getNowTime();
 			}
+
 			if (local || enabledInsert())
 			{
 				if (!so.data.localDMS)
@@ -168,7 +153,11 @@ package controllers
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
-			startAtLogin();
+		}
+
+		public function getRecordLimit():int
+		{
+			return config.insert_conf.record_limit;
 		}
 
 		private function enabledInsert():Boolean
@@ -272,20 +261,6 @@ package controllers
 				if (callback != null)
 					callback(0)
 			});
-		}
-
-		private function startAtLogin():void
-		{
-//			if (Capabilities.os.indexOf('Windows') == -1 || Capabilities.isDebugger)
-//				return;
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			if (!so.data.settedStartAtLogin)
-//			{
-//				var rg:RegCommand=new RegCommand();
-//				rg.addAutoRunWithName('YFPlayer', File.applicationDirectory.resolvePath("乐播.exe").nativePath);
-//				so.data.settedStartAtLogin=true;
-//				so.flush();
-//			}
 		}
 
 		private function get formatedNow():String
@@ -1125,10 +1100,10 @@ package controllers
 		public function sameDate(date:Date):void
 		{
 			date.date=now.date;
-			date.month = now.month;
-			date.fullYear = now.fullYear;
+			date.month=now.month;
+			date.fullYear=now.fullYear;
 		}
-	    
+
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
@@ -1276,8 +1251,9 @@ package controllers
 					dmMenu=new MenuVO();
 					dmMenu.dm_list=a;
 				}
-				var bd:Date=DateUtil.getDateByHHMMSS('08:15:00', now);
-				var ed:Date=DateUtil.getDateByHHMMSS('22:45:00', now);
+				var insert_conf:Object=config.insert_conf;
+				var bd:Date=DateUtil.getDateByHHMMSS(insert_conf.begin, now);
+				var ed:Date=DateUtil.getDateByHHMMSS(insert_conf.end, now);
 				while (bd.getTime() < ed.getTime())
 				{
 					ivo=new InsertVO();
@@ -1286,10 +1262,7 @@ package controllers
 					ivo.url=new File(FileManager.savedDir + insertBro.url).url;
 					ivo.playTime=DateUtil.clone(bd);
 					a.push(ivo);
-					if (isLQ())
-						bd.minutes+=15;
-					else
-						bd.minutes+=30;
+					bd.minutes+=insert_conf.interval;
 				}
 			}
 
