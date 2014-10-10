@@ -1119,8 +1119,10 @@ package controllers
 		/**
 		 * 同步日期
 		 */
-		private function sameDate(date:Date):void
+		public function sameDate(date:Date):void
 		{
+			date.fullYear=now.fullYear;
+			date.month=now.month;
 			date.date=now.date;
 		}
 
