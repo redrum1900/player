@@ -1710,25 +1710,7 @@ package controllers
 
 		private function needInsert():Boolean
 		{
-			return isLQ() || isJKL();
-		}
-
-		private function isLQ():Boolean
-		{
-			if (Capabilities.isDebugger)
-				return true;
-			var so:SharedObject=SharedObject.getLocal('yp');
-			var un:String=so.data.username;
-			return un.indexOf('利群') != -1;
-		}
-
-		private function isJKL():Boolean
-		{
-			if (Capabilities.isDebugger || config.insert)
-				return true;
-			var so:SharedObject=SharedObject.getLocal('yp');
-			var un:String=so.data.username;
-			return un.indexOf('京客隆') != -1 || un.indexOf('潍百集团佳乐家') != -1;
+			return config.insert;
 		}
 
 		[Bindable]
