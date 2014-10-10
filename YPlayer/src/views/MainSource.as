@@ -25,8 +25,7 @@ private function getSongWhileTimeNotLoop():Boolean
 			firstSong=vo;
 		if (vo) //如果是歌曲
 		{
-			if (vo.playTime.date != now.date) //强制date一致方便进行time比对
-				vo.playTime.date=now.date;
+			api.sameDate(vo.playTime);
 			//歌曲播放时间同当前时间差
 			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
 			var nn:Number=nearestSong.playTime.getTime() - now.getTime();

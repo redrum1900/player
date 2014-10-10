@@ -809,6 +809,7 @@ package controllers
 				var bt:Number=t.begin.getTime();
 				var nt:Number=now.getTime();
 				var et:Number=t.end.getTime();
+				//跨天后当前时间与始末时间处理
 				if (bt > et)
 				{
 					if (now.hours > 12)
@@ -1121,13 +1122,13 @@ package controllers
 		/**
 		 * 同步日期
 		 */
-		private function sameDate(date:Date):void
+		public function sameDate(date:Date):void
 		{
 			date.date=now.date;
 			date.month = now.month;
 			date.fullYear = now.fullYear;
 		}
-		
+	    
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
