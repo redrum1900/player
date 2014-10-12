@@ -49,7 +49,10 @@
 //			private var soundVisualizer:SoundVisualizer;
 
 			private var volumeSO:SharedObject;
-
+			
+            /*
+			初始方法
+			*/
 			protected function inited(event:FlexEvent):void
 			{
 				volumeSO=SharedObject.getLocal('yp');
@@ -66,25 +69,26 @@
 				//				});
 				//				updateTime();
 
-				api=API.instance;
+				api=API.instance;//初始api
 				api.main = this;
 
-				initPlayer();
+				initPlayer();//初始播放器
 				panelGroup.y=info.y + info.height - 3;
 				panelGroup.height=height - 57 - 48*2;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
 
+				//弹出窗口后执行自动登录
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
 
-				initMore();
+				initMore();//初始化“更多”菜单
 
 				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
 
-				autoPlayTimer=new Timer(1000);
+				autoPlayTimer=new Timer(1000);//每隔1000毫秒检测当前是否有歌曲播放
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
 				
 				AA.listen('UPDATE', function():void
@@ -114,25 +118,26 @@
 
 			private var autoPlayTimer:Timer;
 
+			
 			private function autoLogin():void
 			{
-				if (api.local)
+				if (api.local)//如果本地模式，则获取歌单
 				{
 					api.getMenuList();
 					return;
 				}
 				var o:Object = api.getUserInfo();
 				if (o.username && o.password)
-				{
+				{//如果不是第一次登录
 					if (api.online)
-						api.login(o.username, o.password);
+						api.login(o.username, o.password);//如果有网络则登录账号
 					else
 						api.getMenuList();
 				}
 				else
 				{
 					if (api.online)
-					{
+					{//第一次登录弹出登录框
 						var l:LoginView=new LoginView();
 						PopupBoxManager.popup(l);
 					}
@@ -306,13 +311,13 @@
 					song1 = null;
 				}
 				var now:Date=api.now;
-				var has:Boolean;//当前是否有播放的歌曲
+				var has:Boolean;//当前是否有可以播放的歌曲
 				if (!randomPlay.selected)//随机播放按钮是否选择
-				{
+				{　//没有选择循环播放按钮
 					if (!song1)//当前歌曲
 					{
 						if (api.isCurrentTimeLoop)
-						{
+						{//如果有歌单标记循环，则取循环列表
 							initSongWhileTimeLoop();
 							has = true;
 						}
@@ -334,7 +339,7 @@
 					}
 				}
 				else
-				{
+				{//选择循环播放按钮
 					song1=api.getRandomSong(song1);
 					if (song1)
 						has=true;
@@ -365,6 +370,7 @@
 				}
 				else
 				{
+					//当前有可播放的歌曲
 //					if (autoPlayTimer.running)
 //						autoPlayTimer.stop();
 					vo=song1;
@@ -379,12 +385,14 @@
 					var s:Number=now.getTime() - vo.playTime.getTime();
 					if (f.exists)
 					{
+						
 						player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
 						if (!api.isCurrentTimeLoop)
 							player.currentPosition=s;
 					}
 					else
 					{
+						//如果没有缓存则下载歌曲
 						LoadManager.instance.load(vo.url, function():void
 						{
 							player.url=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url)).url;
@@ -716,6 +724,7 @@
 				}, 800)
 			}
 
+			/*Timer触发时间，判断当前是否有播放歌曲，决定是否播放歌曲*/
 			protected function onTimer(event:TimerEvent):void
 			{
 				var gotoPlayDM:Boolean;

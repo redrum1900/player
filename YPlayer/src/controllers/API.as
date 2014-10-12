@@ -53,9 +53,9 @@ package controllers
 	public class API extends Singleton
 	{
 		[Bindable]
-		public var local:Boolean=false;
-		public var online:Boolean=true;
-		public var isTest:Boolean=false;
+		public var local:Boolean=false;//是否本地
+		public var online:Boolean=true;//是否在线
+		public var isTest:Boolean=false;//是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
@@ -151,7 +151,7 @@ package controllers
 			}
 			setYPData('startup', new Date().getTime());
 			setYPData('refreshTime', new Date().getTime());
-			refreshTimer=new Timer(1000);
+			refreshTimer=new Timer(1000);//定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 		}
 
@@ -289,6 +289,9 @@ package controllers
 
 		private var gotServerTime:Boolean;
 
+		/**
+		 * 从服务器获取时间
+		 */
 		private function getNowTime():void
 		{
 			var u:URLRequest=new URLRequest('http://m.yuefu.com/now');
@@ -324,6 +327,10 @@ package controllers
 			ul.load(u);
 		}
 
+		
+		/**
+		 * 判断从测试服务器还是正式服务器
+		 */
 		private function getUploadToken():void
 		{
 			var tokenURL:String=isTest ? 'http://t.yuefu.com/log/token' : 'http://m.yuefu.com/log/token';
@@ -502,6 +509,7 @@ package controllers
 
 //		private var rebootByCommand:Boolean;
 
+		
 		public var playingInfo:String;
 
 		/**
@@ -676,19 +684,22 @@ package controllers
 
 		private var dmChanged:Boolean;
 
+		/**
+		 * 对比当前歌单与新获取的歌单，返回boolean
+		 */
 		private function compareMenus(menus:Array, newMenus:Array):Boolean
 		{
 			var changed:Boolean=false;
 			if (!newMenus)
 				return false;
 			if (!menus || menus.length != newMenus.length)
-			{
+			{//如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
 				Log.Trace('menu changed');
 			}
 			else
-			{
+			{//如果新旧歌单长度相同，则遍历歌单进行对比，然后对不同的曲目进行保存操作
 				for (var i:int=0; i < menus.length; i++)
 				{
 					var m1:Object=menus[i];
@@ -705,6 +716,9 @@ package controllers
 			return changed;
 		}
 
+		/**
+		 * 从网络获取歌单
+		 */
 		public function getMenuList():void
 		{
 			Log.Trace('saved_dir', FileManager.savedDir);
@@ -713,7 +727,7 @@ package controllers
 				return;
 			try
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				var menus:Array=FileManager.readFile('menus.yp') as Array;//读取本地歌单
 
 				if (online && !local)
 				{
@@ -723,7 +737,7 @@ package controllers
 						{
 							if (vo.results.length)
 							{
-								compareMenus(menus, vo.results as Array);
+								compareMenus(menus, vo.results as Array);//对比新旧歌单
 								initMenu();
 							}
 							else
@@ -805,6 +819,9 @@ package controllers
 			return arr;
 		}
 
+		/**
+		 * 获取随机的歌曲
+		 */
 		public function getRandomSong(svo:SongVO):SongVO
 		{
 			var vo:SongVO;
@@ -988,12 +1005,15 @@ package controllers
 			return menu;
 		}
 
+		/**
+		 * 初始化歌单
+		 */
 		public function initMenu():void
 		{
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地获取当前歌单
 			if (menus && menus.length)
 			{
 				var i:int;
@@ -1104,6 +1124,9 @@ package controllers
 			date.fullYear=now.fullYear;
 		}
 
+		/**
+		 * 判断当前时间是否在循环播放(网页是否设置歌单循环)
+		 */
 		public function get isCurrentTimeLoop():Boolean
 		{
 			var b:Boolean;
@@ -1123,8 +1146,9 @@ package controllers
 					else
 						bt-=24 * 60 * 60 * 1000;
 				}
+				
 				if (bt <= nt && et >= nt)
-				{
+				{//若在播放时段内，歌单是否选择歌曲循环
 					b=o.loop;
 					currentTime=o;
 					break;
@@ -1616,6 +1640,9 @@ package controllers
 
 //		public var dms:Array;
 
+		/**
+		 * 没有播放列表则再去发送获取列表请求
+		 */
 		private function noPlayList():void
 		{
 			initializing=false;
@@ -1718,6 +1745,9 @@ package controllers
 
 		public var username:String;
 
+		/**
+		 * 存储账号信息到本地
+		 */
 		public function saveUserInfo(name:String, pwd:String, cacheDir:String, id:String):void
 		{
 			try
@@ -1755,10 +1785,13 @@ package controllers
 			}
 		}
 
+		/**
+		 * 获取账号和登录密码
+		 */
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-			var so:SharedObject=SharedObject.getLocal('yp');
+			var so:SharedObject=SharedObject.getLocal('yp');//本地flash缓存获取
 			if (so.data.username)
 			{
 				o.username=so.data.username;
@@ -1768,7 +1801,7 @@ package controllers
 			}
 			else
 			{
-				config=FileManager.readFile('config.json', true, true);
+				config=FileManager.readFile('config.json', true, true);//本地json获取
 				config=JSON.parse(config + '');
 				if (config.username)
 				{
@@ -1781,6 +1814,9 @@ package controllers
 			return o;
 		}
 
+		/**
+		 * 登录
+		 */
 		public function login(username:String, password:String, callback:Function=null):void
 		{
 			username=username.replace(' ', '');
@@ -1788,10 +1824,11 @@ package controllers
 			this.username=username;
 			var f:File;
 			progress='连接云系统';
+			//发送账号登录请求
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var info:Object=getUserInfo();
-				var cd:String=info.cacheDir;
+				var cd:String=info.cacheDir;//缓存地址
 				var exists:Boolean;
 				try
 				{
@@ -1829,7 +1866,7 @@ package controllers
 				{
 					if (vo.status || noCacheDirInConfig)
 					{
-						var sv:SelectCacheView=new SelectCacheView();
+						var sv:SelectCacheView=new SelectCacheView();//缓存位置选择界面
 						PopupBoxManager.popup(sv, function():void
 						{
 							var so:SharedObject=SharedObject.getLocal('yp');
@@ -1921,6 +1958,9 @@ package controllers
 //			return v2 > v1;
 //		}
 
+		/**
+		 * 发送网络请求
+		 */
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{
 			var s:ServiceBase=serviceDic[uri + method];

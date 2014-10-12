@@ -1,5 +1,8 @@
 import models.SongVO;
 
+/**
+ * 初始化歌曲循环列表
+ */
 private function initSongWhileTimeLoop():void
 {
 	var songs:Array=api.getCurrentTimeSongs();
@@ -7,7 +10,9 @@ private function initSongWhileTimeLoop():void
 	if (songs.length > 1)
 		song2=songs[1];
 }
-
+/**
+ * 
+ */
 private function getSongWhileTimeNotLoop():Boolean
 {
 	var has:Boolean;
@@ -23,11 +28,11 @@ private function getSongWhileTimeNotLoop():Boolean
 			nearestSong=vo;
 		if (!firstSong)
 			firstSong=vo;
-		if (vo) //如果是歌曲
+		if (vo) //如果有歌曲
 		{
 			api.sameDate(vo.playTime);
 			//歌曲播放时间同当前时间差
-			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();
+			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();//结束时间
 			var nn:Number=nearestSong.playTime.getTime() - now.getTime();
 			var vn:Number=vo.playTime.getTime() - now.getTime();
 			nearestSong=nn < vn ? nearestSong : vo;
@@ -67,7 +72,9 @@ private function getSongWhileTimeNotLoop():Boolean
 
 	return has;
 }
-
+/**
+ * 歌曲转换。如果有下一首歌曲，则转换下一首，如果没有下一曲但是有循环，则继续播放循环列表，否则停止播放
+ */
 private function switchSong():Boolean
 {
 	var has:Boolean=true;
