@@ -106,21 +106,21 @@ package controllers
 			appRoot=f.nativePath + '/assets';
 //			f=new File(appRoot);
 //			retriveDir(f);
-			var confi:String=appRoot + '/config.json';
-			f=new File(confi);
-			var fs:FileStream=new FileStream();
-			fs.open(f, FileMode.READ);
-			var b:ByteArray=new ByteArray();
-			fs.readBytes(b);
-			fs.close();
+//			var confi:String=appRoot + '/config.json';
+//			f=new File(confi);
+//			var fs:FileStream=new FileStream();
+//			fs.open(f, FileMode.READ);
+//			var b:ByteArray=new ByteArray();
+//			fs.readBytes(b);
+//			fs.close();
 //			trace(b.toString());
-			var o:Object=JSON.parse(b.toString());
+//			var o:Object=JSON.parse(b.toString());
 
 			var cd:String=File.applicationStorageDirectory.nativePath + '/';
 			FileManager.savedDir=cd;
 //			var o:Object=FileManager.readFile('config.json');
 //			if (!o)
-//			var o:Object=FileManager.readFile('config.json', true, true);
+			var o:Object=FileManager.readFile('config.json', true, true);
 			Log.Trace(o);
 			o=JSON.parse(o + '');
 			isTest=o.test;
