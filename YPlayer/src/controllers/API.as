@@ -45,6 +45,7 @@ package controllers
 	import models.TimeVO;
 
 	import org.zengrong.ane.ANEToolkit;
+	import org.zengrong.ane.enum.ANEContext;
 
 	import views.Main;
 	import views.PrepareView;
@@ -78,36 +79,54 @@ package controllers
 		/**
 		 * 遍历文件夹
 		 */
-		private function retriveDir(f:File):void
+		private function retriveDir(f:File, parent:File=null):void
 		{
 			if (f.isDirectory)
 			{
-				trace('D:' + f.name);
 				var arr:Array=f.getDirectoryListing();
+				trace('D:' + f.name, 'L:' + arr.length, 'P:' + (parent ? parent.name : ''));
 				for each (var ff:File in arr)
 				{
-					retriveDir(ff);
+					retriveDir(ff, f);
 				}
 			}
 			else
 			{
-				trace('F:' + f.name, f.nativePath);
+				trace('F:' + f.name, 'P:' + (parent ? parent.name : ''));
 			}
 		}
 
+		private var appRoot:String;
+
 		public function API()
 		{
+			var dir:Object=ANEToolkit.storage.getInternal().cacheDir;
+			var f:File=new File(dir + '/app');
+			f=f.getDirectoryListing()[0];
+			appRoot=f.nativePath + '/assets';
+//			f=new File(appRoot);
+//			retriveDir(f);
+			var confi:String=appRoot + '/config.json';
+			f=new File(confi);
+			var fs:FileStream=new FileStream();
+			fs.open(f, FileMode.READ);
+			var b:ByteArray=new ByteArray();
+			fs.readBytes(b);
+			fs.close();
+//			trace(b.toString());
+			var o:Object=JSON.parse(b.toString());
+
 			var cd:String=File.applicationStorageDirectory.nativePath + '/';
 			FileManager.savedDir=cd;
-			var o:Object=FileManager.readFile('config.json');
-			if (!o)
-				o=FileManager.readFile('config.json', true, true);
+//			var o:Object=FileManager.readFile('config.json');
+//			if (!o)
+//			var o:Object=FileManager.readFile('config.json', true, true);
 			Log.Trace(o);
 			o=JSON.parse(o + '');
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
-			showTrace=o.trace;
+//			showTrace=o.trace;
 //			showTrace=true;
 			config=o;
 
@@ -208,11 +227,10 @@ package controllers
 				{
 					try
 					{
-						var __dir:String=ANEToolkit.storage.getInternal().filesDir;
-						ANEToolkit.storage.writeFile(__dir + '/' + config.swf, b);
-						var f:File=new File(__dir + '/' + config.swf);
+						var confi:String=appRoot + '/' + config.swf;
+						var bb:Boolean=ANEToolkit.storage.writeFile(confi, b);
+						Log.Trace('SaveUpdateFileConfig:' + bb);
 						version=config.version;
-						Log.Trace(f.size, version, newVersion, f.nativePath);
 						config.version=newVersion;
 						saveConfig();
 						if (version != newVersion)
@@ -1733,18 +1751,12 @@ package controllers
 
 		public function saveConfig():void
 		{
-//			try
-//			{
-			var f:File=File.applicationStorageDirectory.resolvePath('config.json');
-			var fs:FileStream=new FileStream();
-			fs.open(f, FileMode.WRITE);
-			fs.writeMultiByte(JSON.stringify(config), 'utf-8');
-			fs.close();
-//			}
-//			catch (error:Error)
-//			{
-//				appendLog('SaveConfigError:' + error);
-//			}
+			var ss:String=JSON.stringify(config);
+			var btt:ByteArray=new ByteArray();
+			btt.writeUTFBytes(ss);
+			var confi:String=appRoot + '/config.json';
+			var bb:Boolean=ANEToolkit.storage.writeFile(confi, btt);
+			Log.Trace('SaveConfig:' + bb);
 		}
 
 		public function getUserInfo():Object

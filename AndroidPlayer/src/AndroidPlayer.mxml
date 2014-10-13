@@ -23,6 +23,9 @@
 			protected function application1_creationCompleteHandler(event:FlexEvent):void
 			{
 //				API.instance.checkUpdate();
+//				ANEToolkit.power.flagKeepScreenOn();
+//				ANEToolkit.power.goToSleep(0);
+				NativeApplication.nativeApplication.systemIdleMode=SystemIdleMode.KEEP_AWAKE;
 				ToolTipManager.showDelay=0;
 				PAlert.PARENT=this.c
 				PopupBoxManager.PARENT=this.c
