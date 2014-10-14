@@ -2,6 +2,7 @@ package controllers
 {
 	import com.greensock.TweenLite;
 	import com.pamakids.components.PAlert;
+	import com.pamakids.components.controls.SoundPlayer;
 	import com.pamakids.events.ODataEvent;
 	import com.pamakids.manager.FileManager;
 	import com.pamakids.manager.LoadManager;
@@ -198,6 +199,16 @@ package controllers
 			setYPData('refreshTime', now.getTime());
 			refreshTimer=new Timer(1000);
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+
+			initSilencePlayer();
+		}
+
+		private function initSilencePlayer():void
+		{
+			var s:SoundPlayer=new SoundPlayer();
+			s.autoPlay=true;
+			s.repeat=true;
+			s.url='assets/silence.mp3';
 		}
 
 		public function initUncaughtErrorListener(loaderInfo:Object):void
@@ -472,7 +483,6 @@ package controllers
 
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
-				Log.Trace('Refreshed Update:' + vo.results.update);
 				if (vo.status && !pv)
 				{
 					var menus:Array=getMenus();
