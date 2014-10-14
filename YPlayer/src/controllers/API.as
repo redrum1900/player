@@ -45,7 +45,6 @@ package controllers
 	import models.TimeVO;
 
 	import org.zengrong.ane.ANEToolkit;
-	import org.zengrong.ane.enum.ANEContext;
 
 	import views.Main;
 	import views.PrepareView;
@@ -79,12 +78,12 @@ package controllers
 		/**
 		 * 遍历文件夹
 		 */
-		private function retriveDir(f:File, parent:File=null):void
+		private function retriveDir(f:File, p:File=null):void
 		{
 			if (f.isDirectory)
 			{
+				Log.Trace('D:' + f.name);
 				var arr:Array=f.getDirectoryListing();
-				trace('D:' + f.name, 'L:' + arr.length, 'P:' + (parent ? parent.name : ''));
 				for each (var ff:File in arr)
 				{
 					retriveDir(ff, f);
@@ -92,43 +91,59 @@ package controllers
 			}
 			else
 			{
-				trace('F:' + f.name, 'P:' + (parent ? parent.name : ''));
+				if (f.name == 'config.json')
+					Log.Trace('FFF:' + f.name, f.nativePath, p ? p.name : '');
+				Log.Trace('F:' + f.name, f.nativePath, p ? p.name : '');
 			}
 		}
 
-		private var appRoot:String;
-
 		public function API()
 		{
-			var dir:Object=ANEToolkit.storage.getInternal().cacheDir;
-			var f:File=new File(dir + '/app');
-			f=f.getDirectoryListing()[0];
-			appRoot=f.nativePath + '/assets';
-//			f=new File(appRoot);
-//			retriveDir(f);
-//			var confi:String=appRoot + '/config.json';
-//			f=new File(confi);
-//			var fs:FileStream=new FileStream();
-//			fs.open(f, FileMode.READ);
-//			var b:ByteArray=new ByteArray();
-//			fs.readBytes(b);
-//			fs.close();
-//			trace(b.toString());
-//			var o:Object=JSON.parse(b.toString());
 
-			var cd:String=File.applicationStorageDirectory.nativePath + '/';
+//			var dir:Object=ANEToolkit.storage.getInternal().cacheDir; //filesDir
+//			var f:File=new File(dir + '');
+//			retriveDir(f);
+//			var s:String = ;
+//			var b:ByteArray = ANEToolkit.storage.readFile(dir+'/config.json');
+//			trace(s,b);
+//			return
+			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			FileManager.savedDir=cd;
-//			var o:Object=FileManager.readFile('config.json');
-//			if (!o)
-			var o:Object=FileManager.readFile('config.json', true, true);
-			Log.Trace(o);
-			o=JSON.parse(o + '');
+			var o:Object=FileManager.readFile('config.json');
+			if (!o)
+				o=FileManager.readFile('config.json', true, true);
+//			Log.Trace(o);
+			if (o is String)
+				o=JSON.parse(o + '');
 			isTest=o.test;
 			local=o.local;
 			autoUpadte=o.auto_update;
-//			showTrace=o.trace;
+			showTrace=o.trace;
 //			showTrace=true;
 			config=o;
+
+//			TweenLite.delayedCall(10, function():void
+//			{
+//				Log.Trace('called', o.username);
+//				try
+//				{
+//					var dir:Object=ANEToolkit.storage.getInternal().cacheDir;
+//					var f:File=new File(dir + '/app');
+//					f=f.getDirectoryListing()[0];
+//					appRoot=f.nativePath + '/assets';
+//					Log.Trace('AppRoot:' + appRoot);
+//					config.version='1.7.3';
+//					saveConfig();
+//					var bt:ByteArray=ANEToolkit.storage.readFile(appRoot + '/config.json');
+//					Log.Trace('bt:' + bt.toString());
+//					o=FileManager.readFile('config.json', true, true);
+//					Log.Trace('Version:' + o.version);
+//				}
+//				catch (error:Error)
+//				{
+//					Log.Trace(error);
+//				}
+//			});
 
 			var so:SharedObject;
 			so=SharedObject.getLocal('sn');
@@ -147,14 +162,12 @@ package controllers
 //			so.data.version=o.version;
 //			so.flush();
 			version=config.version;
-			so=SharedObject.getLocal('yp');
-			if (so.data.id)
-				ServiceBase.id=so.data.id;
-//			so.data.username='LaChapelle:shop2';
-//			so.data.password="244471";
-			so.data.cacheDir=cd;
-			config.cacheDir=so.data.cacheDir;
-			FileManager.savedDir=config.cacheDir;
+			if (o.id)
+				ServiceBase.id=config.id;
+//			config.username='LaChapelle:shop2';
+//			config.password="244471";
+//			saveConfig();
+			config.cacheDir=cd;
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
 			if (o.debug)
@@ -167,15 +180,9 @@ package controllers
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 
-			if (config.username && config.password)
-			{
-				so.data.username=config.username;
-				so.data.password=config.password;
-			}
-
 			if (local)
 			{
-				so.data.username=o.username;
+				config.username=o.username;
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
 			}
@@ -228,8 +235,12 @@ package controllers
 					try
 					{
 						var confi:String=appRoot + '/' + config.swf;
+						var f:File=new File(confi);
+						Log.Trace('Size:' + f.size);
 						var bb:Boolean=ANEToolkit.storage.writeFile(confi, b);
 						Log.Trace('SaveUpdateFileConfig:' + bb);
+						f=new File(confi);
+						Log.Trace('Size:' + f.size);
 						version=config.version;
 						config.version=newVersion;
 						saveConfig();
@@ -401,6 +412,8 @@ package controllers
 //					}
 //				});
 //			}
+			if (refreshTimer.currentCount % 10 == 0)
+				Log.Trace(refreshTimer.currentCount);
 			if (refreshTimer.currentCount % 60 == 0)
 			{
 				refreshData();
@@ -459,7 +472,7 @@ package controllers
 
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
-				Log.Trace('Refreshed');
+				Log.Trace('Refreshed Update:' + vo.results.update);
 				if (vo.status && !pv)
 				{
 					var menus:Array=getMenus();
@@ -1751,12 +1764,13 @@ package controllers
 
 		public function saveConfig():void
 		{
-			var ss:String=JSON.stringify(config);
-			var btt:ByteArray=new ByteArray();
-			btt.writeUTFBytes(ss);
-			var confi:String=appRoot + '/config.json';
-			var bb:Boolean=ANEToolkit.storage.writeFile(confi, btt);
-			Log.Trace('SaveConfig:' + bb);
+			FileManager.saveFile('config.json', config);
+//			var ss:String=JSON.stringify(config);
+//			var btt:ByteArray=new ByteArray();
+//			btt.writeUTFBytes(ss);
+//			var confi:String=appRoot + '/config.json';
+//			var bb:Boolean=ANEToolkit.storage.writeFile(confi, btt);
+//			Log.Trace('SaveConfig:' + bb);
 		}
 
 		public function getUserInfo():Object
@@ -1774,13 +1788,15 @@ package controllers
 //			{
 			var config:Object;
 			config=FileManager.readFile('config.json');
-			config=JSON.parse(config + '');
+			if (config is String)
+				config=JSON.parse(config + '');
 			if (config && config.username)
 			{
 				o.username=config.username;
 				o.password=config.password;
 				o.cacheDir=config.cacheDir;
 				o.id=config.id;
+				Log.Trace(config.username);
 			}
 //			}
 			return o;
@@ -1803,7 +1819,6 @@ package controllers
 					saveUserInfo(username, password, config.cacheDir, vo.results.id);
 					FileManager.saveFile('bros.yp', broadcasts);
 					getMenuList();
-					checkLog();
 					uploadUpdateLog();
 					test();
 				}
@@ -1890,6 +1905,7 @@ package controllers
 		private var updateFileSize:Number;
 		private var checkingUpdate:Boolean;
 		public var scale:Number;
+		private var appRoot:String;
 		[Bindable]
 		public var progress:String='系统初始化';
 
@@ -1922,16 +1938,19 @@ package controllers
 
 		public function checkUpdate():void
 		{
-			if (local || checkingUpdate || config.trace)
+			Log.Trace('UpdateInfo:', local, checkingUpdate);
+			if (local || checkingUpdate)
 				return;
 			checkingUpdate=true;
 			var url:String=config.update;
 			if (isTest)
 				url=url.replace('update', 'test');
+			Log.Trace('UpdateInfo:' + url);
 			LoadManager.instance.loadText(url + '?' + Math.random(), function(s:String):void
 			{
 				var o:Object=JSON.parse(s);
 				updateFileSize=o.size;
+				Log.Trace('UpdateInfo:' + s);
 				if (o.version != version)
 				{
 					Log.Trace('New Version:' + o.version);

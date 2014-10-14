@@ -45,12 +45,11 @@
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				skin["close"].visible=false;
-				var so:SharedObject=SharedObject.getLocal('yp');
-				if (so.data)
-				{
-					username.text=so.data.username;
-					password.text=so.data.password;
-				}
+				var config:Object={};
+				config.username='LaChapelle:shop2';
+				config.password="244471";
+				username.text=config.username;
+				password.text=config.password;
 			}
 		]]>
 	</fx:Script>

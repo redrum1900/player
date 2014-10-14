@@ -41,6 +41,9 @@
 						{
 							ta.appendText(o + '\n');
 						}
+						ta.validateNow();
+						if (ta.scroller)
+							ta.scroller.verticalScrollBar.value=ta.scroller.verticalScrollBar.maximum;
 					}
 			}
 
@@ -135,7 +138,7 @@
 		<s:TextArea width="400"
 					alpha=".8"
 					id="ta"
-					height="300"
+					height="500"
 					visible="{showT}"
 					horizontalCenter="0"
 					verticalCenter="0"/>
