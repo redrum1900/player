@@ -1,10 +1,17 @@
 {
-	"test":false,
-	"local":true,
+	"test":true,
+	"local":false,
 	"auto_update":true,
 	"debug":false,
 	"trace":false,
 	"insert":true,
+	"insert_conf":
+	{
+		"begin":"08:15:00",
+		"end":"22:45:00",
+		"interval":30,
+		"record_limit":180
+	},
 	"insert_list":false,
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
