@@ -40,7 +40,7 @@
 			import models.LogVO;
 			import models.SongVO;
 
-			private var player1:SoundPlayer;
+			private var player1:SoundPlayer;//背景音播放器
 
 //			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
 
@@ -127,8 +127,8 @@
 					return;
 				}
 				var o:Object = api.getUserInfo();
-				if (o.username && o.password)
-				{//如果不是第一次登录
+				if (o.username && o.password)//判断是否第一次登录
+				{
 					if (api.online)
 						api.login(o.username, o.password);//如果有网络则登录账号
 					else
@@ -243,7 +243,7 @@
 			private var song1:SongVO;//当前歌曲
 			private var song2:SongVO;//下一曲
 
-			private var player2:SoundPlayer;
+			private var player2:SoundPlayer;//广告播放器
 			private var playerDic:Dictionary=new Dictionary();
 
 			
@@ -313,11 +313,11 @@
 				var now:Date=api.now;
 				var has:Boolean;//当前是否有可以播放的歌曲
 				if (!randomPlay.selected)//随机播放按钮是否选择
-				{　//没有选择循环播放按钮
+				{　//没有选择随机播放按钮
 					if (!song1)//当前歌曲
 					{
 						if (api.isCurrentTimeLoop)
-						{//如果有歌单标记循环，则取循环列表
+						{//如果有时段循环，则取循环列表
 							initSongWhileTimeLoop();
 							has = true;
 						}
@@ -339,7 +339,7 @@
 					}
 				}
 				else
-				{//选择循环播放按钮
+				{//选择随机播放按钮
 					song1=api.getRandomSong(song1);
 					if (song1)
 						has=true;
@@ -370,7 +370,6 @@
 				}
 				else
 				{
-					//当前有可播放的歌曲
 //					if (autoPlayTimer.running)
 //						autoPlayTimer.stop();
 					vo=song1;
@@ -652,6 +651,9 @@
 			private var dmPlayers:Dictionary=new Dictionary();
 			private var broDic:Dictionary=new Dictionary();
 
+			/**
+			 * 添加广播和DM列表
+			 */
 			private function insertBroOrDM(data:InsertVO, isBro:Boolean=false):void
 			{
 				var ivo:InsertVO=data;
@@ -724,7 +726,9 @@
 				}, 800)
 			}
 
-			/*Timer触发时间，判断当前是否有播放歌曲，决定是否播放歌曲*/
+			/**
+			 * Timer触发事件，判断当前是否有播放歌曲，决定是否播放歌曲和插播DM
+			 */
 			protected function onTimer(event:TimerEvent):void
 			{
 				var gotoPlayDM:Boolean;
@@ -733,7 +737,7 @@
 					time=randomPlay.selected ? '[随机播放] ' : '';
 					var value:Number;
 					if (dms)
-					{
+					{//如果有DM列表，则根据当前时间是否进行插播
 						var now:Date=api.now;
 						var min:Number;
 						var dmName:String;
@@ -920,6 +924,9 @@
 				brodcasting=false;
 			}
 			
+			/**
+			 * 播放广播DM
+			 */
 			private function playBro(ivo:InsertVO):void
 			{
 				api.recordLog(new LogVO(LogVO.NORMAL,'playBro',ivo.name));

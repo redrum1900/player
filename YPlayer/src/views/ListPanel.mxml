@@ -85,6 +85,9 @@
 
 			private var btnDic:Dictionary;
 
+			/**
+			 * 生成广播按钮
+			 */
 			private function getButton(o:Object):Button
 			{
 				var b:Button;
@@ -174,6 +177,9 @@
 
 			private var toload:int;
 
+			/**
+			 * 根据广播列表生成按钮
+			 */
 			private function createButtons():void
 			{
 				if (!bros)
@@ -191,6 +197,9 @@
 
 			private var dic:Dictionary=new Dictionary();
 
+			/**
+			 * 点击定制插播
+			 */
 			protected function broHandler(event:MouseEvent):void
 			{
 				var o:Object=dic[event.currentTarget];
@@ -244,6 +253,9 @@
 				}
 			}
 
+			/**
+			 * 重新定制广播
+			 */
 			private function record(vo:InsertVO):void
 			{
 				var lp:ListPanel=this;
@@ -380,7 +392,7 @@
 				{
 					ac.addItem({name: '插播列表', type: 2});
 				}
-				for each (var m:TimeVO in menu.list)
+				for each (var m:TimeVO in menu.list)//遍历歌单时段，生成时段按钮
 				{
 					ac.addItem(m);
 				}

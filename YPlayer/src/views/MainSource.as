@@ -1,7 +1,7 @@
 import models.SongVO;
 
 /**
- * 初始化歌曲循环列表
+ * 初始化时段内循环时的播放歌曲
  */
 private function initSongWhileTimeLoop():void
 {
@@ -80,12 +80,14 @@ private function switchSong():Boolean
 	var has:Boolean=true;
 	var i:int;
 
-	if (song2)
+	if (song2)//是否有下一首歌曲
 	{
-		song1=song2;
-		var index:int=api.songs.indexOf(song2);
+		//有下一首歌曲则切换歌曲
+		song1=song2;//当前播放歌曲替换
+		var index:int=api.songs.indexOf(song2);//获取下一首歌曲在歌单中序号
 		if (api.isCurrentTimeLoop)
 		{
+			//如果当前歌单设置循环播放，则根据序号选择下一首播放曲目
 			var songs:Array=api.getCurrentTimeSongs();
 			index=songs.indexOf(song2);
 			if (index == songs.length - 1)
@@ -96,6 +98,7 @@ private function switchSong():Boolean
 		}
 		else if (index != api.songs.length - 1)
 		{
+			//如果当前曲目不是最后一首，并且没有设置循环，则按照歌单顺序继续播放
 			for (index++; i < api.songs.length - 1; index++)
 			{
 				song2=api.songs[index] as SongVO;
@@ -104,7 +107,8 @@ private function switchSong():Boolean
 			}
 		}
 		else
-		{
+		{//没有设置循环，当前是最后一首
+			
 			song2=null;
 		}
 	}

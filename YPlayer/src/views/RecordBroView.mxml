@@ -111,6 +111,9 @@
 				}
 			}
 
+			/**
+			 * 开始录制音频文件
+			 */
 			protected function ctl_clickHandler(event:MouseEvent):void
 			{
 				if (!mic)
@@ -241,6 +244,9 @@
 				}
 			}
 
+			/**
+			 * 选择需要上传的广播饮品文件
+			 */
 			protected function chooseFile_clickHandler(event:MouseEvent):void
 			{
 				FileHelper.browse(File.documentsDirectory.nativePath, 1, selectedHandler, '选择广播声音文件', [new FileFilter('广播声音文件', '*.mp3')]);

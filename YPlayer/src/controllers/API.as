@@ -196,6 +196,9 @@ package controllers
 
 		private var needReboot:Boolean;
 
+		/**
+		 * 下载更新的曲目
+		 */
 		public function downloadUpdate(callback:Function=null):void
 		{
 			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
@@ -329,7 +332,7 @@ package controllers
 
 		
 		/**
-		 * 判断从测试服务器还是正式服务器
+		 * 获取服务器上传令牌，用来上传本地错误日志
 		 */
 		private function getUploadToken():void
 		{
@@ -622,6 +625,9 @@ package controllers
 			}
 		}
 
+		/**
+		 * 对比当前歌单与新获取的广播，返回boolean
+		 */
 		private function compareBros(arr:Array):Boolean
 		{
 			var changed:Boolean;
@@ -699,7 +705,7 @@ package controllers
 				Log.Trace('menu changed');
 			}
 			else
-			{//如果新旧歌单长度相同，则遍历歌单进行对比，然后对不同的曲目进行保存操作
+			{//如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
 				for (var i:int=0; i < menus.length; i++)
 				{
 					var m1:Object=menus[i];
@@ -787,6 +793,9 @@ package controllers
 		[Bindable]
 		public var songs:Array;
 
+		/**
+		 * 获取当前时段的歌曲
+		 */
 		public function getCurrentTimeSongs():Array
 		{
 			var vo:SongVO;
@@ -1015,13 +1024,13 @@ package controllers
 			initializing=true;
 			var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地获取当前歌单
 			if (menus && menus.length)
-			{
+			{//如果有本地歌单
 				var i:int;
 				var listMenu:Object;
 				dmMenus=[];
 				var o:Object;
 				var n:Date=now;
-				n=new Date(n.getFullYear(), n.getMonth(), n.getDate())
+				n=new Date(n.getFullYear(), n.getMonth(), n.getDate());
 				for (i=0; i < menus.length; i++)
 				{
 					o=menus[i];
@@ -1086,7 +1095,7 @@ package controllers
 							}, dmm._id + '.json', online);
 						}
 					}
-					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void
+					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void//获取服务器最新歌单
 					{
 						songMenu=JSON.parse(data);
 						if (dmMenus.length)
@@ -1125,7 +1134,7 @@ package controllers
 		}
 
 		/**
-		 * 判断当前时间是否在循环播放(网页是否设置歌单循环)
+		 * 判断当前时间是否在设置循环播放
 		 */
 		public function get isCurrentTimeLoop():Boolean
 		{
@@ -1215,6 +1224,13 @@ package controllers
 			return true;
 		}
 
+		/**
+		 * 解析歌单 
+		 * @param songMenu背景音菜单
+		 * @param dmMenu广播DM菜单
+		 * @param onlyParse
+		 * @return  
+		 */
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
 			var o:Object=songMenu;
@@ -1472,7 +1488,7 @@ package controllers
 			if (!playingSong)
 				progress='开始初始化内容';
 
-			pv=new PrepareWindow();
+			pv=new PrepareWindow();//更新媒资界面
 			var label:String;
 			if (menu)
 			{
@@ -1641,7 +1657,7 @@ package controllers
 //		public var dms:Array;
 
 		/**
-		 * 没有播放列表则再去发送获取列表请求
+		 * 弹出来一个提示没有播放列表
 		 */
 		private function noPlayList():void
 		{
@@ -1673,6 +1689,10 @@ package controllers
 
 		private var insertBro:Object;
 
+		/**
+		 * 解析广播列表
+		 * 待细看
+		 */
 		private function parseBroadcasts():void
 		{
 			var bs:Array=FileManager.readFile('bros.yp') as Array;
@@ -1959,7 +1979,7 @@ package controllers
 //		}
 
 		/**
-		 * 发送网络请求
+		 * 获取服务基类
 		 */
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{
@@ -1975,6 +1995,9 @@ package controllers
 		private var updateFileSize:Number;
 		private var updateLog:String;
 
+		/**
+		 * 检查更新
+		 */
 		public function checkUpdate():void
 		{
 			if (local || checkingUpdate || config.trace)
