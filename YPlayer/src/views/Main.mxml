@@ -674,7 +674,7 @@
 				{
 					time+='';
 				}
-				if (ivo.interval)
+				if (ivo.interval) 
 				{
 					time+=' 每次间隔 ' + ivo.repeat + ' 秒';
 				}
