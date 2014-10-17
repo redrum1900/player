@@ -8,7 +8,7 @@
 		 creationComplete="inited(event)"
 		 xmlns:views="views.*"
 		 xmlns:components="views.components.*">
-	
+
 	<fx:Script source="MainSource.as"/>
 	
 	<fx:Script>
@@ -39,18 +39,18 @@
 			import models.InsertVO;
 			import models.LogVO;
 			import models.SongVO;
-			
+
 			private var player1:SoundPlayer;//背景音播放器
-			
+
 //			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
-			
+
 			private var player:SoundPlayer;
-			
+
 //			private var soundVisualizer:SoundVisualizer;
-			
+
 			private var volumeSO:SharedObject;
 			
-			/*
+            /*
 			初始方法
 			*/
 			protected function inited(event:FlexEvent):void
@@ -62,32 +62,32 @@
 					vc2Volume=volumeSO.data.volume2;
 				vc1.volume = vc1Volume;
 				vc2.volume = vc2Volume;
-//				var t:Timer = new Timer(1000);
-//				t.start();
-//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
-//					updateTime();
-//				});
-//				updateTime();
-				
+				//				var t:Timer = new Timer(1000);
+				//				t.start();
+				//				t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void{
+				//					updateTime();
+				//				});
+				//				updateTime();
+
 				api=API.instance;//初始api
 				api.main = this;
-				
+
 				initPlayer();//初始播放器
 				panelGroup.y=info.y + info.height - 3;
 				panelGroup.height=height - 57 - 48*2;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
-				
+
 				//弹出窗口后执行自动登录
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
-				
+
 				initMore();//初始化“更多”菜单
-				
+
 				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
-				
+
 				autoPlayTimer=new Timer(1000);//每隔1000毫秒检测当前是否有歌曲播放
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
 				
@@ -115,9 +115,9 @@
 					}
 				});
 			}
-			
+
 			private var autoPlayTimer:Timer;
-			
+
 			
 			private function autoLogin():void
 			{
@@ -150,37 +150,35 @@
 					}
 				}
 			}
-			
+
 			private function getPlayer():SoundPlayer
 			{
 				var p:SoundPlayer=new SoundPlayer(1000);
 				p.autoPlay=true;
 				return p;
 			}
-			
+
 			private function updateTime():void
 			{
 				var n:Date=api.now;
 				time=n.getHours() + ' : ' + n.getMinutes() + ' : ' + n.getSeconds();
 			}
-			
+
 			[Bindable]
 			public var time:String;
-			
+
 			private var brodcasting:Boolean;
 			private var playingDM:Boolean;
-			private var recording:Boolean = false;
-			
+
 			private var preMics:Array;
 //			private var preVolume:Number=volume;
 			private var micChanged:int;
 			private var plaiedDM:Object;
-			
+
 			protected function playingHandler(event:DataEvent):void
 			{
-				if (brodcasting || playingDM || recording)
+				if (brodcasting || playingDM)
 					return;
-				player.volume=vc1Volume / 100;
 				var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
 				var pt:Number=Math.ceil(parseFloat(event.data) / 1000);
 				var tt:int=Math.ceil(player.soundLength / 1000);
@@ -236,18 +234,18 @@
 				else
 					time+=' ' + DateUtil.formateTime(value) + ' 后将将结束今天的播放'
 			}
-			
+
 			protected function player1PlayedHandler(event:Event):void
 			{
 				play();
 			}
-			
+
 			private var song1:SongVO;//当前歌曲
 			private var song2:SongVO;//下一曲
-			
+
 			private var player2:SoundPlayer;//广告播放器
 			private var playerDic:Dictionary=new Dictionary();
-			
+
 			
 			//初始化播放器
 			private function initPlayer():void
@@ -274,7 +272,7 @@
 					titleLabel = un.split(':')[0] + '播放器';
 				});
 			}
-			
+
 			private function getPlayer2():SoundPlayer
 			{
 				var p:SoundPlayer=new SoundPlayer(1000);
@@ -283,7 +281,7 @@
 				p.autoPlay=true;
 				return p;
 			}
-			
+
 			private var playingIndex:int;
 			private var pv:PrepareView;
 			private var nearestSong:SongVO;
@@ -302,7 +300,7 @@
 					b = true;
 				return b;
 			}
-			
+
 			private function play():void
 			{
 				//当前正在播放或者没有歌的情况下返回
@@ -408,14 +406,14 @@
 					}
 				}
 			}
-			
+
 			protected function randomPlay_changeHandler(event:Event):void
 			{
 //				Log.Trace(randomPlay.selected);
 				if (!song1)
 					play();
 			}
-			
+
 //			protected function songList_changeHandler(event:Event):void
 //			{
 //				var wait:Number = 0;
@@ -435,7 +433,7 @@
 //					songList.selected ? show(songPanel) : hide(songPanel);
 //				});
 //			}
-			
+
 //			private var panel:Group;
 //			private var broPanel:BroPanel;
 //			private var panelButton:Dictionary = new Dictionary();
@@ -461,7 +459,7 @@
 //					broList.selected ? show(broPanel) : hide(broPanel);
 //				});
 //			}
-			
+
 			private function show(p:Group):void
 			{
 				p.x=panelGroup.width;
@@ -469,17 +467,17 @@
 //				soundVisualizer.graphics.clear()
 //				panel=p;
 			}
-			
+
 			private function hide(p:Group):void
 			{
 //				panelButton[p].selected=false;
 				TweenLite.to(p, 0.5, {x: panelGroup.width, ease: Cubic.easeOut});
 //				panel=null;
 			}
-			
+
 			private var menuListPanel:MenuListPanel;
 			private var api:API;
-			
+
 			protected function insertSong_changeHandler(event:Event):void
 			{
 				var wait:Number=0;
@@ -501,7 +499,7 @@
 //					insertSong.selected ? show(insertPanel) : hide(insertPanel);
 //				});
 			}
-			
+
 			protected function playBroHandler(event:ODataEvent):void
 			{
 				if (brodcasting)
@@ -516,12 +514,12 @@
 					}
 				}, PAlert.YESNO);
 			}
-			
+
 			protected function more_clickHandler(event:MouseEvent):void
 			{
 				moreMenu.display(this.stage, event.stageX, event.stageY);
 			}
-			
+
 			private var moreMenu:NativeMenu
 			private const CLOSE:String='CLOSE';
 			private const CONTACT_US:String='CONTACT_US';
@@ -530,7 +528,7 @@
 			private const FEEDBACK:String='FEEDBACK';
 			private const REMOTE_ACCOUNT:String='REMOTE_ACCOUNT';
 			private const ABOUT_SOFTWARE:String = 'ABOUT_SOFTWARE';
-			
+
 			private function initMore():void
 			{
 				moreMenu=new NativeMenu();
@@ -545,7 +543,7 @@
 //				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
 //				moreMenu.addItem(getNMI('关闭程序', CLOSE));
 			}
-			
+
 			private function getNMI(label:String, data:Object, isSeparator:Boolean=false):NativeMenuItem
 			{
 				var i:NativeMenuItem=new NativeMenuItem(label, isSeparator);
@@ -553,7 +551,7 @@
 				i.addEventListener(Event.SELECT, selectedHandler);
 				return i;
 			}
-			
+
 			protected function selectedHandler(event:Event):void
 			{
 				switch (event.target.data)
@@ -601,7 +599,7 @@
 						break;
 				}
 			}
-			
+
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
 				PAlert.show('退出后将停止公播', '退出播放', null, function(value:String):void
@@ -610,14 +608,14 @@
 						NativeApplication.nativeApplication.exit();
 				}, PAlert.YESNO);
 			}
-			
+
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
 				NativeApplication.nativeApplication.activeWindow.minimize()
 			}
-			
+
 			private var updating:Boolean;
-			
+
 			protected function button3_clickHandler(event:MouseEvent):void
 			{
 				if(updateButton. label == '重启应用')
@@ -649,10 +647,10 @@
 //				});
 //				api.updater.downloadUpdate();
 			}
-			
+
 			private var dmPlayers:Dictionary=new Dictionary();
 			private var broDic:Dictionary=new Dictionary();
-			
+
 			/**
 			 * 添加广播和DM列表
 			 */
@@ -727,7 +725,7 @@
 					}
 				}, 800)
 			}
-			
+
 			/**
 			 * Timer触发事件，判断当前是否有播放歌曲，决定是否播放歌曲和插播DM
 			 */
@@ -782,7 +780,7 @@
 				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
 			}
-			
+
 			protected function bro_clickHandler(event:MouseEvent):void
 			{
 				var av:AddBroView=new AddBroView();
@@ -791,9 +789,9 @@
 					api.initBroadcasts();
 				});
 			}
-			
+
 			private var player2Time:String;
-			
+
 			protected function player2PlayingHandler(event:DataEvent):void
 			{
 				var sp:SoundPlayer=event.target as SoundPlayer;
@@ -803,7 +801,7 @@
 				var tt:int=Math.ceil(sp.soundLength / 1000);
 				time=player2Time + ' ' + DateUtil.formateTime(tt - pt) + ' 后结束'
 			}
-			
+
 			protected function menuList_changeHandler(event:Event):void
 			{
 				if (!menuListPanel)
@@ -822,7 +820,7 @@
 			
 			private var vc1Volume:Number=50.0;
 			private var vc2Volume:Number=50.0;
-			
+
 			protected function vc1_changingHandler(event:ODataEvent):void
 			{
 				vc1Volume=event.data as Number;
@@ -850,13 +848,9 @@
 				volumeSO.data.volume2=vc2Volume;
 				volumeSO.flush();
 			}
-			/**
-			 * 开始录制广播
-			 * 
-			 */
+			
 			protected function listPanel_startRecordHandler(event:Event):void
 			{
-				recording = true;
 				var volume:Number = 0;
 				player.volume=volume / 100;
 				if (brodcasting)
@@ -871,15 +865,9 @@
 				}
 			}
 			
-			/**
-			 * 结束录制广播
-			 * 
-			 */
 			protected function listPanel_stopRecordHandler(event:Event):void
 			{
-				recording = false;
-//				if(!brodcasting)
-//					player.volume=vc1Volume / 100;
+				player.volume=vc1Volume / 100;
 				if (brodcasting)
 					player2.volume=vc2Volume / 100;
 				else if (playingDM)
@@ -1001,7 +989,7 @@
 			
 		]]>
 	</fx:Script>
-	
+
 	<s:BitmapImage id="background"
 				   source="@Embed('/assets/panelBG.jpg')"
 				   width="100%"
@@ -1015,7 +1003,7 @@
 						 width="100%"
 						 height="100%"/>
 	</s:Group>
-	
+
 	<s:Group height="57"
 			 width="100%">
 		<s:Group id="topinfo" height="45"
@@ -1109,7 +1097,7 @@
 					  label="退出"/>
 		</s:HGroup>
 	</s:Group>
-	
-	
-	
+
+
+
 </s:Group>

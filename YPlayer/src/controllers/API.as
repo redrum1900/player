@@ -227,12 +227,12 @@ package controllers
 						config.version=newVersion;
 						saveConfig();
 						so.flush();
-						if (version != newVersion)
+						if (version != newVersion)//如果当前版本号跟新获取到版本好不同，则提示更新成功
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
 							if (updateLog)
 								PAlert.show(updateLog, '软件升级成功');
-							if (!playingSong)
+							if (!playingSong)//如果当前没有歌曲播放，则重新启动软件
 								reboot();
 							else
 								needReboot=true;
@@ -432,6 +432,10 @@ package controllers
 
 		public var main:Main;
 
+		/**
+		 *更新数据文件 
+		 * 
+		 */
 		private function refreshData():void
 		{
 			var pn:String;
@@ -455,7 +459,7 @@ package controllers
 					var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地文件中获取歌曲列表
 					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
-					{
+					{ 
 						brosChanged=true;
 						if (vo.results.bros)
 							FileManager.saveFile('bros.yp', vo.results.bros)//保存新的广播单
@@ -1821,6 +1825,11 @@ package controllers
 			}
 		}
 
+		
+		/**
+		 *存储设置信息到本地文件中 
+		 * 
+		 */
 		public function saveConfig():void
 		{
 			try
