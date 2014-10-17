@@ -344,7 +344,7 @@
 						return;
 					}
 				}
-				api.appendPlayLog('Playing:'+player1.playing+'Song1:'+song1+'PlayingDM:'+playingDM);
+				Log.info('Playing:'+player1.playing, 'Song1:'+(song1 ? true : false), 'PlayingDM:'+playingDM);
 				if (!has)
 				{
 					if (player1.playing)
@@ -763,7 +763,8 @@
 						}
 					}
 				}
-				api.appendPlayLog('Playing:'+player1.playing+'Song1:'+song1+'GotoPlayDM:'+gotoPlayDM+'PlayingDM:'+playingDM);
+				if(autoPlayTimer.currentCount % 60 == 0)
+					Log.info('Playing:'+player1.playing+'Song1:'+(song1?true:false)+' GotoPlayDM:'+gotoPlayDM+' PlayingDM:'+playingDM);
 				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
 			}

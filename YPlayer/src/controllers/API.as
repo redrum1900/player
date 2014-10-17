@@ -100,7 +100,6 @@ package controllers
 
 		public function API()
 		{
-
 //			var dir:Object=ANEToolkit.storage.getInternal().cacheDir; //filesDir
 //			var f:File=new File(dir + '');
 //			retriveDir(f);
@@ -109,6 +108,7 @@ package controllers
 //			trace(s,b);
 //			return
 			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			Log.logPath='log/play.log';
 			FileManager.savedDir=cd;
 			var o:Object=FileManager.readFile('config.json');
 			if (!o)
@@ -117,6 +117,7 @@ package controllers
 			if (o is String)
 				o=JSON.parse(o + '');
 			isTest=o.test;
+			Log.isTest=isTest;
 			local=o.local;
 			autoUpadte=o.auto_update;
 			showTrace=o.trace;
@@ -625,25 +626,25 @@ package controllers
 			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
 		}
 
-		public function appendPlayLog(log:String):void
-		{
-			Log.Trace(log);
-			var path:String='log/play.log';
-			var file:File;
-			var fs:FileStream=new FileStream();
-			createDirectory(path);
-			file=File.applicationStorageDirectory.resolvePath(path);
-			try
-			{
-				fs.open(file, FileMode.APPEND);
-				fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + log + '\n');
-				fs.close();
-			}
-			catch (error:Error)
-			{
-				Log.Trace('save file error', error);
-			}
-		}
+//		public function appendPlayLog(log:String):void
+//		{
+//			Log.Trace(log);
+//			var path:String='log/play.log';
+//			var file:File;
+//			var fs:FileStream=new FileStream();
+//			createDirectory(path);
+//			file=File.applicationStorageDirectory.resolvePath(path);
+//			try
+//			{
+//				fs.open(file, FileMode.APPEND);
+//				fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + log + '\n');
+//				fs.close();
+//			}
+//			catch (error:Error)
+//			{
+//				Log.Trace('save file error', error);
+//			}
+//		}
 
 		public function appendLog(log:String):void
 		{
