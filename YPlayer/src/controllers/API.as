@@ -423,8 +423,6 @@ package controllers
 //					}
 //				});
 //			}
-			if (refreshTimer.currentCount % 10 == 0)
-				Log.Trace(refreshTimer.currentCount);
 			if (refreshTimer.currentCount % 60 == 0)
 			{
 				refreshData();
@@ -627,6 +625,26 @@ package controllers
 			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
 		}
 
+		public function appendPlayLog(log:String):void
+		{
+			Log.Trace(log);
+			var path:String='log/play.log';
+			var file:File;
+			var fs:FileStream=new FileStream();
+			createDirectory(path);
+			file=File.applicationStorageDirectory.resolvePath(path);
+			try
+			{
+				fs.open(file, FileMode.APPEND);
+				fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + log + '\n');
+				fs.close();
+			}
+			catch (error:Error)
+			{
+				Log.Trace('save file error', error);
+			}
+		}
+
 		public function appendLog(log:String):void
 		{
 			Log.Trace(log);
@@ -647,7 +665,6 @@ package controllers
 			{
 				Log.Trace('save file error', error);
 			}
-
 		}
 
 		private function createDirectory(path:String):void
