@@ -192,13 +192,13 @@
 					{
 						if (!startLoad)
 							starRecord();
-						Log.Trace('to load:' + vo.name);
+						Log.info('to load:' + vo.name);
 						var url:String=isReloadForError ? autoLoading.url.split('?')[0] + '?' + Math.random() : vo.url;
 
 						LoadManager.instance.load(url, function():void
 						{
 							isReloadForError=false;
-							Log.Trace('loaded:' + vo.name);
+							Log.info('loaded:' + vo.name);
 							loadingFile=new File(FileManager.savedDir + URLUtil.getCachePath(vo.url));
 							sp.url=loadingFile.url;
 						}, getCachePath(vo), null, loadingHandler);

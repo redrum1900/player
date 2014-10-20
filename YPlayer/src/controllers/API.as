@@ -108,7 +108,7 @@ package controllers
 //			trace(s,b);
 //			return
 			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-			Log.logPath='log/play.log';
+			Log.logPath=cd + 'log/play.log';
 			FileManager.savedDir=cd;
 			var o:Object=FileManager.readFile('config.json');
 			if (!o)
@@ -975,10 +975,21 @@ package controllers
 			return menuDateValid(menu) && dayValidate(menu.tags);
 		}
 
+		private function deleteInvalidMenu(id:String):void
+		{
+			var menus:Array=getMenus();
+			for (var i:int; i < menus.length; i++)
+			{
+				if (id == menus[i]._id)
+					menus.splice(i, 1);
+			}
+			FileManager.saveFile('menus.yp', menus);
+		}
+
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if (!gotServerTime || now.fullYear != 2014)
+			if (!gotServerTime)
 				return b;
 			var clearedSize:Number=0;
 			var f:File;
@@ -988,6 +999,7 @@ package controllers
 			var arr:Array=so.data.menus;
 			if (menu && !menuDateValid(menu))
 			{
+				deleteInvalidMenu(menu._id);
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
 				if (songs && songs.length)
@@ -1014,6 +1026,7 @@ package controllers
 				{
 					if (!menuDateValid(dm))
 					{
+						deleteInvalidMenu(dm._id);
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
 						clearInfo+='清空了DM：' + dm.name + ' ';
@@ -1036,7 +1049,7 @@ package controllers
 			{
 				so.data.menus=arr;
 				so.flush();
-				Log.Trace(clearedSize / 1024, clearInfo);
+				Log.info(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
 			return b;
@@ -1560,10 +1573,15 @@ package controllers
 				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
 				{
 					var o:Object=JSON.parse(data);
-					if (o.type == 1)
-						parseMenu(o, null);
-					else if (o.type == 2)
-						parseMenu(null, o);
+					o.end_date=NodeUtil.getLocalDate(o.end_date);
+					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+					if (menuValid(o))
+					{
+						if (o.type == 1)
+							parseMenu(o, null);
+						else if (o.type == 2)
+							parseMenu(null, o);
+					}
 				}, menu._id + '.json', online);
 			}
 		}

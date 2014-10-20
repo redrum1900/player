@@ -37,11 +37,13 @@
 					{
 						if (ta.text.length > 2000)
 							ta.text='';
+						var s:String='';
 						for each (var o:Object in args)
 						{
 							if (o)
-								ta.appendText(o + '\n');
+								s+=' ' + o;
 						}
+						ta.appendText(s + '\n');
 						ta.validateNow();
 						if (ta.scroller)
 							ta.scroller.verticalScrollBar.value=ta.scroller.verticalScrollBar.maximum;
