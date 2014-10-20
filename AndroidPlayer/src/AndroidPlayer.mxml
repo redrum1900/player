@@ -39,7 +39,8 @@
 							ta.text='';
 						for each (var o:Object in args)
 						{
-							ta.appendText(o + '\n');
+							if (o)
+								ta.appendText(o + '\n');
 						}
 						ta.validateNow();
 						if (ta.scroller)

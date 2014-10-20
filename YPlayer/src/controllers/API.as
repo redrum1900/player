@@ -756,7 +756,7 @@ package controllers
 //				so.flush();
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.Trace('menu changed');
+				Log.info('menu changed');
 			}
 			else
 			{
@@ -767,7 +767,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.Trace('menu changed');
+						Log.info('menu changed');
 //						so.data.savedMenus=newMenus;
 //						so.flush();
 						FileManager.saveFile('menus.yp', newMenus);

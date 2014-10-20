@@ -284,9 +284,9 @@
 			protected function plaingHandler(event:Event):void
 			{
 				isAutoloading=false;
-				Log.Trace(sp.soundLength, autoLoading.duration, autoLoading.name);
+				Log.info(sp.soundLength, autoLoading.duration, autoLoading.name);
 				if (loadingFile)
-					Log.Trace(autoLoading.size, loadingFile.size);
+					Log.info(autoLoading.size, loadingFile.size);
 				sp.stop();
 				if (sp.soundLength && ((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || !autoLoading))
 				{
@@ -302,7 +302,7 @@
 					}
 					catch (error:Error)
 					{
-						Log.Trace('Prepare Delete Error:' + error.message);
+						Log.error('Prepare Delete Error:' + error.message);
 						api.appendLog('Prepare Delete Error:' + error.message);
 					}
 					isReloadForError=true;
@@ -313,7 +313,7 @@
 			protected function errorHandler(event:DataEvent):void
 			{
 				sp.stop();
-				Log.Trace("Error:" + autoLoading.name);
+				Log.error("Error:" + autoLoading.name);
 				isAutoloading=false;
 				try
 				{
@@ -322,7 +322,7 @@
 				}
 				catch (error:Error)
 				{
-					Log.Trace('Prepare Delete Error:' + error.message);
+					Log.error('Prepare Delete Error:' + error.message);
 					api.appendLog('Prepare Delete Error:' + error.message);
 				}
 				isReloadForError=true;
