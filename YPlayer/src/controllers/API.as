@@ -107,6 +107,7 @@ package controllers
 //			var b:ByteArray = ANEToolkit.storage.readFile(dir+'/config.json');
 //			trace(s,b);
 //			return
+
 			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			Log.logPath=cd + 'log/play.log';
 			FileManager.savedDir=cd;
