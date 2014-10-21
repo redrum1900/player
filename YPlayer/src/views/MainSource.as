@@ -121,6 +121,7 @@ private function switchSong():Boolean
 		song1=null;
 		has=false;
 	}
+	Log.info('切换完成','song1：' + （song1?song1.name:false）, 'song2:' + (song2?song2.name:false));
 
 	return has;
 }

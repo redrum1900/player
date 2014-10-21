@@ -17,7 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-
+	
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -35,16 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-
+	
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-
+	
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-
+	
 	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
@@ -111,6 +111,7 @@ package controllers
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
 					Log.Trace('log:' + FileManager.readFile(file.nativePath, false, true));
+				
 				ServiceBase.HOST='http://localhost:18080/api';
 			}
 			else
@@ -454,10 +455,11 @@ package controllers
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
 				Log.Trace('Refreshed');
+				var brosChanged:Boolean;
+				var daychanged:Boolean;//是否过了一天
 				if (vo.status && !pv)
 				{
 					var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地文件中获取歌曲列表
-					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
 					{ 
 						brosChanged=true;
@@ -465,7 +467,6 @@ package controllers
 							FileManager.saveFile('bros.yp', vo.results.bros)//保存新的广播单
 						initBroadcasts();
 					}
-					var daychanged:Boolean;//是否过了一天
 					if (day != now.day && !initializing && !playingSong)
 					{
 						Log.Trace('Day Changed');
@@ -528,7 +529,9 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
+				Log.info('daychanged:'+daychanged , ' brosChanged:' + brosChanged ,'menuChanged:' + compareMenus(menus, vo.results.menus as Array));
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
+			
 		}
 
 //		private var rebootByCommand:Boolean;
@@ -749,6 +752,7 @@ package controllers
 			}
 			return changed;
 		}
+		
 
 		/**
 		 * 从网络获取歌单
@@ -794,6 +798,7 @@ package controllers
 							online=false;
 							initMenu();
 						}
+						Log.info('getMenuList --menuChange:' + compareMenus(menus, vo.results as Array));
 					});
 				}
 				else
@@ -947,11 +952,22 @@ package controllers
 				return false;
 			return menuDateValid(menu) && dayValidate(menu.tags);
 		}
+		
+		private function deleteInvalidMenu(id:String):void
+		{
+			var menus:Array=FileManager.readFile('menus.yp') as Array;;
+			for (var i:int; i < menus.length; i++)
+			{
+				if (id == menus[i]._id)
+					menus.splice(i, 1);
+			}
+			FileManager.saveFile('menus.yp', menus);
+		}
 
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if (!gotServerTime || now.fullYear != 2014)
+			if (!gotServerTime)
 				return b;
 			var clearedSize:Number=0;
 			var f:File;
@@ -961,6 +977,7 @@ package controllers
 			var arr:Array=so.data.menus;
 			if (menu && !menuDateValid(menu))
 			{
+				deleteInvalidMenu(menu._id);
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
 				if (songs && songs.length)
@@ -987,6 +1004,7 @@ package controllers
 				{
 					if (!menuDateValid(dm))
 					{
+						deleteInvalidMenu(dm._id);
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
 						clearInfo+='清空了DM：' + dm.name + ' ';
@@ -1584,10 +1602,15 @@ package controllers
 				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
 				{
 					var o:Object=JSON.parse(data);
-					if (o.type == 1)
-						parseMenu(o, null);
-					else if (o.type == 2)
-						parseMenu(null, o);
+					o.end_date=NodeUtil.getLocalDate(o.end_date);
+					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+					if (menuValid(o))
+					{
+						if (o.type == 1)
+							parseMenu(o, null);
+						else if (o.type == 2)
+							parseMenu(null, o);
+					}
 				}, menu._id + '.json', online);
 			}
 		}
@@ -1914,6 +1937,7 @@ package controllers
 						FileManager.saveFile('bros.yp', broadcasts);
 						getMenuList();
 					}
+					Log.info('username:' + username , 'password:' + password);
 					checkLog();
 					uploadUpdateLog();
 					test();
