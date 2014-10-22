@@ -109,7 +109,7 @@ package controllers
 //			return
 
 			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-			Log.logPath=cd + 'log/play.log';
+			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
 			var o:Object=FileManager.readFile('config.json');
 			if (!o)
@@ -355,7 +355,7 @@ package controllers
 					setYPData('refreshTime', now.getTime());
 					day=now.day;
 				}
-				Log.Trace('Now Offset:' + nowOffset);
+				Log.info('Now Offset:' + nowOffset);
 			});
 			ul.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void
 			{
@@ -1425,7 +1425,7 @@ package controllers
 					}
 					oo.songs=arr;
 				}
-				Log.Trace('DMS:' + dms.length);
+				Log.info('背景音乐:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
 			if (!onlyParse)
@@ -1843,7 +1843,7 @@ package controllers
 				o.password=config.password;
 				o.cacheDir=config.cacheDir;
 				o.id=config.id;
-				Log.Trace(config.username);
+				Log.info(config.username);
 			}
 //			}
 			return o;
