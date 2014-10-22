@@ -57,6 +57,7 @@ package controllers
 		public var online:Boolean=true;//是否在线
 		public var isTest:Boolean=false;//是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
+		public var menuChange:Boolean;//歌单是否变化
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
 
@@ -473,7 +474,8 @@ package controllers
 						daychanged=true;
 						day=now.day;
 					}
-					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
+					menuChange = compareMenus(menus, vo.results.menus as Array);
+					if (menuChange || daychanged)
 					{//如果歌单发生变化或者过了一天
 						var playingValid:Boolean=checkPlayingValid();
 						if (daychanged || !playingValid)
@@ -529,7 +531,7 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
-				Log.info('daychanged:'+daychanged , ' brosChanged:' + brosChanged ,'menuChanged:' + compareMenus(menus, vo.results.menus as Array));
+				Log.info('daychanged:'+daychanged , ' brosChanged:' + brosChanged ,'menuChanged:' + menuChange);
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 			
 		}
@@ -733,7 +735,7 @@ package controllers
 			{//如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.Trace('menu changed');
+				Log.info('menu changed');
 			}
 			else
 			{//如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
@@ -744,7 +746,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.Trace('menu changed');
+						Log.info('menu changed');
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -775,7 +777,7 @@ package controllers
 						{
 							if (vo.results.length)
 							{
-								compareMenus(menus, vo.results as Array);//对比新旧歌单
+								menuChange = compareMenus(menus, vo.results as Array);//对比新旧歌单
 								initMenu();
 							}
 							else
@@ -798,7 +800,7 @@ package controllers
 							online=false;
 							initMenu();
 						}
-						Log.info('getMenuList --menuChange:' + compareMenus(menus, vo.results as Array));
+						Log.info('getMenuList --menuChange:' + menuChange);
 					});
 				}
 				else
@@ -1611,6 +1613,7 @@ package controllers
 						else if (o.type == 2)
 							parseMenu(null, o);
 					}
+					AA.say('UPDATE');
 				}, menu._id + '.json', online);
 			}
 		}

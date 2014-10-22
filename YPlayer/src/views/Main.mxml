@@ -314,7 +314,6 @@
 				var has:Boolean;//当前是否有可以播放的歌曲
 				if (!randomPlay.selected)//随机播放按钮是否选择
 				{　//没有选择随机播放按钮
-					Log.info('点击关闭随机播放');
 					if (!song1)//当前歌曲
 					{
 						if (api.isCurrentTimeLoop)
@@ -341,7 +340,6 @@
 				}
 				else
 				{//选择随机播放按钮
-					Log.info('点击开启随机播放');
 					song1=api.getRandomSong(song1);
 					if (song1)
 						has=true;
@@ -353,7 +351,7 @@
 						return;
 					}
 				}
-				Log.info('Playing:'+player1.playing, 'Song1:'+(song1 ? true : false), 'PlayingDM:'+playingDM);
+//				Log.info('Playing:'+player1.playing, 'Song1:'+(song1 ? true : false), 'PlayingDM:'+playingDM);
 				if (!has)
 				{
 					if (player1.playing)
@@ -414,7 +412,7 @@
 
 			protected function randomPlay_changeHandler(event:Event):void
 			{
-//				Log.Trace(randomPlay.selected);
+				Log.info(randomPlay.selected?'点击开启随机播放':'点击关闭随机播放');
 				if (!song1)
 					play();
 			}
