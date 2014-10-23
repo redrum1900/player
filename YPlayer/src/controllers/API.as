@@ -1598,6 +1598,7 @@ package controllers
 
 		private function checkUncachedMenu():void
 		{
+			try{
 			var menu:Object=getUncachedMenu();
 			if (menu)
 			{
@@ -1615,6 +1616,10 @@ package controllers
 					}
 					AA.say('UPDATE');
 				}, menu._id + '.json', online);
+			}
+			}catch(error:Error)
+			{
+				Log.Trace('' + error);
 			}
 		}
 
