@@ -577,7 +577,7 @@
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:
-						var s:String = '缓存路径：'+FileManager.savedDir+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
+						var s:String = '缓存路径：'+FileManager.savedDir+'\n日志路径：'+api.logFile+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
 						if(api.username)
 							s = '账户名称：'+api.username+'\n'+s;
 						PAlert.show(s, '关于更多');
@@ -588,6 +588,8 @@
 					case FEEDBACK:
 					case CONTACT_US:
 					case COMMIT_REPORT:
+						api.uploadUseLog();
+						break;
 					case ABOUT_US:
 						PAlert.show(api.contactInfo);
 						break;

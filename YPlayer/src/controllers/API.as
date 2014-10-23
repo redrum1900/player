@@ -73,6 +73,9 @@ package controllers
 		private var autoUpadte:Boolean;//是否自动更新
 		public var serial_number:String;
 		private var day:Number;
+		
+		public var logPath:String='';
+		public var logFile:String='';
 
 		private var noCacheDirInConfig:Boolean;
 
@@ -105,6 +108,7 @@ package controllers
 				ServiceBase.id=config.id;
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
+			setLogPath();
 
 			var b:Boolean=o.debug == null ? Capabilities.isDebugger : o.debug;
 			if (b)
@@ -155,6 +159,18 @@ package controllers
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000);//定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+		}
+		
+		/**
+		 *设置日志路径 
+		 * @return 
+		 * 
+		 */
+		public function setLogPath():void
+		{
+			logPath = 'log/' + DateUtil.getYMD(now, 0, '_') + '.log';
+			Log.logPath = File.applicationStorageDirectory.resolvePath(logPath).nativePath;
+			logFile = File.applicationStorageDirectory.resolvePath('log').nativePath;
 		}
 
 		public function getRecordLimit():int
@@ -473,6 +489,7 @@ package controllers
 						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
+						setLogPath();
 					}
 					menuChange = compareMenus(menus, vo.results.menus as Array);
 					if (menuChange || daychanged)
@@ -526,6 +543,8 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
+					if (vo.results.log)
+						uploadUseLog();
 				}
 				else
 				{
@@ -617,13 +636,12 @@ package controllers
 		public function appendLog(log:String):void
 		{
 			Log.Trace(log);
-			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
-			if (path.charAt(0) == '/')
-				path=path.substr(1);
+			if (logPath.charAt(0) == '/')
+				logPath=logPath.substr(1);
 			var fs:FileStream=new FileStream();
-			createDirectory(path);
-			file=File.applicationStorageDirectory.resolvePath(path);
+			createDirectory(logPath);
+			file=File.applicationStorageDirectory.resolvePath(logPath);
 			try
 			{
 				fs.open(file, FileMode.APPEND);
@@ -642,7 +660,7 @@ package controllers
 			var arr:Array=path.match(new RegExp('.*(?=/)'));
 			if (!arr || !arr.length)
 				return;
-			var directory:String=arr[0]; //a
+			var directory:String=arr[0]; 
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
@@ -2104,6 +2122,29 @@ package controllers
 					checkingUpdate=false;
 				}
 			});
+		}
+		
+		/**
+		 *上传用户使用日志
+		 * 
+		 */
+		public function uploadUseLog():void
+		{
+			Log.Trace('uploadLog');
+			var file:File=File.applicationStorageDirectory.resolvePath('log');
+			if (file.exists && file.isDirectory)
+			{
+				var files:Array=file.getDirectoryListing();
+				if (files.length)
+				{
+					var f:File=files.shift() as File;
+					var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
+					QNService.instance.upload(f, function(r:Object):void
+					{
+						Log.Trace('上传日志成功：' + f.name);
+					}, {key: upName});
+				}
+			}
 		}
 
 		public function clearInfo():void
