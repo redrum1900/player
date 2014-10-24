@@ -152,7 +152,7 @@
 				}
 				}catch(error:Error)
 				{
-					Log.Trace(''+error);
+					Log.error('' + error);
 				}
 			}
 
@@ -416,7 +416,7 @@
 				Log.info('Loop:'+ api.isCurrentTimeLoop,'song1:' + (song1 ? song1.name:false),'song2:' + (song2 ? song2.name:false),'Playing:'+player1.playing,'PlayingDM:'+playingDM);
 				}catch(error:Error)
 				{
-					Log.Trace(''+error);
+					Log.error('' + error);
 				}
 			}
 
@@ -806,7 +806,7 @@
 					play();
 				}catch(error:Error)
 				{
-					Log.Trace(''+error);
+					Log.error('' + error);
 				}
 			}
 

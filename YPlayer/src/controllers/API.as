@@ -168,7 +168,7 @@ package controllers
 		 */
 		public function setLogPath():void
 		{
-			logPath = 'log/' + DateUtil.getYMD(now, 0, '_') + '.log';
+			logPath = 'log/play' + DateUtil.getYMD(now, 0, '_') + '.log';
 			Log.logPath = File.applicationStorageDirectory.resolvePath(logPath).nativePath;
 			logFile = File.applicationStorageDirectory.resolvePath('log').nativePath;
 		}
@@ -636,12 +636,13 @@ package controllers
 		public function appendLog(log:String):void
 		{
 			Log.Trace(log);
+			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
-			if (logPath.charAt(0) == '/')
-				logPath=logPath.substr(1);
+			if (path.charAt(0) == '/')
+				path=logPath.substr(1);
 			var fs:FileStream=new FileStream();
-			createDirectory(logPath);
-			file=File.applicationStorageDirectory.resolvePath(logPath);
+			createDirectory(path);
+			file=File.applicationStorageDirectory.resolvePath(path);
 			try
 			{
 				fs.open(file, FileMode.APPEND);
@@ -1637,7 +1638,7 @@ package controllers
 			}
 			}catch(error:Error)
 			{
-				Log.Trace('' + error);
+				Log.error('' + error);
 			}
 		}
 
@@ -2137,7 +2138,14 @@ package controllers
 				var files:Array=file.getDirectoryListing();
 				if (files.length)
 				{
-					var f:File=files.shift() as File;
+					var f:File=files.pop() as File;
+					for(var i:int = 0 ; i < files.length ; i ++)//判断当前日志是否是播放日志
+					{
+						if(f.nativePath.indexOf('play') == -1)
+							f = files.shift() as File;
+						else
+							break;
+					}
 					var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
 					QNService.instance.upload(f, function(r:Object):void
 					{
