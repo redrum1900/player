@@ -45,6 +45,7 @@ package controllers
 	import models.SongVO;
 	import models.TimeVO;
 
+	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
@@ -53,9 +54,9 @@ package controllers
 	public class API extends Singleton
 	{
 		[Bindable]
-		public var local:Boolean=false;//是否本地
-		public var online:Boolean=true;//是否在线
-		public var isTest:Boolean=false;//是否是测试版
+		public var local:Boolean=false; //是否本地
+		public var online:Boolean=true; //是否在线
+		public var isTest:Boolean=false; //是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
@@ -68,8 +69,8 @@ package controllers
 
 		public var contactInfo:String='客服电话1：010-51244395\n客服电话2：010-51244052\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
-		private var config:Object;//本地获取的json文件信息
-		private var autoUpadte:Boolean;//是否自动更新
+		private var config:Object; //本地获取的json文件信息
+		private var autoUpadte:Boolean; //是否自动更新
 		public var serial_number:String;
 		private var day:Number;
 
@@ -79,9 +80,9 @@ package controllers
 		{
 			var o:Object=FileManager.readFile('config.json', true, true);
 			o=JSON.parse(o + '');
-			isTest=o.test;//从配置文件获取是否测试版
-			local=o.local;//从配置文件获取是否本地版
-			autoUpadte=o.auto_update;//从配置文件获取是否自动更新
+			isTest=o.test; //从配置文件获取是否测试版
+			local=o.local; //从配置文件获取是否本地版
+			autoUpadte=o.auto_update; //从配置文件获取是否自动更新
 			showTrace=o.trace;
 //			showTrace=true;
 			config=o;
@@ -151,7 +152,7 @@ package controllers
 			}
 			setYPData('startup', new Date().getTime());
 			setYPData('refreshTime', new Date().getTime());
-			refreshTimer=new Timer(1000);//定时从服务器发送请求获取最新歌单
+			refreshTimer=new Timer(1000); //定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 		}
 
@@ -199,7 +200,7 @@ package controllers
 		/**
 		 * 下载更新的软件
 		 * @param callback
-		 * 
+		 *
 		 */
 		public function downloadUpdate(callback:Function=null):void
 		{
@@ -227,12 +228,12 @@ package controllers
 						config.version=newVersion;
 						saveConfig();
 						so.flush();
-						if (version != newVersion)//如果当前版本号跟新获取到版本好不同，则提示更新成功
+						if (version != newVersion) //如果当前版本号跟新获取到版本好不同，则提示更新成功
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
 							if (updateLog)
 								PAlert.show(updateLog, '软件升级成功');
-							if (!playingSong)//如果当前没有歌曲播放，则重新启动软件
+							if (!playingSong) //如果当前没有歌曲播放，则重新启动软件
 								reboot();
 							else
 								needReboot=true;
@@ -277,7 +278,7 @@ package controllers
 		/**
 		 * 重新启动
 		 * @param forUpdate
-		 * 
+		 *
 		 */
 		public function reboot(forUpdate:Boolean=true):void
 		{
@@ -292,8 +293,8 @@ package controllers
 				var n:NativeCommand=new NativeCommand();
 				var args:Vector.<String>=new Vector.<String>;
 				args.push(File.applicationDirectory.resolvePath("乐播.exe").nativePath);
-				n.runCmd(args, ShowCmdWindow.HIDE, 1000);//延迟执行命令行
-				NativeApplication.nativeApplication.exit();//关闭程序
+				n.runCmd(args, ShowCmdWindow.HIDE, 1000); //延迟执行命令行
+				NativeApplication.nativeApplication.exit(); //关闭程序
 			});
 		}
 
@@ -337,7 +338,7 @@ package controllers
 			ul.load(u);
 		}
 
-		
+
 		/**
 		 * 获取服务器上传令牌，用来上传本地错误日志
 		 */
@@ -379,15 +380,15 @@ package controllers
 		}
 
 		/**
-		 * Timer监听事件，从服务器发送请求获取最新歌单 
+		 * Timer监听事件，从服务器发送请求获取最新歌单
 		 * @param event
-		 * 
+		 *
 		 */
 		protected function refreshHandler(event:TimerEvent):void
 		{
-			if (local)//如果是本地版，则不获取新歌单
+			if (local) //如果是本地版，则不获取新歌单
 				return;
-			if (refreshTimer.currentCount % 60 == 0)//每个60秒触发一次
+			if (refreshTimer.currentCount % 60 == 0) //每个60秒触发一次
 			{
 				refreshData();
 				var refresh:Number=getYPData('refreshTime') as Number;
@@ -408,10 +409,10 @@ package controllers
 			}
 		}
 
-		
+
 		/**
-		 *检查登录状况 
-		 * 
+		 *检查登录状况
+		 *
 		 */
 		private function checkLogin():void
 		{
@@ -433,15 +434,15 @@ package controllers
 		public var main:Main;
 
 		/**
-		 *更新数据文件 
-		 * 
+		 *更新数据文件
+		 *
 		 */
 		private function refreshData():void
 		{
 			var pn:String;
 			if (!playingInfo)
 			{
-				if (playingSong)//如果当前正在播放歌曲，则显示播放歌曲和来自歌单，否则显示当前时间
+				if (playingSong) //如果当前正在播放歌曲，则显示播放歌曲和来自歌单，否则显示当前时间
 					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
 				else
 					pn=main.time;
@@ -456,16 +457,16 @@ package controllers
 				Log.Trace('Refreshed');
 				if (vo.status && !pv)
 				{
-					var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地文件中获取歌曲列表
+					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
 					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
-					{ 
+					{
 						brosChanged=true;
 						if (vo.results.bros)
-							FileManager.saveFile('bros.yp', vo.results.bros)//保存新的广播单
+							FileManager.saveFile('bros.yp', vo.results.bros) //保存新的广播单
 						initBroadcasts();
 					}
-					var daychanged:Boolean;//是否过了一天
+					var daychanged:Boolean; //是否过了一天
 					if (day != now.day && !initializing && !playingSong)
 					{
 						Log.Trace('Day Changed');
@@ -473,7 +474,7 @@ package controllers
 						day=now.day;
 					}
 					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
-					{//如果歌单发生变化或者过了一天
+					{ //如果歌单发生变化或者过了一天
 						var playingValid:Boolean=checkPlayingValid();
 						if (daychanged || !playingValid)
 						{
@@ -501,7 +502,7 @@ package controllers
 							checkUncachedMenu();
 					}
 					else if (brosChanged)
-					{//如果广播歌单发生了变化
+					{ //如果广播歌单发生了变化
 						pv=new PrepareWindow();
 						pv.addEventListener('loaded', function(e:Event):void
 						{
@@ -533,7 +534,7 @@ package controllers
 
 //		private var rebootByCommand:Boolean;
 
-		
+
 		public var playingInfo:String;
 
 		/**
@@ -650,7 +651,7 @@ package controllers
 		 * 对比当前广播单与新获取的广播单
 		 * @param arr 服务器获取的广播单
 		 * @return Boolean
-		 * 
+		 *
 		 */
 		private function compareBros(arr:Array):Boolean
 		{
@@ -658,13 +659,13 @@ package controllers
 			var bs:Array=FileManager.readFile('bros.yp') as Array;
 			if (bs)
 			{
-				if (bs.length != arr.length)//如果两个歌单长度不同，则返回true
+				if (bs.length != arr.length) //如果两个歌单长度不同，则返回true
 				{
 					changed=true;
 				}
 				else
 				{
-					for each (var o1:Object in bs)//如果歌单长度相同，则遍历对比
+					for each (var o1:Object in bs) //如果歌单长度相同，则遍历对比
 					{
 						var exists:Boolean=false;
 						for each (var o2:Object in arr)
@@ -685,7 +686,7 @@ package controllers
 			}
 			else
 			{
-				changed=true;//如果本地没有歌单，则返回true
+				changed=true; //如果本地没有歌单，则返回true
 			}
 			return changed;
 		}
@@ -718,8 +719,8 @@ package controllers
 		 * 对比当前歌单与新获取的歌单，返回boolean
 		 * @param menus 旧歌单
 		 * @param newMenus 新歌单
-		 * @return 
-		 * 
+		 * @return
+		 *
 		 */
 		private function compareMenus(menus:Array, newMenus:Array):Boolean
 		{
@@ -727,13 +728,13 @@ package controllers
 			if (!newMenus)
 				return false;
 			if (!menus || menus.length != newMenus.length)
-			{//如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
+			{ //如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
 				Log.Trace('menu changed');
 			}
 			else
-			{//如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
+			{ //如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
 				for (var i:int=0; i < menus.length; i++)
 				{
 					var m1:Object=menus[i];
@@ -761,7 +762,7 @@ package controllers
 				return;
 			try
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array;//读取本地歌单
+				var menus:Array=FileManager.readFile('menus.yp') as Array; //读取本地歌单
 
 				if (online && !local)
 				{
@@ -771,7 +772,7 @@ package controllers
 						{
 							if (vo.results.length)
 							{
-								compareMenus(menus, vo.results as Array);//对比新旧歌单
+								compareMenus(menus, vo.results as Array); //对比新旧歌单
 								initMenu();
 							}
 							else
@@ -900,7 +901,7 @@ package controllers
 		}
 
 		[Bindable]
-		public var broadcasts:Array;//广播歌单列表
+		public var broadcasts:Array; //广播歌单列表
 
 		private function dateValidate(begin:Object, end:Object):Boolean
 		{
@@ -1042,20 +1043,20 @@ package controllers
 			return menu;
 		}
 
-		
+
 		/**
 		 * 初始化歌单
-		 * 
+		 *
 		 */
 		public function initMenu():void
 		{
-			
+
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=FileManager.readFile('menus.yp') as Array;//从本地获取当前歌单
+			var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地获取当前歌单
 			if (menus && menus.length)
-			{//如果有本地歌单
+			{ //如果有本地歌单
 				var i:int;
 				var listMenu:Object;
 				dmMenus=[];
@@ -1126,7 +1127,7 @@ package controllers
 							}, dmm._id + '.json', online);
 						}
 					}
-					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void//获取服务器最新歌单
+					LoadManager.instance.loadText(QNService.HOST + o._id + '.json', function(data:String):void //获取服务器最新歌单
 					{
 						songMenu=JSON.parse(data);
 						if (dmMenus.length)
@@ -1186,9 +1187,9 @@ package controllers
 					else
 						bt-=24 * 60 * 60 * 1000;
 				}
-				
+
 				if (bt <= nt && et >= nt)
-				{//若在播放时段内，歌单是否选择歌曲循环
+				{ //若在播放时段内，歌单是否选择歌曲循环
 					b=o.loop;
 					currentTime=o;
 					break;
@@ -1256,11 +1257,11 @@ package controllers
 		}
 
 		/**
-		 * 解析歌单 
+		 * 解析歌单
 		 * @param songMenu背景音菜单
 		 * @param dmMenu广播DM菜单
 		 * @param onlyParse
-		 * @return  
+		 * @return
 		 */
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
@@ -1519,7 +1520,7 @@ package controllers
 			if (!playingSong)
 				progress='开始初始化内容';
 
-			pv=new PrepareWindow();//更新媒资界面
+			pv=new PrepareWindow(); //更新媒资界面
 			var label:String;
 			if (menu)
 			{
@@ -1628,7 +1629,7 @@ package controllers
 
 		private function uploadUpdateLog():void
 		{
-			if (local || (Capabilities.isDebugger && !isTest))
+			if (local)
 				return;
 			var so:SharedObject=updateLogSO;
 			var cached:SharedObject=cachedSO;
@@ -1712,15 +1713,15 @@ package controllers
 			so.flush();
 		}
 
-		
+
 		/**
-		 *初始化广播列表 
-		 * 
+		 *初始化广播列表
+		 *
 		 */
 		public function initBroadcasts():void
 		{
 			parseBroadcasts();
-			dispatchEvent(new Event('bros'));//广播事件，触发ListPanel.mxml中监听事件
+			dispatchEvent(new Event('bros')); //广播事件，触发ListPanel.mxml中监听事件
 		}
 
 		private var insertBro:Object;
@@ -1825,10 +1826,10 @@ package controllers
 			}
 		}
 
-		
+
 		/**
-		 *存储设置信息到本地文件中 
-		 * 
+		 *存储设置信息到本地文件中
+		 *
 		 */
 		public function saveConfig():void
 		{
@@ -1852,7 +1853,7 @@ package controllers
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-			var so:SharedObject=SharedObject.getLocal('yp');//本地flash缓存获取
+			var so:SharedObject=SharedObject.getLocal('yp'); //本地flash缓存获取
 			if (so.data.username)
 			{
 				o.username=so.data.username;
@@ -1862,7 +1863,7 @@ package controllers
 			}
 			else
 			{
-				config=FileManager.readFile('config.json', true, true);//本地json获取
+				config=FileManager.readFile('config.json', true, true); //本地json获取
 				config=JSON.parse(config + '');
 				if (config.username)
 				{
@@ -1889,7 +1890,7 @@ package controllers
 			getSB('user/login').call(function(vo:ResultVO):void
 			{
 				var info:Object=getUserInfo();
-				var cd:String=info.cacheDir;//缓存地址
+				var cd:String=info.cacheDir; //缓存地址
 				var exists:Boolean;
 				try
 				{
@@ -1927,7 +1928,7 @@ package controllers
 				{
 					if (vo.status || noCacheDirInConfig)
 					{
-						var sv:SelectCacheView=new SelectCacheView();//缓存位置选择界面
+						var sv:SelectCacheView=new SelectCacheView(); //缓存位置选择界面
 						PopupBoxManager.popup(sv, function():void
 						{
 							var so:SharedObject=SharedObject.getLocal('yp');
@@ -1946,11 +1947,19 @@ package controllers
 					}
 				}
 
-				if (!vo.status && !noCacheDirInConfig)
+				if (!vo.status)
 				{
-					online=false;
-					getMenuList();
-					appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
+					if (!noCacheDirInConfig)
+					{
+						online=false;
+						getMenuList();
+						appendLog('LoginError:' + username + '-' + password + '-' + vo.errorResult);
+					}
+					else
+					{
+						var l:LoginView=new LoginView();
+						PopupBoxManager.popup(l);
+					}
 				}
 
 				if (callback != null)
@@ -1997,7 +2006,7 @@ package controllers
 		public var versionLabel:String;
 		public var updater:NativeApplicationUpdater;
 		public var playingSong:SongVO;
-		private var pv:PrepareWindow;//更新媒资窗口
+		private var pv:PrepareWindow; //更新媒资窗口
 		public var version:String;
 		[Bindable]
 		public var progress:String='系统初始化';
@@ -2023,8 +2032,8 @@ package controllers
 		 * 获取服务基类
 		 * @param uri
 		 * @param method
-		 * @return 
-		 * 
+		 * @return
+		 *
 		 */
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{
@@ -2042,14 +2051,14 @@ package controllers
 
 		/**
 		 * 检查更新
-		 * 
+		 *
 		 */
 		public function checkUpdate():void
 		{
 			if (local || checkingUpdate || config.trace)
 				return;
 			checkingUpdate=true;
-			var url:String=config.update;//下载地址
+			var url:String=config.update; //下载地址
 			if (isTest)
 				url=url.replace('update', 'test');
 			else
@@ -2059,12 +2068,12 @@ package controllers
 				var o:Object=JSON.parse(s);
 				updateFileSize=o.size;
 				updateLog=o.log;
-				if (o.version != version)//判断服务器是否是新版本
+				if (o.version != version) //判断服务器是否是新版本
 				{
 					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
-					if (!Capabilities.isDebugger)//如果当前不是调试版本，则下载更新程序
+					if (!Capabilities.isDebugger) //如果当前不是调试版本，则下载更新程序
 						downloadUpdate();
 				}
 				else

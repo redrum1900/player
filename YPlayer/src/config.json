@@ -1,5 +1,5 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"auto_update":true,
 	"debug":false,
