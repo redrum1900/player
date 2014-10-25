@@ -58,6 +58,7 @@ package controllers
 		public var online:Boolean=true; //是否在线
 		public var isTest:Boolean=false; //是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
+		public var menuChange:Boolean; //歌单是否变化
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
 
@@ -73,6 +74,9 @@ package controllers
 		private var autoUpadte:Boolean; //是否自动更新
 		public var serial_number:String;
 		private var day:Number;
+
+		public var logPath:String='';
+		public var logFile:String='';
 
 		private var noCacheDirInConfig:Boolean;
 
@@ -105,6 +109,7 @@ package controllers
 				ServiceBase.id=config.id;
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
+			setLogPath();
 
 			var b:Boolean=o.debug == null ? Capabilities.isDebugger : o.debug;
 			if (b)
@@ -112,6 +117,7 @@ package controllers
 				var file:File=File.applicationStorageDirectory.resolvePath('log');
 				if (file.exists)
 					Log.Trace('log:' + FileManager.readFile(file.nativePath, false, true));
+
 				ServiceBase.HOST='http://localhost:18080/api';
 			}
 			else
@@ -154,6 +160,18 @@ package controllers
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000); //定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+		}
+
+		/**
+		 *设置日志路径
+		 * @return
+		 *
+		 */
+		public function setLogPath():void
+		{
+			logPath='log/play' + DateUtil.getYMD(now, 0, '_') + '.log';
+			Log.logPath=File.applicationStorageDirectory.resolvePath(logPath).nativePath;
+			logFile=File.applicationStorageDirectory.resolvePath('log').nativePath;
 		}
 
 		public function getRecordLimit():int
@@ -455,6 +473,8 @@ package controllers
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
 				Log.Trace('Refreshed');
+				var brosChanged:Boolean;
+				var daychanged:Boolean; //是否过了一天
 				if (vo.status && !pv)
 				{
 					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
@@ -472,6 +492,7 @@ package controllers
 						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
+						setLogPath();
 					}
 					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
 					{ //如果歌单发生变化或者过了一天
@@ -524,12 +545,16 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
+					if (vo.results.log)
+						uploadUseLog();
 				}
 				else
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
+				Log.info('daychanged:' + daychanged, ' brosChanged:' + brosChanged, 'menuChanged:' + menuChange);
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
+
 		}
 
 //		private var rebootByCommand:Boolean;
@@ -616,7 +641,7 @@ package controllers
 			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
 			if (path.charAt(0) == '/')
-				path=path.substr(1);
+				path=logPath.substr(1);
 			var fs:FileStream=new FileStream();
 			createDirectory(path);
 			file=File.applicationStorageDirectory.resolvePath(path);
@@ -638,7 +663,7 @@ package controllers
 			var arr:Array=path.match(new RegExp('.*(?=/)'));
 			if (!arr || !arr.length)
 				return;
-			var directory:String=arr[0]; //a
+			var directory:String=arr[0];
 			var file:Object=File.applicationStorageDirectory.resolvePath(directory);
 			if (!file.exists)
 			{
@@ -731,7 +756,7 @@ package controllers
 			{ //如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.Trace('menu changed');
+				Log.info('menu changed');
 			}
 			else
 			{ //如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
@@ -742,7 +767,7 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.Trace('menu changed');
+						Log.info('menu changed');
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -750,6 +775,7 @@ package controllers
 			}
 			return changed;
 		}
+
 
 		/**
 		 * 从网络获取歌单
@@ -795,6 +821,7 @@ package controllers
 							online=false;
 							initMenu();
 						}
+						Log.info('getMenuList --menuChange:' + menuChange);
 					});
 				}
 				else
@@ -949,10 +976,22 @@ package controllers
 			return menuDateValid(menu) && dayValidate(menu.tags);
 		}
 
+		private function deleteInvalidMenu(id:String):void
+		{
+			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			;
+			for (var i:int; i < menus.length; i++)
+			{
+				if (id == menus[i]._id)
+					menus.splice(i, 1);
+			}
+			FileManager.saveFile('menus.yp', menus);
+		}
+
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if (!gotServerTime || now.fullYear != 2014)
+			if (!gotServerTime)
 				return b;
 			var clearedSize:Number=0;
 			var f:File;
@@ -962,6 +1001,7 @@ package controllers
 			var arr:Array=so.data.menus;
 			if (menu && !menuDateValid(menu))
 			{
+				deleteInvalidMenu(menu._id);
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
 				if (songs && songs.length)
@@ -988,6 +1028,7 @@ package controllers
 				{
 					if (!menuDateValid(dm))
 					{
+						deleteInvalidMenu(dm._id);
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
 						clearInfo+='清空了DM：' + dm.name + ' ';
@@ -1579,17 +1620,30 @@ package controllers
 
 		private function checkUncachedMenu():void
 		{
-			var menu:Object=getUncachedMenu();
-			if (menu)
+			try
 			{
-				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
+				var menu:Object=getUncachedMenu();
+				if (menu)
 				{
-					var o:Object=JSON.parse(data);
-					if (o.type == 1)
-						parseMenu(o, null);
-					else if (o.type == 2)
-						parseMenu(null, o);
-				}, menu._id + '.json', online);
+					LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
+					{
+						var o:Object=JSON.parse(data);
+						o.end_date=NodeUtil.getLocalDate(o.end_date);
+						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+						if (menuValid(o))
+						{
+							if (o.type == 1)
+								parseMenu(o, null);
+							else if (o.type == 2)
+								parseMenu(null, o);
+						}
+						AA.say('UPDATE');
+					}, menu._id + '.json', online);
+				}
+			}
+			catch (error:Error)
+			{
+				Log.error('' + error);
 			}
 		}
 
@@ -1915,6 +1969,7 @@ package controllers
 						FileManager.saveFile('bros.yp', broadcasts);
 						getMenuList();
 					}
+					Log.info('username:' + username, 'password:' + password);
 					checkLog();
 					uploadUpdateLog();
 					test();
@@ -2081,6 +2136,36 @@ package controllers
 					checkingUpdate=false;
 				}
 			});
+		}
+
+		/**
+		 *上传用户使用日志
+		 *
+		 */
+		public function uploadUseLog():void
+		{
+			Log.Trace('uploadLog');
+			var file:File=File.applicationStorageDirectory.resolvePath('log');
+			if (file.exists && file.isDirectory)
+			{
+				var files:Array=file.getDirectoryListing();
+				if (files.length)
+				{
+					var f:File=files.pop() as File;
+					for (var i:int=0; i < files.length; i++) //判断当前日志是否是播放日志
+					{
+						if (f.nativePath.indexOf('play') == -1)
+							f=files.shift() as File;
+						else
+							break;
+					}
+					var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + f.name;
+					QNService.instance.upload(f, function(r:Object):void
+					{
+						Log.Trace('上传日志成功：' + f.name);
+					}, {key: upName});
+				}
+			}
 		}
 
 		public function clearInfo():void
