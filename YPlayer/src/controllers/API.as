@@ -1406,7 +1406,7 @@ package controllers
 							else
 							{
 								username=SharedObject.getLocal('yp').data.username;
-								song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+								song.url=QNService.HOST + s.url + 'p1avthumbmp3ab' + o.quality + 'k';
 								song.name=s.name
 							}
 							song.duration=s.duration;
