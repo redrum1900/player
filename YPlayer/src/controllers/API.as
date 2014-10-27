@@ -1484,7 +1484,7 @@ package controllers
 					{
 						toPrepare(o, dmMenu, songs);
 					}
-					else if (getUncachedMenu())
+					else if (getUncachedMenu() && !playingSong)
 					{
 						dispatchEvent(new Event('PLAY'));
 						PAlert.show('只能在闲时 ' + update_time + '点之间进行更新，请到时再打开软件尝试');
