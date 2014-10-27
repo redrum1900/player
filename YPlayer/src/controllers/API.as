@@ -497,7 +497,6 @@ package controllers
 					var daychanged:Boolean;
 					if (day != now.day && !initializing && !playingSong)
 					{
-						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 					}
@@ -510,22 +509,7 @@ package controllers
 							songs=null;
 							songDMDic=null;
 						}
-						var readyToUpdate:Boolean=true;
-						var ut:String=vo.results.update_time;
-						if (ut)
-						{
-							try
-							{
-								var h:int=now.getHours();
-								var arr:Array=ut.split(' ');
-								if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
-									readyToUpdate=false;
-							}
-							catch (error:Error)
-							{
-								appendLog('UpdateTime Error:' + error);
-							}
-						}
+						update_time=vo.results.update_time;
 						if (readyToUpdate)
 							checkUncachedMenu();
 					}
@@ -544,8 +528,9 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
+					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
 				}
-				else
+				else if (!vo.status)
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
@@ -1495,8 +1480,11 @@ package controllers
 						dispatchEvent(new Event('PLAY'));
 						return {songs: songs, dmMenu: dmMenu};
 					}
-					dispatchEvent(new Event('PLAY'));
-					toPrepare(o, dmMenu, songs);
+//					dispatchEvent(new Event('PLAY'));
+					if (readyToUpdate || !getUncachedMenu())
+						toPrepare(o, dmMenu, songs);
+					else if (getUncachedMenu())
+						PAlert.show('只能在闲时 ' + update_time + '点之间进行更新，请到时再打开软件尝试');
 				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
@@ -1862,6 +1850,8 @@ package controllers
 			return o;
 		}
 
+		private var update_time:String;
+
 		public function login(username:String, password:String, callback:Function=null):void
 		{
 			username=username.replace(' ', '');
@@ -1875,6 +1865,7 @@ package controllers
 				if (vo.status)
 				{
 					broadcasts=vo.results.broadcasts;
+					update_time=vo.results.update_time;
 					ServiceBase.id=vo.results.id + '';
 					saveUserInfo(username, password, config.cacheDir, vo.results.id);
 					FileManager.saveFile('bros.yp', broadcasts);
@@ -1966,6 +1957,8 @@ package controllers
 		private var checkingUpdate:Boolean;
 		public var scale:Number;
 		private var appRoot:String;
+
+
 		[Bindable]
 		public var progress:String='系统初始化';
 
@@ -1985,6 +1978,27 @@ package controllers
 //			}
 //			return v2 > v1;
 //		}
+
+		private function get readyToUpdate():Boolean
+		{
+			var readyToUpdate:Boolean=true;
+			var ut:String=update_time;
+			if (ut)
+			{
+				try
+				{
+					var h:int=now.getHours();
+					var arr:Array=ut.split(' ');
+					if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+						readyToUpdate=false;
+				}
+				catch (error:Error)
+				{
+					appendLog('UpdateTime Error:' + error);
+				}
+			}
+			return readyToUpdate;
+		}
 
 		private function getSB(uri:String, method:String='POST'):ServiceBase
 		{
