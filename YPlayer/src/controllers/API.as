@@ -1203,14 +1203,6 @@ package controllers
 		 * @param event
 		 *
 		 */
-		/**
-		 * 
-		 * @param event
-		 */
-		/**
-		 * 
-		 * @param event
-		 */
 		protected function ioErrorHandler(event:Event):void
 		{
 			if (initializing)
