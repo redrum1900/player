@@ -1061,6 +1061,11 @@ package controllers
 
 		private var initializing:Boolean;
 
+		/**
+		 * 获取没有缓存的歌单
+		 * @return
+		 *
+		 */
 		private function getUncachedMenu():Object
 		{
 			var menus:Array=FileManager.readFile('menus.yp') as Array;
@@ -1091,7 +1096,6 @@ package controllers
 		 */
 		public function initMenu():void
 		{
-
 			if (initializing)
 				return;
 			initializing=true;
@@ -1151,6 +1155,7 @@ package controllers
 					var songMenu:Object;
 					var dmMenuO:Object;
 					var dmCount:int;
+					LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 					if (dmMenus.length)
 					{
 						for each (var dmm:Object in dmMenus)
@@ -1191,6 +1196,40 @@ package controllers
 
 			if (refreshTimer && !refreshTimer.running)
 				refreshTimer.start();
+		}
+
+		/**
+		 * 请求歌单详细信息失败触发事件
+		 * @param event
+		 *
+		 */
+		/**
+		 * 
+		 * @param event
+		 */
+		/**
+		 * 
+		 * @param event
+		 */
+		protected function ioErrorHandler(event:Event):void
+		{
+			if (initializing)
+			{
+				initializing=false;
+				if (getUncachedMenu().length)
+				{
+					PAlert.show('获取歌单详情失败，请稍候再试', '初始化失败', null, function():void
+					{
+						initMenu();
+					}, PAlert.CONFIRM, '再试一次', '', true);
+				}
+				else
+				{
+					online=false;
+					initMenu();
+				}
+
+			}
 		}
 
 		public var times:Array=[];
@@ -1306,6 +1345,7 @@ package controllers
 		 */
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
+			LoadManager.instance.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 			var o:Object=songMenu;
 			if (o)
 			{
