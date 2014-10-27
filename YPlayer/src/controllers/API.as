@@ -441,7 +441,7 @@ package controllers
 			var pn:String;
 			if (!playingInfo)
 			{
-				if (playingSong) //如果当前正在播放歌曲，则显示播放歌曲和来自歌单，否则显示当前时间
+				if (playingSong && menu) //如果当前正在播放歌曲，则显示播放歌曲和来自歌单，否则显示当前时间
 					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
 				else
 					pn=main.time;
@@ -1610,6 +1610,8 @@ package controllers
 				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
 				{
 					var o:Object=JSON.parse(data);
+					o.end_date=NodeUtil.getLocalDate(o.end_date);
+					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 					if (o.type == 1)
 						parseMenu(o, null);
 					else if (o.type == 2)
