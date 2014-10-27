@@ -1480,11 +1480,15 @@ package controllers
 						dispatchEvent(new Event('PLAY'));
 						return {songs: songs, dmMenu: dmMenu};
 					}
-//					dispatchEvent(new Event('PLAY'));
 					if (readyToUpdate || !getUncachedMenu())
+					{
 						toPrepare(o, dmMenu, songs);
+					}
 					else if (getUncachedMenu())
+					{
+						dispatchEvent(new Event('PLAY'));
 						PAlert.show('只能在闲时 ' + update_time + '点之间进行更新，请到时再打开软件尝试');
+					}
 				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
