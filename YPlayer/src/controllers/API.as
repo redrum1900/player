@@ -1019,6 +1019,11 @@ package controllers
 
 		private var initializing:Boolean;
 
+		/**
+		 * 获取没有缓存的歌单
+		 * @return
+		 *
+		 */
 		private function getUncachedMenu():Object
 		{
 			var menus:Array=FileManager.readFile('menus.yp') as Array;
@@ -1152,15 +1157,29 @@ package controllers
 				refreshTimer.start();
 		}
 
+		/**
+		 * 请求歌单详细信息失败触发事件
+		 * @param event
+		 *
+		 */
 		protected function ioErrorHandler(event:Event):void
 		{
 			if (initializing)
 			{
 				initializing=false;
-				PAlert.show('获取歌单详情失败，请稍候再试', '初始化失败', null, function():void
+				if (getUncachedMenu().length)
 				{
+					PAlert.show('获取歌单详情失败，请稍候再试', '初始化失败', null, function():void
+					{
+						initMenu();
+					}, PAlert.CONFIRM, '再试一次', '', true);
+				}
+				else
+				{
+					online=false;
 					initMenu();
-				}, PAlert.CONFIRM, '再试一次', '', true);
+				}
+				
 			}
 		}
 
