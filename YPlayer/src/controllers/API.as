@@ -489,7 +489,6 @@ package controllers
 					var daychanged:Boolean; //是否过了一天
 					if (day != now.day && !initializing && !playingSong)
 					{
-						Log.Trace('Day Changed');
 						daychanged=true;
 						day=now.day;
 						setLogPath();
@@ -503,22 +502,7 @@ package controllers
 							songs=null;
 							songDMDic=null;
 						}
-						var readyToUpdate:Boolean=true;
-						var ut:String=vo.results.update_time;
-						if (ut)
-						{
-							try
-							{
-								var h:int=now.getHours();
-								var arr:Array=ut.split(' ');
-								if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
-									readyToUpdate=false;
-							}
-							catch (error:Error)
-							{
-								appendLog('UpdateTime Error:' + error);
-							}
-						}
+						update_time=vo.results.update_time;
 						if (readyToUpdate)
 							checkUncachedMenu();
 					}
@@ -547,8 +531,9 @@ package controllers
 						checkUpdate();
 					if (vo.results.log)
 						uploadUseLog();
+					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
 				}
-				else
+				else if(!vo.status)
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
@@ -1560,7 +1545,15 @@ package controllers
 						dispatchEvent(new Event('PLAY'));
 						return {songs: songs, dmMenu: dmMenu};
 					}
-					toPrepare(o, dmMenu, songs);
+					if (readyToUpdate || !getUncachedMenu())
+					{
+						toPrepare(o, dmMenu, songs);
+					}
+					else if (getUncachedMenu() && !playingSong)
+					{
+						dispatchEvent(new Event('PLAY'));
+						PAlert.show('只能在闲时 ' + update_time + '点之间进行更新，请到时再打开软件尝试');
+					}
 				}
 			}
 			return {songs: songs, dmMenu: dmMenu};
@@ -1962,6 +1955,8 @@ package controllers
 			return o;
 		}
 
+		private var update_time:String;
+		
 		/**
 		 * 登录
 		 */
@@ -1993,6 +1988,7 @@ package controllers
 				if (vo.status)
 				{
 					broadcasts=vo.results.broadcasts;
+					update_time=vo.results.update_time;
 					ServiceBase.id=vo.results.id + '';
 					if (cd && exists)
 					{
@@ -2115,6 +2111,27 @@ package controllers
 //			return v2 > v1;
 //		}
 
+		private function get readyToUpdate():Boolean
+		{
+			var readyToUpdate:Boolean=true;
+			var ut:String=update_time;
+			if (ut)
+			{
+				try
+				{
+					var h:int=now.getHours();
+					var arr:Array=ut.split(' ');
+					if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+						readyToUpdate=false;
+				}
+				catch (error:Error)
+				{
+					appendLog('UpdateTime Error:' + error);
+				}
+			}
+			return readyToUpdate;
+		}
+		
 		/**
 		 * 获取服务基类
 		 * @param uri
