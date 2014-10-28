@@ -1144,6 +1144,7 @@ package controllers
 					var songMenu:Object;
 					var dmMenuO:Object;
 					var dmCount:int;
+					LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 					if (dmMenus.length)
 					{
 						for each (var dmm:Object in dmMenus)
@@ -1184,6 +1185,17 @@ package controllers
 
 			if (refreshTimer && !refreshTimer.running)
 				refreshTimer.start();
+		}
+
+		protected function ioErrorHandler(event:Event):void
+		{
+			LoadManager.instance.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+			if (initializing)
+			{
+				initializing=false;
+				online=false;
+				initMenu();
+			}
 		}
 
 		public var times:Array=[];
@@ -1483,6 +1495,7 @@ package controllers
 						dispatchEvent(new Event('PLAY'));
 						return {songs: songs, dmMenu: dmMenu};
 					}
+					dispatchEvent(new Event('PLAY'));
 					toPrepare(o, dmMenu, songs);
 				}
 			}
