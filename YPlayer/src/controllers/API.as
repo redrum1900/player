@@ -39,6 +39,8 @@ package controllers
 	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
 
+	import spark.components.Application;
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
@@ -108,7 +110,8 @@ package controllers
 //			trace(s,b);
 //			return
 
-			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
 			var o:Object=FileManager.readFile('config.json');
@@ -483,6 +486,12 @@ package controllers
 
 			getSB('/refresh/2', 'GET').call(function(vo:ResultVO):void
 			{
+				var daychanged:Boolean;
+				if (day != now.day && !initializing && !playingSong)
+				{
+					daychanged=true;
+					day=now.day;
+				}
 				if (vo.status && !pv)
 				{
 					var menus:Array=getMenus();
@@ -493,12 +502,6 @@ package controllers
 						if (vo.results.bros)
 							FileManager.saveFile('bros.yp', vo.results.bros)
 						initBroadcasts();
-					}
-					var daychanged:Boolean;
-					if (day != now.day && !initializing && !playingSong)
-					{
-						daychanged=true;
-						day=now.day;
 					}
 					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
 					{
@@ -534,6 +537,8 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
+				if (daychanged)
+					initMenu();
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 		}
 
@@ -1533,8 +1538,10 @@ package controllers
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;
 			}
+			Log.info('ToPrepareMenu:' + menu.name);
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
+				Log.info('LoadedMenu:' + menu.name);
 				initializing=false;
 				progress='';
 				if (e.data)
@@ -1576,15 +1583,21 @@ package controllers
 			var menu:Object=getUncachedMenu();
 			if (menu)
 			{
+				Log.info('toPrepareUncachedMenu:' + menu.name);
 				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
 				{
 					var o:Object=JSON.parse(data);
 					o.end_date=NodeUtil.getLocalDate(o.end_date);
 					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
-					if (o.type == 1)
-						parseMenu(o, null);
-					else if (o.type == 2)
-						parseMenu(null, o);
+					var n:Date=now;
+					n=new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0, 0);
+					if (o.end_date.getTime() > n.getTime())
+					{
+						if (o.type == 1)
+							parseMenu(o, null);
+						else if (o.type == 2)
+							parseMenu(null, o);
+					}
 				}, menu._id + '.json', online);
 			}
 		}
