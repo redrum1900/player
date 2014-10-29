@@ -1,8 +1,8 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"swf":"AndroidPlayer.swf",
-	"trace":true,
+	"trace":false,
 	"insert":false,
 	"insert_list":false,
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json",

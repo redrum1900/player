@@ -46,8 +46,8 @@
 			{
 				skin["close"].visible=false;
 				var config:Object={};
-				config.username='LaChapelle:shop1';
-				config.password="532757";
+//				config.username='LaChapelle:shop1';
+//				config.password="532757";
 				username.text=config.username;
 				password.text=config.password;
 			}

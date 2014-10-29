@@ -186,6 +186,8 @@ package controllers
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 
+			ServiceBase.HOST='http://localhost:18080/api';
+
 			if (local)
 			{
 				config.username=o.username;
