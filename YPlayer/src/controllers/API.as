@@ -2004,7 +2004,17 @@ package controllers
 				{
 					var h:int=now.getHours();
 					var arr:Array=ut.split(' ');
-					if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+
+					var bt:int=parseInt(arr[0]);
+					var et:int=parseInt(arr[1]);
+					if (bt > et)
+					{
+						if (h > 12)
+							et+=24;
+						else
+							bt-=24
+					}
+					if (h < bt || h > et)
 						readyToUpdate=false;
 				}
 				catch (error:Error)
