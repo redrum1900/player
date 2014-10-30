@@ -8,7 +8,7 @@
 
 	<initialWindow>
 		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
-		<autoOrients>false</autoOrients>
+		<aspectRatio>portrait</aspectRatio>
 		<fullScreen>false</fullScreen>
 		<visible>true</visible>
 		<softKeyboardBehavior>none</softKeyboardBehavior>

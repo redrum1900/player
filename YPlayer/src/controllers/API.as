@@ -186,7 +186,7 @@ package controllers
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 
-			ServiceBase.HOST='http://localhost:18080/api';
+//			ServiceBase.HOST='http://localhost:18080/api';
 
 			if (local)
 			{
@@ -1298,10 +1298,11 @@ package controllers
 				o.end_date=NodeUtil.getLocalDate(o.end_date);
 				o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 			}
+			else if (this.menu)
+			{
+				o=this.menu;
+			}
 			var songs:Array=[];
-//			dms=[];
-			var songDMDic:Dictionary=new Dictionary();
-//			this.dmMenu=dmMenu;
 			parseBroadcasts();
 			var ivo:InsertVO;
 			var a:Array=[];
@@ -1381,44 +1382,42 @@ package controllers
 					var arr:Array=[];
 					if (oo.songs)
 					{
-						var duration:Number=0;
 						var songNum:int=0;
 						for (var j:int=0; j < oo.songs.length; j++)
 						{
 							var s:Object=oo.songs[j];
 							var song:SongVO=new SongVO();
-							song.allow_circle=s.allow_circle;
-							s=s.song;
-							song.playTime=DateUtil.clone(playTime);
-							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
-								playingSong=song;
-							song.size=s.size;
-							song._id=s._id;
-							song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
-							song.name=s.name
-							song.duration=s.duration;
+							if (s is SongVO)
+								song=s as SongVO;
+							else
+							{
+								song.allow_circle=s.allow_circle;
+								s=s.song;
+								song.playTime=DateUtil.clone(playTime);
+								song.size=s.size;
+								song._id=s._id;
+								song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
+								song.name=s.name
+								song.duration=s.duration;
+							}
 							arr.push(song);
 							songs.push(song);
-							duration=s.duration;
+							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
+								playingSong=song;
 							if (dmMenu && dmMenu.dm_list && !oo.loop)
 							{
 								var t1:Number=playTime.getTime();
 								playTime.seconds+=s.duration;
 								var t2:Number=playTime.getTime();
-								var dmarr:Array=[];
 								for each (var dmivo:InsertVO in dms)
 								{
 									var t3:Number=dmivo.playTime.getTime();
 									if (t1 <= t3 && t3 <= t2)
 									{
-										if (dmarr.indexOf(dmivo) == -1)
-											dmarr.push(dmivo);
 										if (songs.indexOf(dmivo) == -1)
 											songs.push(dmivo);
 									}
 								}
-								if (dmarr.length)
-									songDMDic[song]=dmarr;
 							}
 							else if (s.duration)
 								playTime.seconds+=s.duration;
@@ -1529,7 +1528,7 @@ package controllers
 				progress='开始初始化内容';
 
 			pv=new PrepareView();
-			var label:String;
+			var label:String='';
 			if (menu)
 			{
 				label=menu.name;
@@ -1540,10 +1539,12 @@ package controllers
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;
 			}
-			Log.info('ToPrepareMenu:' + menu.name);
+			if (menu)
+				Log.info('ToPrepareMenu:' + menu.name);
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
-				Log.info('LoadedMenu:' + menu.name);
+				if (menu)
+					Log.info('LoadedMenu:' + menu.name);
 				initializing=false;
 				progress='';
 				if (e.data)
