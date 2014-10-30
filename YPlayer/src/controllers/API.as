@@ -17,6 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
+
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -34,13 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
+
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
+
 	import views.Main;
 	import views.MessageWindow;
 	import views.SelectCacheView;
@@ -188,8 +192,6 @@ package controllers
 //				}
 //			}
 //		}
-
-		public var songDMDic:Dictionary;
 
 		[Bindable]
 		public var songs:Array;
@@ -452,6 +454,17 @@ package controllers
 		}
 
 		/**
+		 * 读取本地歌单
+		 * @return
+		 *
+		 */
+		private function getMenus():Array
+		{
+			var arr:Array=FileManager.readFile('menus.yp') as Array;
+			return arr;
+		}
+
+		/**
 		 * 从网络获取歌单
 		 */
 		public function getMenuList():void
@@ -462,7 +475,7 @@ package controllers
 				return;
 			try
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array; //读取本地歌单
+				var menus:Array=getMenus();
 
 				if (online && !local)
 				{
@@ -674,7 +687,7 @@ package controllers
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地获取当前歌单
+			var menus:Array=getMenus();
 			if (menus && menus.length)
 			{ //如果有本地歌单
 				var i:int;
@@ -996,6 +1009,10 @@ package controllers
 				}
 			}
 
+			//单独缓存新的DM列表时，将之前的DM列表整合到一起
+			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+				dmMenu.dm_list.concat(this.dmMenu.dm_list)
+
 			if (dmMenu && dmMenu)
 			{
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
@@ -1072,7 +1089,6 @@ package controllers
 							else
 								Log.Trace('P', DateUtil.getHMS(song.playTime), s.url, s.name);
 						}
-
 					}
 					oo.songs=arr;
 				}
@@ -1090,7 +1106,6 @@ package controllers
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
 						this.songs=songs;
-						this.songDMDic=songDMDic;
 					}
 					initializing=false;
 				}
@@ -1098,7 +1113,6 @@ package controllers
 				{
 					this.dmMenu=dmMenu;
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					dmChanged=true;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1108,7 +1122,6 @@ package controllers
 				if (updateForRecord)
 				{
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					this.dmMenu=dmMenu;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1407,6 +1420,7 @@ package controllers
 			var arr:Array=so.data.menus;
 			if (menu && !menuDateValid(menu))
 			{
+				deleteInvalidMenu(menu._id);
 				arr.splice(arr.indexOf(menu._id), 1);
 				clearInfo+='清空了歌单：' + menu.name + ' ';
 				if (songs && songs.length)
@@ -1425,7 +1439,6 @@ package controllers
 				b=false;
 				menu=null;
 				songs=null;
-				songDMDic=null;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -1433,6 +1446,7 @@ package controllers
 				{
 					if (!menuDateValid(dm))
 					{
+						deleteInvalidMenu(dm._id);
 						b=false;
 						arr.splice(arr.indexOf(dm._id), 1);
 						clearInfo+='清空了DM：' + dm.name + ' ';
@@ -1461,7 +1475,7 @@ package controllers
 			return b;
 		}
 
-		private function checkUncachedMenu():void
+		private function checkUncachedMenu():Object
 		{
 			var menu:Object=getUncachedMenu();
 			if (menu)
@@ -1483,6 +1497,7 @@ package controllers
 					}
 				}, menu._id + '.json', online);
 			}
+			return menu;
 		}
 
 		/**
@@ -1545,7 +1560,6 @@ package controllers
 			{ //如果旧歌单不存在或者新歌单与旧歌单长度不相同，则直接保存新歌单
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.Trace('menu changed');
 			}
 			else
 			{ //如果新旧歌单长度相同，则遍历歌单进行对比，如果发现不同，则保存新歌单
@@ -1556,7 +1570,6 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.Trace('menu changed');
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -1708,7 +1721,7 @@ package controllers
 		 */
 		private function getUncachedMenu():Object
 		{
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus();
 			var menu:Object;
 			var o:Object;
 			var n:Date=now;
@@ -1790,6 +1803,17 @@ package controllers
 			if (!menu || !menu.begin_date || !menu.end_date)
 				return false;
 			return menuDateValid(menu) && dayValidate(menu.tags);
+		}
+
+		private function deleteInvalidMenu(id:String):void
+		{
+			var menus:Array=getMenus();
+			for (var i:int; i < menus.length; i++)
+			{
+				if (id == menus[i]._id)
+					menus.splice(i, 1);
+			}
+			FileManager.saveFile('menus.yp', menus);
 		}
 
 		private function needInsert():Boolean
@@ -1955,7 +1979,7 @@ package controllers
 				}
 				if (vo.status && !pv)
 				{
-					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
+					var menus:Array=getMenus();
 					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
 					{
@@ -1964,18 +1988,22 @@ package controllers
 							FileManager.saveFile('bros.yp', vo.results.bros) //保存新的广播单
 						initBroadcasts();
 					}
-					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
+					var menuChanged:Boolean=compareMenus(menus, vo.results.menus as Array);
+					if (menuChanged || daychanged)
 					{ //如果歌单发生变化或者过了一天
 						var playingValid:Boolean=checkPlayingValid();
 						if (daychanged || !playingValid)
 						{
 							menu=null;
 							songs=null;
-							songDMDic=null;
 						}
 						update_time=vo.results.update_time;
 						if (readyToUpdate)
-							checkUncachedMenu();
+						{
+							var o:Object=checkUncachedMenu();
+							if (!o && menuChanged)
+								initMenu();
+						}
 					}
 					else if (brosChanged)
 					{ //如果广播歌单发生了变化
@@ -2000,7 +2028,7 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
-					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
+					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged + ' MenuChanged:' + menuChanged);
 				}
 				else if (!vo.status)
 				{
