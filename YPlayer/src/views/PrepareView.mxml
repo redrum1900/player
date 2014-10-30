@@ -36,44 +36,7 @@
 			{
 				api=API.instance;
 
-				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void
-				{
-					if (api.local)
-					{
-						PAlert.show('本地加载媒资失败：' + e.toString());
-						return;
-					}
-					if (autoLoading && !retried)
-					{
-						retried=true;
-						LoadManager.instance.load(autoLoading.url.split('?')[0], function():void
-						{
-							trace('retry loaded:' + autoLoading.name);
-							retried=false;
-							isAutoloading=false;
-							loaded++;
-							autoLoad();
-						}, URLUtil.getCachePath(autoLoading.url), null, loadingHandler);
-					}
-					else if (autoLoading)
-					{
-						retried=false;
-						retryTimes++;
-						if (retryTimes <= 10)
-						{
-							isAutoloading=false
-							TweenLite.killDelayedCallsTo(autoLoad);
-							TweenLite.delayedCall(3, autoLoad);
-						}
-						else
-						{
-							PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
-							{
-								autoLoad();
-							}, PAlert.CONFIRM, '再试一次', '', true);
-						}
-					}
-				});
+				LoadManager.instance.addEventListener(IOErrorEvent.IO_ERROR, autoLoadErrorHandler);
 
 				var size:Number=0;
 				var avaibleSize:Number=Math.round(new File(FileManager.savedDir).spaceAvailable / 1024);
@@ -126,6 +89,7 @@
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
+				LoadManager.instance.removeEventListener(IOErrorEvent.IO_ERROR, autoLoadErrorHandler);
 				dispatchEvent(new ODataEvent(data, 'loaded'));
 			}
 
@@ -138,6 +102,13 @@
 			}
 
 			private var startLoad:Number=0;
+
+			private function getCachePath(vo:Object):String
+			{
+				return api.isTool ? 'cache/' + vo.name : URLUtil.getCachePath(vo.url)
+			}
+
+			private var loadingFile:File;
 
 			private function autoLoad():void
 			{
@@ -197,6 +168,44 @@
 
 			[Bindable]
 			private var titleS:String;
+
+			protected function autoLoadErrorHandler(event:Event):void
+			{
+				if (api.local)
+				{
+					PAlert.show('本地加载媒资失败：' + event.toString());
+					return;
+				}
+				if (autoLoading && !retried)
+				{
+					retried=true;
+					LoadManager.instance.load(autoLoading.url.split('?')[0], function():void
+					{
+						Log.Trace('retry loaded:' + autoLoading.name);
+						retried=false;
+						loadingFile=new File(FileManager.savedDir + getCachePath(autoLoading));
+					}, getCachePath(autoLoading), null, loadingHandler);
+				}
+				else if (autoLoading)
+				{
+					retried=false;
+					retryTimes++;
+					isAutoloading=false
+					if (retryTimes <= 10)
+					{
+						TweenLite.killDelayedCallsTo(autoLoad);
+						TweenLite.delayedCall(3, autoLoad);
+					}
+					else
+					{
+						retryTimes=0;
+						PAlert.show('媒资 ' + autoLoading.name + ' 加载出错，请确保网络连接正常，如果仍有问题请联系我们', '加载失败', null, function():void
+						{
+							autoLoad();
+						}, PAlert.CONFIRM, '再试一次', '', true);
+					}
+				}
+			}
 		]]>
 	</fx:Script>
 
