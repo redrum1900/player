@@ -483,7 +483,7 @@ package controllers
 				}
 				if (vo.status && !pv)
 				{
-					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
+					var menus:Array=getMenus();
 					var brosChanged:Boolean;
 					if (compareBros(vo.results.bros))
 					{
@@ -492,18 +492,22 @@ package controllers
 							FileManager.saveFile('bros.yp', vo.results.bros) //保存新的广播单
 						initBroadcasts();
 					}
-					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
+					var menuChanged:Boolean=compareMenus(menus, vo.results.menus as Array);
+					if (menuChanged || daychanged)
 					{ //如果歌单发生变化或者过了一天
 						var playingValid:Boolean=checkPlayingValid();
 						if (daychanged || !playingValid)
 						{
 							menu=null;
 							songs=null;
-							songDMDic=null;
 						}
 						update_time=vo.results.update_time;
 						if (readyToUpdate)
-							checkUncachedMenu();
+						{
+							var o:Object=checkUncachedMenu();
+							if (!o && menuChanged)
+								initMenu();
+						}
 					}
 					else if (brosChanged)
 					{ //如果广播歌单发生了变化
@@ -530,7 +534,7 @@ package controllers
 						checkUpdate();
 					if (vo.results.log)
 						uploadUseLog();
-					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
+					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged + ' MenuChanged:' + menuChanged);
 				}
 				else if (!vo.status)
 				{
@@ -762,6 +766,16 @@ package controllers
 			return changed;
 		}
 
+		/**
+		 * 读取本地歌单
+		 * @return
+		 *
+		 */
+		private function getMenus():Array
+		{
+			var arr:Array=FileManager.readFile('menus.yp') as Array;
+			return arr;
+		}
 
 		/**
 		 * 从网络获取歌单
@@ -774,7 +788,7 @@ package controllers
 				return;
 			try
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array; //读取本地歌单
+				var menus:Array=getMenus();
 
 				if (online && !local)
 				{
@@ -970,7 +984,7 @@ package controllers
 
 		private function deleteInvalidMenu(id:String):void
 		{
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus();
 			;
 			for (var i:int; i < menus.length; i++)
 			{
@@ -1012,7 +1026,6 @@ package controllers
 				b=false;
 				menu=null;
 				songs=null;
-				songDMDic=null;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -1060,7 +1073,7 @@ package controllers
 		 */
 		private function getUncachedMenu():Object
 		{
-			var menus:Array=FileManager.readFile('menus.yp') as Array;
+			var menus:Array=getMenus();
 			var menu:Object;
 			var o:Object;
 			var n:Date=now;
@@ -1091,7 +1104,7 @@ package controllers
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地获取当前歌单
+			var menus:Array=getMenus();
 			if (menus && menus.length)
 			{ //如果有本地歌单
 				var i:int;
@@ -1405,6 +1418,10 @@ package controllers
 				}
 			}
 
+			//单独缓存新的DM列表时，将之前的DM列表整合到一起
+			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+				dmMenu.dm_list.concat(this.dmMenu.dm_list)
+
 			if (dmMenu && dmMenu)
 			{
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
@@ -1501,7 +1518,6 @@ package controllers
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
 						this.songs=songs;
-						this.songDMDic=songDMDic;
 					}
 					initializing=false;
 				}
@@ -1509,7 +1525,6 @@ package controllers
 				{
 					this.dmMenu=dmMenu;
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					dmChanged=true;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1519,7 +1534,6 @@ package controllers
 				if (updateForRecord)
 				{
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					this.dmMenu=dmMenu;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1658,7 +1672,7 @@ package controllers
 		 *检查没有缓存的歌单
 		 *
 		 */
-		private function checkUncachedMenu():void
+		private function checkUncachedMenu():Object
 		{
 			var menu:Object=getUncachedMenu();
 			if (menu)
@@ -1680,6 +1694,7 @@ package controllers
 					}
 				}, menu._id + '.json', online);
 			}
+			return menu;
 		}
 
 		private function get dmLogSO():SharedObject
@@ -1772,8 +1787,6 @@ package controllers
 //				}
 //			}
 //		}
-
-		public var songDMDic:Dictionary;
 
 //		public var dms:Array;
 
