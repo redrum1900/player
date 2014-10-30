@@ -186,7 +186,12 @@ package controllers
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 
-//			ServiceBase.HOST='http://localhost:18080/api';
+			if (Capabilities.isDebugger)
+			{
+				ServiceBase.HOST='http://localhost:18080/api';
+//				cachedSO.clear();
+//				cachedSO.flush();
+			}
 
 			if (local)
 			{
@@ -505,18 +510,22 @@ package controllers
 							FileManager.saveFile('bros.yp', vo.results.bros)
 						initBroadcasts();
 					}
-					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
+					var menuChanged:Boolean=compareMenus(menus, vo.results.menus as Array);
+					if (menuChanged || daychanged)
 					{
 						var playingValid:Boolean=checkPlayingValid();
 						if (daychanged || !playingValid)
 						{
 							menu=null;
 							songs=null;
-							songDMDic=null;
 						}
 						update_time=vo.results.update_time;
 						if (readyToUpdate)
-							checkUncachedMenu();
+						{
+							var o:Object=checkUncachedMenu();
+							if (!o && menuChanged)
+								initMenu();
+						}
 					}
 					else if (brosChanged)
 					{
@@ -533,7 +542,7 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
-					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
+					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged + ' MenuChanged:' + menuChanged);
 				}
 				else if (!vo.status)
 				{
@@ -742,14 +751,10 @@ package controllers
 			var changed:Boolean=false;
 			if (!newMenus)
 				return false;
-//			var so:SharedObject=SharedObject.getLocal('yp');
 			if (!menus || menus.length != newMenus.length)
 			{
-//				so.data.savedMenus=newMenus;
-//				so.flush();
 				FileManager.saveFile('menus.yp', newMenus);
 				changed=true;
-				Log.info('menu changed');
 			}
 			else
 			{
@@ -760,9 +765,6 @@ package controllers
 					if (m1._id != m2._id || m1.updated_at != m2.updated_at)
 					{
 						changed=true;
-						Log.info('menu changed');
-//						so.data.savedMenus=newMenus;
-//						so.flush();
 						FileManager.saveFile('menus.yp', newMenus);
 						break;
 					}
@@ -773,9 +775,6 @@ package controllers
 
 		private function getMenus():Array
 		{
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			var arr:Array=so.data.savedMenus as Array;
-//			if (!arr)
 			var arr:Array=FileManager.readFile('menus.yp') as Array;
 			return arr;
 		}
@@ -1011,7 +1010,6 @@ package controllers
 				b=false;
 				menu=null;
 				songs=null;
-				songDMDic=null;
 			}
 			if (dmMenus && dmMenus.length)
 			{
@@ -1351,6 +1349,10 @@ package controllers
 				}
 			}
 
+			//单独缓存新的DM列表时，将之前的DM列表整合到一起
+			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+				dmMenu.dm_list.concat(this.dmMenu.dm_list)
+
 			if (dmMenu && dmMenu)
 			{
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
@@ -1442,7 +1444,6 @@ package controllers
 						this.menu=CloneUtil.convertObject(o, MenuVO);
 						this.dmMenu=dmMenu;
 						this.songs=songs;
-						this.songDMDic=songDMDic;
 					}
 					initializing=false;
 				}
@@ -1450,7 +1451,6 @@ package controllers
 				{
 					this.dmMenu=dmMenu;
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					dmChanged=true;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1460,7 +1460,6 @@ package controllers
 				if (updateForRecord)
 				{
 					this.songs=songs;
-					this.songDMDic=songDMDic;
 					this.dmMenu=dmMenu;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
@@ -1581,7 +1580,7 @@ package controllers
 			PopupBoxManager.popup(pv);
 		}
 
-		private function checkUncachedMenu():void
+		private function checkUncachedMenu():Object
 		{
 			var menu:Object=getUncachedMenu();
 			if (menu)
@@ -1603,6 +1602,7 @@ package controllers
 					}
 				}, menu._id + '.json', online);
 			}
+			return menu;
 		}
 
 		private function get dmLogSO():SharedObject
@@ -1695,8 +1695,6 @@ package controllers
 //				}
 //			}
 //		}
-
-		public var songDMDic:Dictionary;
 
 //		public var dms:Array;
 
