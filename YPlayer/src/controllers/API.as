@@ -17,7 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-	
+
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -35,16 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-	
+
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-	
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-	
+
 	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
@@ -481,7 +481,7 @@ package controllers
 					day=now.day;
 					setLogPath();
 				}
- 				if (vo.status && !pv)
+				if (vo.status && !pv)
 				{
 					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
 					var brosChanged:Boolean;
@@ -532,7 +532,7 @@ package controllers
 						uploadUseLog();
 					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged);
 				}
-				else if(!vo.status)
+				else if (!vo.status)
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
@@ -947,10 +947,10 @@ package controllers
 		}
 
 		/**
-		 * 判断歌单是否可用，即当前时间是否在该歌单播放时段内 
+		 * 判断歌单是否可用，即当前时间是否在该歌单播放时段内
 		 * @param menu
-		 * @return 
-		 * 
+		 * @return
+		 *
 		 */
 		private function menuDateValid(menu:Object):Boolean
 		{
@@ -987,7 +987,7 @@ package controllers
 				return b;
 			var clearedSize:Number=0;
 			var clearInfo:String='';
-			var o:Object; 
+			var o:Object;
 			var so:SharedObject=cachedSO;
 			var arr:Array=so.data.menus;
 			var f:File;
@@ -1336,10 +1336,12 @@ package controllers
 				o.end_date=NodeUtil.getLocalDate(o.end_date);
 				o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 			}
+			else if (this.menu)
+			{
+				o=this.menu;
+			}
+
 			var songs:Array=[];
-//			dms=[];
-			var songDMDic:Dictionary=new Dictionary();
-//			this.dmMenu=dmMenu;
 			parseBroadcasts();
 			var ivo:InsertVO;
 			var a:Array=[];
@@ -1416,6 +1418,9 @@ package controllers
 				});
 			}
 
+			/*
+			以下为对歌单歌曲解析，歌单的时段及详细曲目
+			*/
 			if (o && o.list)
 			{
 				var dms:Array=[];
@@ -1436,54 +1441,42 @@ package controllers
 					var arr:Array=[];
 					if (oo.songs)
 					{
-						var duration:Number=0;
 						var songNum:int=0;
 						for (var j:int=0; j < oo.songs.length; j++)
 						{
 							var s:Object=oo.songs[j];
 							var song:SongVO=new SongVO();
-							song.allow_circle=s.allow_circle;
-							s=s.song;
-							song.playTime=DateUtil.clone(playTime);
-							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
-								playingSong=song;
-							song.size=s.size;
-							song._id=s._id;
-							if (isTool)
-							{
-								song.url=QNService.HOST + s.url;
-								songNum++;
-								song.name=songNum + '. ' + s.name + '.mp3'
-							}
+							if (s is SongVO)
+								song=s as SongVO;
 							else
 							{
-								username=SharedObject.getLocal('yp').data.username;
+								song.allow_circle=s.allow_circle;
+								s=s.song;
+								song.playTime=DateUtil.clone(playTime);
+								song.size=s.size;
+								song._id=s._id;
 								song.url=QNService.HOST + s.url + '?p/1/avthumb/mp3/ab/' + o.quality + 'k';
 								song.name=s.name
+								song.duration=s.duration;
 							}
-							song.duration=s.duration;
 							arr.push(song);
 							songs.push(song);
-							duration=s.duration;
+							if (playingSong && playingSong.playTime.getTime() == song.playTime.getTime())
+								playingSong=song;
 							if (dmMenu && dmMenu.dm_list && !oo.loop)
 							{
 								var t1:Number=playTime.getTime();
 								playTime.seconds+=s.duration;
 								var t2:Number=playTime.getTime();
-								var dmarr:Array=[];
 								for each (var dmivo:InsertVO in dms)
 								{
 									var t3:Number=dmivo.playTime.getTime();
 									if (t1 <= t3 && t3 <= t2)
 									{
-										if (dmarr.indexOf(dmivo) == -1)
-											dmarr.push(dmivo);
 										if (songs.indexOf(dmivo) == -1)
 											songs.push(dmivo);
 									}
 								}
-								if (dmarr.length)
-									songDMDic[song]=dmarr;
 							}
 							else if (s.duration)
 								playTime.seconds+=s.duration;
@@ -1566,6 +1559,13 @@ package controllers
 			return {songs: songs, dmMenu: dmMenu};
 		}
 
+		/**
+		 * 对比歌单和歌曲，弹出更新媒资界面
+		 * @param menu 歌单
+		 * @param dmMenu 广播单
+		 * @param songs 曲目列表
+		 *
+		 */
 		private function toPrepare(menu:Object, dmMenu:Object, songs:Array):void
 		{
 			if (playingSong && !dmChanged)
@@ -1594,7 +1594,7 @@ package controllers
 				progress='开始初始化内容';
 
 			pv=new PrepareWindow(); //更新媒资界面
-			var label:String;
+			var label:String="";
 			if (menu)
 			{
 				label=menu.name;
@@ -1605,10 +1605,12 @@ package controllers
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;
 			}
-			Log.info('ToPrepareMenu:' + menu.name);
+			if (menu)
+				Log.info('ToPrepareMenu:' + menu.name);
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
-				Log.info('LoadedMenu:' + menu.name);
+				if (menu)
+					Log.info('LoadedMenu:' + menu.name);
 				initializing=false;
 				progress='';
 				if (e.data)
@@ -1652,6 +1654,10 @@ package controllers
 //			PopupBoxManager.popup(pv);
 		}
 
+		/**
+		 *检查没有缓存的歌单
+		 *
+		 */
 		private function checkUncachedMenu():void
 		{
 			var menu:Object=getUncachedMenu();
@@ -1671,7 +1677,6 @@ package controllers
 							parseMenu(o, null);
 						else if (o.type == 2)
 							parseMenu(null, o);
-//						AA.say('UPDATE');
 					}
 				}, menu._id + '.json', online);
 			}
@@ -1961,7 +1966,7 @@ package controllers
 		}
 
 		private var update_time:String;
-		
+
 		/**
 		 * 登录
 		 */
@@ -2126,11 +2131,11 @@ package controllers
 				{
 					var h:int=now.getHours();
 					var arr:Array=ut.split(' ');
-					var bt:int = parseInt(arr[0]);
-					var et:int = parseInt(arr[1]);
+					var bt:int=parseInt(arr[0]);
+					var et:int=parseInt(arr[1]);
 					if (bt > et)
 					{
-						if(h>12)
+						if (h > 12)
 							et+=24;
 						else
 							bt-=24
@@ -2145,7 +2150,7 @@ package controllers
 			}
 			return readyToUpdate;
 		}
-		
+
 		/**
 		 * 获取服务基类
 		 * @param uri
