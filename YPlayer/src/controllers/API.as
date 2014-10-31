@@ -347,7 +347,7 @@ package controllers
 		 */
 		public function downloadUpdate(callback:Function=null):void
 		{
-			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf, function(b:ByteArray):void
+			LoadManager.instance.load('http://' + config.host + newVersion + '/' + config.swf, function(b:ByteArray):void
 			{
 				checkingUpdate=false;
 				if (updateFileSize != b.length)
