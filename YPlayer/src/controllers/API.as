@@ -1243,7 +1243,9 @@ package controllers
 		}
 
 		/**
-		 * 判断当前时间是否在设置循环播放
+		 *  判断当前时间是否在设置循环播放
+		 * @return
+		 *
 		 */
 		public function get isCurrentTimeLoop():Boolean
 		{

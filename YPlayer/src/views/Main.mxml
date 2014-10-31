@@ -364,14 +364,17 @@
 						player1.stop();
 					song1=null;
 					api.playingSong=null;
+					getNearestSong();
 					if (nearestSong)
 					{
 						var value:Number=(nearestSong.playTime.getTime() - now.getTime()) / 1000;
-						if (value < 0)
+//						if (value < 0)
+						while(value < 0)
 						{
 							firstSong.playTime.date++;
 							value=(firstSong.playTime.getTime() - now.getTime()) / 1000;
 						}
+						var nearTime:String = DateUtil.formateTime(value);
 						time='当前时段无媒资可播放 ' + DateUtil.formateTime(value) + ' 后将播放 ' + nearestSong.name;
 					}
 				}
@@ -417,6 +420,19 @@
 				}catch(error:Error)
 				{
 					Log.error('' + error);
+				}
+			}
+			
+			public function getNearestSong():void
+			{
+				var now:Number = api.now.getTime();
+				for(var i:int ; i < api.songs.length ; i++)
+				{
+					if(now - api.songs[i].playTime.getTime() <0)
+					{
+						nearestSong = api.songs[i];
+						break;
+					}
 				}
 			}
 

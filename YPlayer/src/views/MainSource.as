@@ -10,8 +10,9 @@ private function initSongWhileTimeLoop():void
 	if (songs.length > 1)
 		song2=songs[1];
 }
+
 /**
- * 
+ *
  */
 private function getSongWhileTimeNotLoop():Boolean
 {
@@ -20,7 +21,6 @@ private function getSongWhileTimeNotLoop():Boolean
 	var temp:Number;
 	nearestSong=null;
 	firstSong=null;
-
 	for (var i:int; i < api.songs.length; i++)
 	{
 		vo=api.songs[i] as SongVO;
@@ -32,7 +32,7 @@ private function getSongWhileTimeNotLoop():Boolean
 		{
 			api.sameDate(vo.playTime);
 			//歌曲播放时间同当前时间差
-			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime();//结束时间
+			var result:Number=vo.playTime.getTime() + vo.duration * 1000 - now.getTime(); //结束时间
 			var nn:Number=nearestSong.playTime.getTime() - now.getTime();
 			var vn:Number=vo.playTime.getTime() - now.getTime();
 			nearestSong=nn < vn ? nearestSong : vo;
@@ -72,6 +72,7 @@ private function getSongWhileTimeNotLoop():Boolean
 
 	return has;
 }
+
 /**
  * 歌曲转换。如果有下一首歌曲，则转换下一首，如果没有下一曲但是有循环，则继续播放循环列表，否则停止播放
  */
@@ -80,11 +81,11 @@ private function switchSong():Boolean
 	var has:Boolean=true;
 	var i:int;
 
-	if (song2)//是否有下一首歌曲
+	if (song2) //是否有下一首歌曲
 	{
 		//有下一首歌曲则切换歌曲
-		song1=song2;//当前播放歌曲替换
-		var index:int=api.songs.indexOf(song2);//获取下一首歌曲在歌单中序号
+		song1=song2; //当前播放歌曲替换
+		var index:int=api.songs.indexOf(song2); //获取下一首歌曲在歌单中序号
 		if (api.isCurrentTimeLoop)
 		{
 			//如果当前歌单设置循环播放，则根据序号选择下一首播放曲目
@@ -107,8 +108,8 @@ private function switchSong():Boolean
 			}
 		}
 		else
-		{//没有设置循环，当前是最后一首
-			
+		{ //没有设置循环，当前是最后一首
+
 			song2=null;
 		}
 	}
@@ -121,7 +122,7 @@ private function switchSong():Boolean
 		song1=null;
 		has=false;
 	}
-	Log.info('切换完成','song1：' + (song1?song1.name:false), 'song2:' + (song2?song2.name:false));
+	Log.info('切换完成', 'song1：' + (song1 ? song1.name : false), 'song2:' + (song2 ? song2.name : false));
 
 	return has;
 }
