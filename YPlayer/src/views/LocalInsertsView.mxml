@@ -12,6 +12,8 @@
 	<fx:Script>
 		<![CDATA[
 			import com.pamakids.components.PAlert;
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.utils.CloneUtil;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
@@ -20,6 +22,8 @@
 			import controllers.API;
 
 			import events.ODataEvent;
+
+			import flashx.textLayout.elements.BreakElement;
 
 			import models.MenuVO;
 			private var api:API;
@@ -89,6 +93,24 @@
 				tempMenu.begin_date=api.now;
 				tempMenu.end_date=api.now;
 			}
+
+			protected function deleteMenu_clickHandler(event:MouseEvent):void
+			{
+				PAlert.show('确认删除吗？', '提示', null, function(v:String):void
+				{
+					if (v == PAlert.YES)
+					{
+						menus.splice(menus.indexOf(curentMenu), 1);
+						if (!menus || menus.length == 0)
+							menus=[api.setLocalDMS()];
+						curentMenu=menus[0];
+						insertedMenus=new ArrayCollection(menus);
+						menuList.selectedItem=curentMenu;
+						api.updateLocalDMS(menus);
+					}
+				}, PAlert.YESNO);
+			}
+
 
 			protected function cancelMenu_clickHandler(event:MouseEvent):void
 			{
@@ -183,6 +205,11 @@
 				  toolTip="新增插播列表"
 				  id="addMenu"
 				  click="addMenu_clickHandler(event)"/>
+		<s:Button skinClass="skins.buttons.DangerButtonSkin"
+				  label="删除"
+				  toolTip="删除插播列表"
+				  id="deleteMenu"
+				  click="deleteMenu_clickHandler(event)"/>
 	</s:HGroup>
 	<s:HGroup includeIn="s2"
 			  width="100%"

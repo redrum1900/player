@@ -12,6 +12,7 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
+	import com.pamakids.utils.ObjectUtil;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
@@ -59,6 +60,7 @@ package controllers
 		public var isTest:Boolean=false; //是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
 		public var menuChange:Boolean; //歌单是否变化
+		public var onLogin:Boolean=false;
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
 
@@ -136,30 +138,48 @@ package controllers
 				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
+				setDefaultLoaclDMS();
 			}
 			else
 			{
 				getUploadToken();
 				getNowTime();
 			}
-
-			if (local || enabledInsert())
-			{
-				if (!so.data.localDMS)
-				{
-					var dmm:MenuVO=new MenuVO();
-					dmm.type=MenuVO.DM;
-					dmm.begin_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
-					dmm.end_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
-					dmm.name='默认列表';
-					so.data.localDMS=[dmm];
-					so.flush();
-				}
-			}
 			setYPData('startup', new Date().getTime());
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000); //定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+		}
+
+		/**
+		 * 设置默认本地定制插播
+		 *
+		 */
+		public function setDefaultLoaclDMS():void
+		{
+			var arr:Array=FileManager.readFile('insertMenus.yp') as Array;
+			if (local || enabledInsert())
+			{
+				if (!arr || arr.length == 0)
+				{
+					arr=[setLocalDMS()];
+					FileManager.saveFile('insertMenus.yp', arr);
+				}
+			}
+		}
+
+		/**
+		 * 设置默认插播
+		 *
+		 */
+		public function setLocalDMS():MenuVO
+		{
+			var dmm:MenuVO=new MenuVO();
+			dmm.type=MenuVO.DM;
+			dmm.begin_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+			dmm.end_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+			dmm.name='默认列表';
+			return dmm;
 		}
 
 		/**
@@ -184,17 +204,37 @@ package controllers
 			return enableFunctions.indexOf('insert') != -1;
 		}
 
+		/**
+		 * 获取本地定制插播
+		 * @return
+		 *
+		 */
 		public function getLocalDMS():Array
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			return CloneUtil.convertArrayObjects(so.data.localDMS, MenuVO);
+			var arr:Array=FileManager.readFile('insertMenus.yp') as Array;
+			return objectToVO(arr, MenuVO);
+		}
+
+		/**
+		 * 数组转换，object转换VO
+		 * @param arr 从yp文件读取的数组
+		 * @param toClass 需要转换成的VO
+		 * @return
+		 *
+		 */
+		public function objectToVO(arr:Array, toClass:*):Array
+		{
+			var rearr:Array=new Array();
+			for each (var o:Object in arr)
+			{
+				rearr.push(CloneUtil.convertObject(o, toClass));
+			}
+			return rearr;
 		}
 
 		public function updateLocalDMS(arr:Array):void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.data.localDMS=arr;
-			so.flush();
+			FileManager.saveFile('insertMenus.yp', arr);
 		}
 
 		public function initUncaughtErrorListener(loaderInfo:Object):void
@@ -775,6 +815,7 @@ package controllers
 		{
 			var arr:Array=FileManager.readFile('menus.yp') as Array;
 			return arr;
+
 		}
 
 		/**
@@ -1361,7 +1402,7 @@ package controllers
 			var ivo:InsertVO;
 			var a:Array=[];
 			var localInsertedMenu:MenuVO;
-			if (local || enabledInsert())
+			if (local || (onLogin && enabledInsert()))
 			{
 				localInsertedMenu=getLocalInsertedMenu();
 				if (!dmMenu)
@@ -1420,12 +1461,12 @@ package controllers
 				}
 			}
 
-			//单独缓存新的DM列表时，将之前的DM列表整合到一起
-			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
-				dmMenu.dm_list.concat(this.dmMenu.dm_list)
-
 			if (dmMenu && dmMenu)
 			{
+				//单独缓存新的DM列表时，将之前的DM列表整合到一起
+				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+					dmMenu.dm_list.concat(this.dmMenu.dm_list)
+
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
 					if (a.playTime.getTime() < b.playTime.getTime())
@@ -1694,7 +1735,13 @@ package controllers
 						else if (o.type == 2)
 							parseMenu(null, o);
 					}
-				}, menu._id + '.json', online);
+				}, menu._id + '.json', function():void
+				{
+					PAlert.show('获取新歌单详情失败，请确保网络连接再试', '初始化失败', null, function():void
+					{
+						checkUncachedMenu();
+					}, PAlert.CONFIRM, '再试一次', '', true);
+				});
 			}
 			return menu;
 		}
@@ -2054,6 +2101,9 @@ package controllers
 						});
 					}
 				}
+
+				setDefaultLoaclDMS();
+				onLogin=true;
 
 				if (!vo.status)
 				{
