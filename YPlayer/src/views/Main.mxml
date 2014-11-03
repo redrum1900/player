@@ -30,6 +30,7 @@
 			import flash.net.SharedObject;
 			import flash.utils.setTimeout;
 			
+			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
@@ -74,6 +75,7 @@
 				panelGroup.height=height-panelGroup.y+info.height;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
+				panelGroup.height*=1.5;
 
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
@@ -977,6 +979,20 @@
 				playingDM = false;
 			}
 			
+			protected function button4_clickHandler(event:MouseEvent):void
+			{
+				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				var arr:Array=[];
+				for each (var menu:Object in menus)
+				{
+					if (api.hasCached(menu._id))
+						menu.name+=' 【已缓存】'
+					arr.push(menu.name);
+				}
+				var s:String = arr.join('\n');
+				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -1069,6 +1085,10 @@
 										 changing="vc2_changingHandler(event)"
 										 label="其它音调节"/>
 			<s:Spacer width="100%"/>
+			<s:Button fontSize="14"
+					  skinClass="skins.buttons.PrimaryButtonSkin"
+					  click="button4_clickHandler(event)"
+					  label="项目列表"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.WarningButtonSkin"
 					  click="button1_clickHandler(event)"

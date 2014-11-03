@@ -188,7 +188,7 @@ package controllers
 
 			if (Capabilities.isDebugger)
 			{
-				ServiceBase.HOST='http://localhost:18080/api';
+//				ServiceBase.HOST='http://localhost:18080/api';
 //				cachedSO.clear();
 //				cachedSO.flush();
 			}
@@ -244,7 +244,7 @@ package controllers
 
 		public function downloadUpdate(callback:Function=null):void
 		{
-			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.swf + '?' + Math.random(), function(b:ByteArray):void
+			LoadManager.instance.load('http://yfcdn.qiniudn.com/file/' + newVersion + '/' + config.apk + '?' + Math.random(), function(b:ByteArray):void
 			{
 				checkingUpdate=false;
 				if (updateFileSize != b.length)
@@ -257,23 +257,20 @@ package controllers
 				{
 					try
 					{
-						var confi:String=appRoot + '/' + config.swf;
-						var f:File=new File(confi);
-						Log.Trace('Size:' + f.size);
+						var confi:String=FileManager.savedDir + '/' + config.apk;
 						var bb:Boolean=ANEToolkit.storage.writeFile(confi, b);
-						Log.Trace('SaveUpdateFileConfig:' + bb);
-						f=new File(confi);
-						Log.Trace('Size:' + f.size);
+						Log.info('SaveUpdateFileConfig:' + bb);
+						var f:File=new File(confi);
 						version=config.version;
 						config.version=newVersion;
 						saveConfig();
-						if (version != newVersion)
+						if (version != newVersion && f.exists)
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
-							if (!playingSong)
-								reboot();
-							else
-								needReboot=true;
+							PAlert.show(newVersion + ' 版本软件发布修复了一些问题，请点击确认进行安装', '版本更新', null, function():void
+							{
+								ANEToolkit.intent.installAPK(confi);
+							}, PAlert.CONFIRM);
 						}
 						version=newVersion
 					}
@@ -1349,12 +1346,12 @@ package controllers
 				}
 			}
 
-			//单独缓存新的DM列表时，将之前的DM列表整合到一起
-			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
-				dmMenu.dm_list.concat(this.dmMenu.dm_list)
-
 			if (dmMenu && dmMenu)
 			{
+				//单独缓存新的DM列表时，将之前的DM列表整合到一起
+				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+					dmMenu.dm_list.concat(this.dmMenu.dm_list)
+
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
 					if (a.playTime.getTime() < b.playTime.getTime())
@@ -1600,7 +1597,13 @@ package controllers
 						else if (o.type == 2)
 							parseMenu(null, o);
 					}
-				}, menu._id + '.json', online);
+				}, menu._id + '.json', function():void
+				{
+					PAlert.show('获取新歌单详情失败，请确保网络连接再试', '初始化失败', null, function():void
+					{
+						checkUncachedMenu();
+					}, PAlert.CONFIRM, '再试一次', '', true);
+				});
 			}
 			return menu;
 		}
@@ -1971,7 +1974,7 @@ package controllers
 		private var updateFileSize:Number;
 		private var checkingUpdate:Boolean;
 		public var scale:Number;
-		private var appRoot:String;
+//		private var appRoot:String;
 
 
 		[Bindable]
@@ -2037,6 +2040,7 @@ package controllers
 
 		public function checkUpdate():void
 		{
+			return;
 			Log.Trace('UpdateInfo:', local, checkingUpdate);
 			if (local || checkingUpdate)
 				return;
@@ -2060,6 +2064,12 @@ package controllers
 				}
 				else
 				{
+					var confi:String=FileManager.savedDir + '/' + config.apk;
+					var f:File=new File(confi);
+					if (f.exists)
+					{
+
+					}
 					checkingUpdate=false;
 				}
 			});

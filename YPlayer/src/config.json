@@ -1,7 +1,7 @@
 {
 	"test":false,
 	"local":false,
-	"swf":"AndroidPlayer.swf",
+	"apk":"AndroidPlayer.apk",
 	"trace":false,
 	"insert":false,
 	"insert_list":false,
