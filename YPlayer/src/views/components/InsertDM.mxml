@@ -127,7 +127,8 @@
 				b=API.instance.checkLocalInsert(arr, arr);
 				if (!b)
 					return;
-				b=API.instance.checkLocalInsert(arr, API.instance.dmMenu.dm_list);
+				var dm:Object=API.instance.dmMenu;
+				b=API.instance.checkLocalInsert(arr, dm ? dm.dm_list : null);
 				if (!b)
 					return;
 
