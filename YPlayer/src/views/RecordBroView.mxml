@@ -4,7 +4,7 @@
 					 xmlns:mx="library://ns.adobe.com/flex/mx"
 					 xmlns:components="com.pamakids.components.*"
 					 title="定制广播"
-					 width="300"
+					 width="320"
 					 disableClose="true"
 					 creationComplete="popupbox1_creationCompleteHandler(event)">
 
@@ -92,8 +92,9 @@
 					saving=true;
 					recorder.output.position=0;
 					mp3Encoder=new ShineMP3Encoder(recorder.output);
-					mp3Encoder.start();
+					mp3Encoder.addEventListener(ProgressEvent.PROGRESS, mp3EncodeProgress);
 					mp3Encoder.addEventListener(Event.COMPLETE, mp3EncodedHandler);
+					mp3Encoder.start();
 				}
 				else if (selectedFile)
 				{
@@ -131,6 +132,7 @@
 					ctl.setStyle('skinClass', DangerButtonSkin);
 					timer.reset();
 					timer.start();
+					Log.info('点击开始录制按钮');
 				}
 				else
 				{
@@ -164,6 +166,7 @@
 								play.label='试听';
 								playing=false;
 							});
+							Log.info('点击试听按钮');
 						}
 					}, PAlert.YESNO);
 				}
@@ -211,10 +214,10 @@
 
 			private function check():void
 			{
-//				if (vo.url && play)
-//				{
-//					play.visible=true;
-//				}
+				//				if (vo.url && play)
+				//				{
+				//					play.visible=true;
+				//				}
 			}
 
 			protected function cancel_clickHandler(event:MouseEvent):void
@@ -228,6 +231,19 @@
 				clearSP();
 			}
 
+			/**
+			 * 保存进度
+			 *
+			 */
+			public function mp3EncodeProgress(e:ProgressEvent):void
+			{
+				toAdd.label='保存中' + e.bytesLoaded + '%';
+			}
+
+			/**
+			 * MP3转换完毕保存路径
+			 *
+			 */
 			protected function mp3EncodedHandler(event:Event):void
 			{
 				try
@@ -269,6 +285,7 @@
 				sp.url=f.url;
 				selectedFile=f;
 				broName.text=f.name.replace('.mp3', '');
+				Log.info('点击选择录制好的mp3文件');
 			}
 
 			private function stopRecord():void
@@ -302,6 +319,7 @@
 
 			protected function clear_clickHandler(event:MouseEvent):void
 			{
+				Log.info('点击清除关闭按钮');
 				vo.url='';
 				close();
 			}
@@ -309,8 +327,8 @@
 	</fx:Script>
 
 	<components:layout>
-		<s:VerticalLayout paddingLeft="25"
-						  paddingRight="25"
+		<s:VerticalLayout paddingLeft="20"
+						  paddingRight="20"
 						  paddingBottom="20"
 						  paddingTop="30"
 						  gap="10"/>
@@ -373,6 +391,7 @@
 					  label="清除并关闭"/>
 			<s:Button id="toAdd"
 					  color="0x30373e"
+					  width="97"
 					  enabled="{!saving &amp;&amp; !playing &amp;&amp; !recording}"
 					  click="confirm_clickHandler(event)"
 					  skinClass="skins.buttons.PrimaryButtonSkin"
