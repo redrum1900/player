@@ -12,6 +12,7 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
+	import com.pamakids.utils.ObjectUtil;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
@@ -66,7 +67,7 @@ package controllers
 			local=o.local; //从配置文件获取是否本地版
 			autoUpadte=o.auto_update; //从配置文件获取是否自动更新
 			showTrace=o.trace;
-//			showTrace=true;
+			//			showTrace=true;
 			config=o;
 			if (!config.cacheDir)
 				noCacheDirInConfig=true;
@@ -112,30 +113,60 @@ package controllers
 				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
+				setDefaultLoaclDMS();
 			}
 			else
 			{
 				getUploadToken();
 				getNowTime();
 			}
-
-			if (local || enabledInsert())
-			{
-				if (!so.data.localDMS)
-				{
-					var dmm:MenuVO=new MenuVO();
-					dmm.type=MenuVO.DM;
-					dmm.begin_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
-					dmm.end_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
-					dmm.name='默认列表';
-					so.data.localDMS=[dmm];
-					so.flush();
-				}
-			}
 			setYPData('startup', new Date().getTime());
 			setYPData('refreshTime', new Date().getTime());
 			refreshTimer=new Timer(1000); //定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
+		}
+
+		/**
+		 * 设置默认本地定制插播
+		 *
+		 */
+		public function setDefaultLoaclDMS():void
+		{
+			var arr:Array=FileManager.readFile('insertMenus.yp') as Array;
+			if (local || (onLogin && enabledInsert()))
+			{
+				if (!arr || arr.length == 0)
+				{
+					arr=[setLocalDMS()];
+					FileManager.saveFile('insertMenus.yp', arr);
+				}
+			}
+		}
+
+		/**
+		 * 设置默认插播
+		 *
+		 */
+		public function setLocalDMS():MenuVO
+		{
+			var dmm:MenuVO=new MenuVO();
+			dmm.type=MenuVO.DM;
+			dmm.begin_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+			dmm.end_date=new Date(now.fullYear, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+			dmm.name='默认列表';
+			return dmm;
+		}
+
+		/**
+		 *设置日志路径
+		 * @return
+		 *
+		 */
+		public function setLogPath():void
+		{
+			logPath='log/play' + DateUtil.getYMD(now, 0, '_') + '.log';
+			Log.logPath=File.applicationStorageDirectory.resolvePath(logPath).nativePath;
+			logFile=File.applicationStorageDirectory.resolvePath('log').nativePath;
 		}
 
 		[Bindable]
@@ -149,6 +180,8 @@ package controllers
 		public var enableFunctions:Array=['record'];
 		public var isTest:Boolean=false; //是否是测试版
 		public var isTool:Boolean=false; //是否作为下载mp3工具使用
+
+		public var onLogin:Boolean=false;
 		[Bindable]
 		public var local:Boolean=false; //是否本地
 
@@ -161,7 +194,7 @@ package controllers
 		[Bindable]
 		public var playingIndex:int;
 
-//		private var rebootByCommand:Boolean;
+		//		private var rebootByCommand:Boolean;
 
 
 		public var playingInfo:String;
@@ -172,26 +205,26 @@ package controllers
 		[Bindable]
 		public var showTrace:Boolean=false; //是否显示Log.Trace信息面板
 
-//		private function checkMenuToUpdate():void
-//		{
-//			var menus:Array=FileManager.readFile('menus.yp') as Array;
-//			var cached:Array=cachedSO.data.menus;
-//			for each (var m:Object in menus)
-//			{
-//				if (cached.indexOf(m._id) == -1)
-//				{
-//					if (m.type == 1)
-//					{
-//						parseMenu(m, null);
-//					}
-//					else
-//					{
-//						parseMenu(null, m);
-//					}
-//					break;
-//				}
-//			}
-//		}
+		//		private function checkMenuToUpdate():void
+		//		{
+		//			var menus:Array=FileManager.readFile('menus.yp') as Array;
+		//			var cached:Array=cachedSO.data.menus;
+		//			for each (var m:Object in menus)
+		//			{
+		//				if (cached.indexOf(m._id) == -1)
+		//				{
+		//					if (m.type == 1)
+		//					{
+		//						parseMenu(m, null);
+		//					}
+		//					else
+		//					{
+		//						parseMenu(null, m);
+		//					}
+		//					break;
+		//				}
+		//			}
+		//		}
 
 		[Bindable]
 		public var songs:Array;
@@ -228,13 +261,16 @@ package controllers
 		private var nowOffset:Number=0;
 		private var pv:PrepareWindow; //更新媒资窗口
 		private var refreshTimer:Timer;
-//		public var enableFunctions:Array=['record', 'insert'];
+		//		public var enableFunctions:Array=['record', 'insert'];
 
 		private var serviceDic:Dictionary;
 		private var updateFileSize:Number;
 		private var updateLog:String;
 
 		private var update_time:String;
+
+		public var logPath:String='';
+		public var logFile:String='';
 
 		public function appendLog(log:String):void
 		{
@@ -449,8 +485,25 @@ package controllers
 
 		public function getLocalDMS():Array
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			return CloneUtil.convertArrayObjects(so.data.localDMS, MenuVO);
+			var arr:Array=FileManager.readFile('insertMenus.yp') as Array;
+			return objectToVO(arr, MenuVO);
+		}
+
+		/**
+		 * 数组转换，object转换VO
+		 * @param arr 从yp文件读取的数组
+		 * @param toClass 需要转换成的VO
+		 * @return
+		 *
+		 */
+		public function objectToVO(arr:Array, toClass:*):Array
+		{
+			var rearr:Array=new Array();
+			for each (var o:Object in arr)
+			{
+				rearr.push(CloneUtil.convertObject(o, toClass));
+			}
+			return rearr;
 		}
 
 		/**
@@ -908,6 +961,9 @@ package controllers
 					}
 				}
 
+				setDefaultLoaclDMS();
+				onLogin=true;
+
 				if (!vo.status && !noCacheDirInConfig)
 				{
 					online=false;
@@ -1011,11 +1067,11 @@ package controllers
 			}
 
 			//单独缓存新的DM列表时，将之前的DM列表整合到一起
-			if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
-				dmMenu.dm_list.concat(this.dmMenu.dm_list)
 
 			if (dmMenu && dmMenu)
 			{
+				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
+					dmMenu.dm_list.concat(this.dmMenu.dm_list)
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
 					if (a.playTime.getTime() < b.playTime.getTime())
@@ -1028,7 +1084,7 @@ package controllers
 			}
 
 			/*
-				以下为对歌单歌曲解析，歌单的时段及详细曲目
+			以下为对歌单歌曲解析，歌单的时段及详细曲目
 			*/
 			if (o && o.list)
 			{
@@ -1293,9 +1349,7 @@ package controllers
 
 		public function updateLocalDMS(arr:Array):void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.data.localDMS=arr;
-			so.flush();
+			FileManager.saveFile('insertMenus.yp', arr);
 		}
 
 		/**
@@ -1496,7 +1550,13 @@ package controllers
 						else if (o.type == 2)
 							parseMenu(null, o);
 					}
-				}, menu._id + '.json', online);
+				}, menu._id + '.json', function():void
+				{
+					PAlert.show('获取新歌单详情失败，请确保网络连接再试', '初始化失败', null, function():void
+					{
+						checkUncachedMenu();
+					}, PAlert.CONFIRM, '再试一次', '', true);
+				});
 			}
 			return menu;
 		}
@@ -1822,7 +1882,7 @@ package controllers
 			return config.insert;
 		}
 
-//		public var dms:Array;
+		//		public var dms:Array;
 
 		/**
 		 * 弹出来一个提示没有播放列表
@@ -1903,22 +1963,22 @@ package controllers
 			broadcasts=arr;
 		}
 
-//		public function isNewVersion(newVersion:String):Boolean
-//		{
-//			var arr:Array=version.split('.');
-//			var v1:int;
-//			var v2:int;
-//			for each (var s:String in arr)
-//			{
-//				v1+=parseInt(s);
-//			}
-//			arr = newVersion.split('.');
-//			for each (var s:String in arr)
-//			{
-//				v2+=parseInt(s);
-//			}
-//			return v2 > v1;
-//		}
+		//		public function isNewVersion(newVersion:String):Boolean
+		//		{
+		//			var arr:Array=version.split('.');
+		//			var v1:int;
+		//			var v2:int;
+		//			for each (var s:String in arr)
+		//			{
+		//				v1+=parseInt(s);
+		//			}
+		//			arr = newVersion.split('.');
+		//			for each (var s:String in arr)
+		//			{
+		//				v2+=parseInt(s);
+		//			}
+		//			return v2 > v1;
+		//		}
 
 		private function get readyToUpdate():Boolean
 		{
@@ -2049,9 +2109,9 @@ package controllers
 
 		private function test():void
 		{
-//			var vo:InsertVO=new InsertVO();
-//			vo._id='5399c4dd03aba48d3896c498';
-//			recordDM(vo);
+			//			var vo:InsertVO=new InsertVO();
+			//			vo._id='5399c4dd03aba48d3896c498';
+			//			recordDM(vo);
 		}
 
 		/**
@@ -2115,10 +2175,10 @@ package controllers
 					so.flush();
 					uploadUpdateLog();
 				}
-//				else
-//				{
-//					checkMenuToUpdate();
-//				}
+				//				else
+				//				{
+				//					checkMenuToUpdate();
+				//				}
 				if (!playingSong || dmChanged)
 				{
 					initBroadcasts();
@@ -2141,12 +2201,12 @@ package controllers
 			pv.label=label;
 			pv.open();
 
-//			if (Capabilities.isDebugger)
-//			{
-//				dispatchEvent(new Event('PLAY'));
-//				initBroadcasts();
-//			}
-//			PopupBoxManager.popup(pv);
+			//			if (Capabilities.isDebugger)
+			//			{
+			//				dispatchEvent(new Event('PLAY'));
+			//				initBroadcasts();
+			//			}
+			//			PopupBoxManager.popup(pv);
 		}
 
 		private function get updateLogSO():SharedObject
@@ -2178,7 +2238,7 @@ package controllers
 					if (vo.status)
 					{
 						so.clear();
-//						checkMenuToUpdate();
+							//						checkMenuToUpdate();
 					}
 					else
 					{
@@ -2191,4 +2251,3 @@ package controllers
 		}
 	}
 }
-
