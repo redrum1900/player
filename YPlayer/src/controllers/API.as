@@ -804,6 +804,7 @@ package controllers
 
 		/**
 		 * 判断当前时间是否在设置循环播放
+		 *
 		 */
 		public function get isCurrentTimeLoop():Boolean
 		{

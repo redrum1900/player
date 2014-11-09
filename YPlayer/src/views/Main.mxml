@@ -357,6 +357,7 @@
 						player1.stop();
 					song1=null;
 					api.playingSong=null;
+					getNearestSong();
 					if (nearestSong)
 					{
 						var value:Number=(nearestSong.playTime.getTime() - now.getTime()) / 1000;
@@ -407,6 +408,19 @@
 				}
 			}
 
+			public function getNearestSong():void
+			{
+				var now:Number = api.now.getTime();
+				for(var i:int ; i < api.songs.length ; i++)
+				{
+					if(now - api.songs[i].playTime.getTime() <0)
+					{
+						nearestSong = api.songs[i];
+						break;	
+					}
+				}
+			}
+				
 			protected function randomPlay_changeHandler(event:Event):void
 			{
 //				Log.Trace(randomPlay.selected);
