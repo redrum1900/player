@@ -1465,7 +1465,14 @@ package controllers
 			{
 				//单独缓存新的DM列表时，将之前的DM列表整合到一起
 				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
-					dmMenu.dm_list.concat(this.dmMenu.dm_list)
+				{
+					var arr:Array=this.dmMenu.dm_list;
+					for each (var ivo:InsertVO in this.dmMenu.dm_list)
+					{
+						dmMenu.dm_list.push(ivo);
+					}
+				}
+//					dmMenu.dm_list.concat(this.dmMenu.dm_list)
 
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
