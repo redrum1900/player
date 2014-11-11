@@ -1493,8 +1493,11 @@ package controllers
 				for (i=0; i < o.list.length; i++)
 				{
 					var oo:Object=o.list[i]
-					oo.begin=DateUtil.getDateByHHMMSS(oo.begin, now);
-					oo.end=DateUtil.getDateByHHMMSS(oo.end, now);
+					if (oo.begin is String)
+					{
+						oo.begin=DateUtil.getDateByHHMMSS(oo.begin, now);
+						oo.end=DateUtil.getDateByHHMMSS(oo.end, now);
+					}
 					if (!playingSong && dateValidate(o.begin_date, o.end_date))
 						times.push({begin: oo.begin, end: oo.end, loop: Boolean(oo.loop)});
 					playTime=DateUtil.clone(oo.begin);
