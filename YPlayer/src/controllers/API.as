@@ -17,7 +17,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-
+	
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -35,16 +35,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-
+	
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-
+	
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-
+	
 	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
@@ -475,7 +475,13 @@ package controllers
 				Log.Trace('Refreshed');
 				var brosChanged:Boolean;
 				var daychanged:Boolean; //是否过了一天
-				if (vo.status && !pv)
+				if (day != now.day && !initializing && !playingSong)
+				{
+					daychanged=true;
+					day=now.day;
+					setLogPath();
+				}
+ 				if (vo.status && !pv)
 				{
 					var menus:Array=FileManager.readFile('menus.yp') as Array; //从本地文件中获取歌曲列表
 					var brosChanged:Boolean;
@@ -485,13 +491,6 @@ package controllers
 						if (vo.results.bros)
 							FileManager.saveFile('bros.yp', vo.results.bros) //保存新的广播单
 						initBroadcasts();
-					}
-					var daychanged:Boolean; //是否过了一天
-					if (day != now.day && !initializing && !playingSong)
-					{
-						daychanged=true;
-						day=now.day;
-						setLogPath();
 					}
 					if (compareMenus(menus, vo.results.menus as Array) || daychanged)
 					{ //如果歌单发生变化或者过了一天
@@ -537,6 +536,8 @@ package controllers
 				{
 					appendLog('RefreshFailed：' + vo.errorResult);
 				}
+				if (daychanged)
+					initMenu();
 				Log.info('daychanged:' + daychanged, ' brosChanged:' + brosChanged, 'menuChanged:' + menuChange);
 			}, {startup: getYPData('startup'), version: version, playing: pn, serial_number: serial_number});
 
@@ -945,6 +946,12 @@ package controllers
 			return b;
 		}
 
+		/**
+		 * 判断歌单是否可用，即当前时间是否在该歌单播放时段内 
+		 * @param menu
+		 * @return 
+		 * 
+		 */
 		private function menuDateValid(menu:Object):Boolean
 		{
 			if (!menu || !menu.begin_date || !menu.end_date)
@@ -979,11 +986,11 @@ package controllers
 			if (!gotServerTime)
 				return b;
 			var clearedSize:Number=0;
-			var f:File;
 			var clearInfo:String='';
-			var o:Object;
+			var o:Object; 
 			var so:SharedObject=cachedSO;
 			var arr:Array=so.data.menus;
+			var f:File;
 			if (menu && !menuDateValid(menu))
 			{
 				deleteInvalidMenu(menu._id);
@@ -1598,8 +1605,10 @@ package controllers
 				label+=' ' + dmMenu.name;
 				pv.dmMenu=dmMenu._id;
 			}
+			Log.info('ToPrepareMenu:' + menu.name);
 			pv.addEventListener('loaded', function(e:ODataEvent):void
 			{
+				Log.info('LoadedMenu:' + menu.name);
 				initializing=false;
 				progress='';
 				if (e.data)
@@ -1645,27 +1654,26 @@ package controllers
 
 		private function checkUncachedMenu():void
 		{
-			try
+			var menu:Object=getUncachedMenu();
+			if (menu)
 			{
-				var menu:Object=getUncachedMenu();
-				if (menu)
+				Log.info('toPrepareUncachedMenu:' + menu.name);
+				LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
 				{
-					LoadManager.instance.loadText(QNService.HOST + menu._id + '.json', function(data:String):void
+					var o:Object=JSON.parse(data);
+					o.end_date=NodeUtil.getLocalDate(o.end_date);
+					o.begin_date=NodeUtil.getLocalDate(o.begin_date);
+					var n:Date=now;
+					n=new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0, 0);
+					if (o.end_date.getTime() > n.getTime())
 					{
-						var o:Object=JSON.parse(data);
-						o.end_date=NodeUtil.getLocalDate(o.end_date);
-						o.begin_date=NodeUtil.getLocalDate(o.begin_date);
 						if (o.type == 1)
 							parseMenu(o, null);
 						else if (o.type == 2)
 							parseMenu(null, o);
-						AA.say('UPDATE');
-					}, menu._id + '.json', online);
-				}
-			}
-			catch (error:Error)
-			{
-				Log.error('' + error);
+//						AA.say('UPDATE');
+					}
+				}, menu._id + '.json', online);
 			}
 		}
 
@@ -2118,7 +2126,16 @@ package controllers
 				{
 					var h:int=now.getHours();
 					var arr:Array=ut.split(' ');
-					if (h < parseInt(arr[0]) || h > parseInt(arr[1]))
+					var bt:int = parseInt(arr[0]);
+					var et:int = parseInt(arr[1]);
+					if (bt > et)
+					{
+						if(h>12)
+							et+=24;
+						else
+							bt-=24
+					}
+					if (h < bt || h > et)
 						readyToUpdate=false;
 				}
 				catch (error:Error)
