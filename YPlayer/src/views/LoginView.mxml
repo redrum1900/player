@@ -17,6 +17,7 @@
 			import spark.skins.mobile.TextInputSkin;
 
 			import controllers.API;
+			private var api:API;
 
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
@@ -26,12 +27,12 @@
 					if (vo.status)
 					{
 						ServiceBase.id=vo.results.id + '';
-						var so:SharedObject=SharedObject.getLocal('yp');
-						so.data.username=username.text;
-						so.data.password=password.text;
-						so.data.id=ServiceBase.id;
+						api.config.username=username.text;
+						api.config.password=password.text;
+						api.config.id=ServiceBase.id;
 //						so.data.broadcasts = vo.results.broadcasts;
-						so.flush();
+						Log.info('Login---true---username:' + username.text + '----password:' + password.text);
+						api.saveConfig();
 						close();
 					}
 					else
@@ -44,6 +45,7 @@
 
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
+				api=API.instance;
 				skin["close"].visible=false;
 				var config:Object={};
 //				config.username='武汉宜家:武汉宜家';

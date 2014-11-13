@@ -71,7 +71,7 @@ package controllers
 
 		public var contactInfo:String='客服电话1：010-51244052\n客服电话2：010-58699501\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
-		private var config:Object;
+		public var config:Object;
 		private var autoUpadte:Boolean;
 		public var serial_number:String;
 		private var day:Number;
@@ -110,17 +110,13 @@ package controllers
 //			trace(s,b);
 //			return
 
+//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
 //			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 //			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
-			var o:Object=FileManager.readFile('config.json');
-			if (!o)
-				o=FileManager.readFile('config.json', true, true);
-//			Log.Trace(o);
-			if (o is String)
-				o=JSON.parse(o + '');
+			var o:Object=getConfig();
 			isTest=o.test;
 			Log.isTest=isTest;
 			local=o.local;
@@ -152,19 +148,21 @@ package controllers
 //				}
 //			});
 
-			var so:SharedObject;
-			so=SharedObject.getLocal('sn');
-			if (!so.data.sn)
-			{
-				so.data.sn=UIDUtil.createUID();
-				so.flush();
-			}
-			else if (config.sn)
-			{
-				so.data.sn=config.sn;
-			}
-			config.sn=so.data.sn;
-			serial_number=so.data.sn;
+//			var so:SharedObject;
+//			so=SharedObject.getLocal('sn');
+//			if (!so.data.sn)
+//			{
+//				so.data.sn=UIDUtil.createUID();
+//				so.flush();
+//			}
+//			else if (config.sn)
+//			{
+//				so.data.sn=config.sn;
+//			}
+			if (!config.sn)
+				config.sn=UIDUtil.createUID();
+//			config.sn=so.data.sn;
+			serial_number=config.sn;
 //			so=SharedObject.getLocal('version');
 //			so.data.version=o.version;
 //			so.flush();
@@ -206,7 +204,7 @@ package controllers
 				getNowTime();
 			}
 
-			so.flush();
+			saveConfig();
 
 			setYPData('startup', now.getTime());
 			setYPData('refreshTime', now.getTime());
@@ -214,6 +212,22 @@ package controllers
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 
 			initSilencePlayer();
+		}
+
+		public function getConfig():Object
+		{
+			var o:Object=FileManager.readFile('config.json');
+			if (!o)
+				o=FileManager.readFile('config.json', true, true);
+			//			Log.Trace(o);
+			if (o is String)
+				o=JSON.parse(o + '');
+			return o;
+		}
+
+		public function saveConfig():void
+		{
+			FileManager.saveFile('config.json', config);
 		}
 
 		private function initSilencePlayer():void
@@ -460,14 +474,14 @@ package controllers
 				return;
 			if (!ServiceBase.id)
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
+//				var so:SharedObject=SharedObject.getLocal('yp');
 				getSB('user/login').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 						ServiceBase.id=vo.results.id + '';
 					else
-						appendLog('LoginError:' + so.data.username + '-' + so.data.password + '-' + vo.errorResult);
-				}, {username: so.data.username, password: so.data.password});
+						appendLog('LoginError:' + config.username + '-' + config.password + '-' + vo.errorResult);
+				}, {username: config.username, password: config.password});
 			}
 		}
 
@@ -583,21 +597,24 @@ package controllers
 					callbck();
 				return;
 			}
-			var so:SharedObject=SharedObject.getLocal('log');
-			var logs:Array=so.data.logs;
+//			var so:SharedObject=SharedObject.getLocal('log');
+			var logs:Array=config.logs;
 			if (!logs)
 				logs=[];
 			if (o)
 			{
 				o.created_at=now.getTime();
 				logs.push(o);
-				so.data.logs=logs;
-				so.flush();
+				config.logs=logs;
+				saveConfig();
 			}
 			getSB('log/record').call(function(vo:ResultVO):void
 			{
 				if (vo.status)
-					so.clear();
+				{
+					config.logs=null;
+					saveConfig();
+				}
 				else
 					appendLog('RecordLogError:' + vo.errorResult);
 				if (callbck != null)
@@ -609,18 +626,18 @@ package controllers
 		{
 			if (local)
 				return;
-			var arr:Array=dmLogSO.data.plaied;
+			var arr:Array=config.plaied;
 			if (!arr)
 			{
 				arr=[];
-				dmLogSO.data.plaied=arr;
+				config.plaied=arr;
 			}
 			arr.push({id: ivo._id, plaied: now.toUTCString()});
-			dmLogSO.flush();
+			saveConfig();
 			getSB('dm/record').call(function(vo:ResultVO):void
 			{
 				if (vo.status)
-					dmLogSO.clear();
+					config.plaied=null;
 				else
 					appendLog('RecordDM Error:' + vo.errorResult);
 			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
@@ -648,7 +665,7 @@ package controllers
 
 		public function appendLog(log:String):void
 		{
-			Log.Trace(log);
+			Log.warn(log);
 			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
 			if (path.charAt(0) == '/')
@@ -985,8 +1002,8 @@ package controllers
 			var f:File;
 			var clearInfo:String='';
 			var o:Object;
-			var so:SharedObject=cachedSO;
-			var arr:Array=so.data.menus;
+//			var so:SharedObject=cachedSO;
+			var arr:Array=config.cachedmenus;
 			if (menu && !menuDateValid(menu))
 			{
 				deleteInvalidMenu(menu._id);
@@ -1036,8 +1053,8 @@ package controllers
 			}
 			if (!b)
 			{
-				so.data.menus=arr;
-				so.flush();
+				config.cachedmenus=arr;
+				saveConfig();
 				Log.info(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
@@ -1351,7 +1368,12 @@ package controllers
 			{
 				//单独缓存新的DM列表时，将之前的DM列表整合到一起
 				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
-					dmMenu.dm_list.concat(this.dmMenu.dm_list)
+				{
+					for each (var ivo:InsertVO in this.dmMenu.dm_list)
+					{
+						dmMenu.dm_list.push(ivo);
+					}
+				}
 
 				dmMenu.dm_list.sort(function(a:Object, b:Object):int
 				{
@@ -1549,9 +1571,9 @@ package controllers
 				progress='';
 				if (e.data)
 				{
-					var so:SharedObject=updateLogSO;
-					so.data.data=e.data;
-					so.flush();
+//					var so:SharedObject=updateLogSO;
+					config.updatalog=e.data;
+					saveConfig();
 					uploadUpdateLog();
 				}
 //				else
@@ -1612,26 +1634,11 @@ package controllers
 			return menu;
 		}
 
-		private function get dmLogSO():SharedObject
-		{
-			return SharedObject.getLocal('dmLog');
-		}
-
-		private function get updateLogSO():SharedObject
-		{
-			return SharedObject.getLocal('updateLog');
-		}
-
-		private function get cachedSO():SharedObject
-		{
-			return SharedObject.getLocal('cached');
-		}
-
 		public function hasCached(id:String):Boolean
 		{
 			var b:Boolean;
-			var cached:SharedObject=cachedSO;
-			var arr:Array=cached.data.menus;
+//			var cached:SharedObject=cachedSO;
+			var arr:Array=config.cachedmenus;
 			if (arr)
 			{
 				for each (var cachedID:String in arr)
@@ -1650,26 +1657,26 @@ package controllers
 		{
 			if (local || (Capabilities.isDebugger && !isTest))
 				return;
-			var so:SharedObject=updateLogSO;
-			var cached:SharedObject=cachedSO;
-			var log:Object=so.data.data;
+//			var so:SharedObject=updateLogSO;
+//			var cached:SharedObject=cachedSO;
+			var log:Object=config.updatalog;
 			if (log)
 			{
 				log.version=version;
 				log.serial_number=serial_number;
-				if (!cached.data.menus)
-					cached.data.menus=[];
-				var menus:Array=cached.data.menus;
+				if (!config.cachedmenus)
+					config.cachedmenus=[];
+				var menus:Array=config.cachedmenus;
 				if (log.songMenu && menus.indexOf(log.songMenu) == -1)
 					menus.push(log.songMenu);
 				if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
 					menus.push(log.dmMenu);
-				cached.flush();
+				saveConfig();
 				getSB('/update/log').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 					{
-						so.clear();
+						config.updatalog=null;
 //						checkMenuToUpdate();
 					}
 					else
@@ -1717,14 +1724,16 @@ package controllers
 
 		private function getYPData(key:String):Object
 		{
-			return SharedObject.getLocal('yp').data[key];
+			return config[key];
 		}
 
 		private function setYPData(key:String, value:Object):void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.data[key]=value;
-			so.flush();
+//			var so:SharedObject=SharedObject.getLocal('yp');
+//			so.data[key]=value;
+//			so.flush();
+			config[key]=value;
+			saveConfig();
 		}
 
 		public function initBroadcasts():void
@@ -1753,8 +1762,7 @@ package controllers
 			}
 			if (enableFunctions.indexOf('record') != -1)
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				var records:Array=so.data.records;
+				var records:Array=config.records;
 				if (!records)
 				{
 					records=[]
@@ -1801,8 +1809,7 @@ package controllers
 		{
 			if (Capabilities.isDebugger || config.insert)
 				return true;
-			var so:SharedObject=SharedObject.getLocal('yp');
-			var un:String=so.data.username;
+			var un:String=config.username;
 			return un.indexOf('京客隆') != -1 || un.indexOf('潍百集团佳乐家') != -1;
 		}
 
@@ -1832,41 +1839,24 @@ package controllers
 			}
 		}
 
-		public function saveConfig():void
-		{
-			FileManager.saveFile('config.json', config);
-//			var ss:String=JSON.stringify(config);
-//			var btt:ByteArray=new ByteArray();
-//			btt.writeUTFBytes(ss);
-//			var confi:String=appRoot + '/config.json';
-//			var bb:Boolean=ANEToolkit.storage.writeFile(confi, btt);
-//			Log.Trace('SaveConfig:' + bb);
-		}
-
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			if (so.data.username)
-//			{
-//				o.username=so.data.username;
-//				o.password=so.data.password;
-//				o.cacheDir=so.data.cacheDir;
-//				o.id=so.data.id;
-//			}
-//			else
-//			{
-			var config:Object;
-			config=FileManager.readFile('config.json');
-			if (config is String)
-				config=JSON.parse(config + '');
+//			var config:Object;
+//			config=FileManager.readFile('config.json');
+//			if (config is String)
+//				config=JSON.parse(config + '');
 			if (config && config.username)
 			{
 				o.username=config.username;
 				o.password=config.password;
 				o.cacheDir=config.cacheDir;
 				o.id=config.id;
-				Log.info(config.username);
+				Log.info('Login---true---username:' + config.username + '----password:' + config.password);
+			}
+			else
+			{
+				Log.info('Login---false---username:' + config.username + '----password:' + config.password);
 			}
 //			}
 			return o;
@@ -1919,8 +1909,8 @@ package controllers
 //					}
 //				}
 
-				var cached:SharedObject=cachedSO;
-				var arr:Array=cached.data.menus;
+//				var cached:SharedObject=cachedSO;
+				var arr:Array=config.cachedmenus;
 
 				if (!vo.status && arr)
 				{
@@ -2081,10 +2071,10 @@ package controllers
 
 		public function clearInfo():void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.clear();
-			cachedSO.clear();
-			updateLogSO.clear();
+//			var so:SharedObject=SharedObject.getLocal('yp');
+//			so.clear();
+//			cachedSO.clear();
+//			updateLogSO.clear();
 			config.username='';
 			config.password='';
 			config.cacheDir='';

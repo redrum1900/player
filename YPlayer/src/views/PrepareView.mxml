@@ -93,11 +93,6 @@
 				//				stage.addEventListener(MouseEvent.MOUSE_DOWN, dd);
 			}
 
-			private function get so():SharedObject
-			{
-				return SharedObject.getLocal('yp');
-			}
-
 			public var dmMenu:String;
 
 			private function allLoaded():void
@@ -109,8 +104,8 @@
 					data.duration=(getTimer() - startLoad) / 1000;
 					if (this.haveStoredTime)
 						data.duration+=this.haveStoredTime;
-					so.data.duration=0;
-					so.flush()
+					api.config.duration=0;
+					api.saveConfig();
 					data.songMenu=menuID;
 					data.dmMenu=dmMenu;
 				}
@@ -237,13 +232,13 @@
 
 			private function starRecord():void
 			{
-				if (so.data.duration)
-					haveStoredTime=so.data.duration;
+				if (api.config.duration)
+					haveStoredTime=api.config.duration;
 				startLoad=getTimer();
 				recordTimer.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
 				{
-					so.data.duration=recordTimer.currentCount;
-					so.flush();
+					api.config.duration=recordTimer.currentCount;
+					api.saveConfig();
 				});
 				recordTimer.start();
 			}
