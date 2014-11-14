@@ -31,8 +31,9 @@
 						api.config.password=password.text;
 						api.config.id=ServiceBase.id;
 //						so.data.broadcasts = vo.results.broadcasts;
-						Log.info('Login---true---username:' + username.text + '----password:' + password.text);
+						Log.info('Frist Login---true---username:' + username.text + '----password:' + password.text);
 						api.saveConfig();
+						Log.info('LoginInfo save');
 						close();
 					}
 					else

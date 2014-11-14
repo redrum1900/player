@@ -111,8 +111,8 @@ package controllers
 //			return
 
 //			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
-//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
+			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 //			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
@@ -1846,8 +1846,10 @@ package controllers
 //			config=FileManager.readFile('config.json');
 //			if (config is String)
 //				config=JSON.parse(config + '');
+			Log.info('getUserInfoing……………………');
 			if (config && config.username)
 			{
+				Log.info('LoginInfo exist');
 				o.username=config.username;
 				o.password=config.password;
 				o.cacheDir=config.cacheDir;
@@ -1856,7 +1858,7 @@ package controllers
 			}
 			else
 			{
-				Log.info('Login---false---username:' + config.username + '----password:' + config.password);
+				Log.info('Login---false');
 			}
 //			}
 			return o;
