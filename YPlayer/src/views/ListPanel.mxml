@@ -269,7 +269,6 @@
 						PopupBoxManager.popup(rbv, function():void
 						{
 							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
-							var so:SharedObject=SharedObject.getLocal('yp');
 //							var bros:Array=api.broadcasts;
 //							var arr:Array=[];
 //							for each (var o:Object in bros)
@@ -280,8 +279,8 @@
 //								}
 //							}
 							trace(vo.name, vo.url);
-							so.data.records=[vo];
-							so.flush();
+							api.config.records=[vo];
+							api.saveConfig();
 
 							buttonsGroup.removeAllElements();
 							if (btnDic)

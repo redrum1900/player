@@ -48,18 +48,19 @@
 
 //			private var soundVisualizer:SoundVisualizer;
 
-			private var volumeSO:SharedObject;
 			
             /*
 			初始方法
 			*/
 			protected function inited(event:FlexEvent):void
 			{
-				volumeSO=SharedObject.getLocal('yp');
-				if (volumeSO.data.volume != null)
-					vc1Volume=volumeSO.data.volume;
-				if (volumeSO.data.volume2 != null)
-					vc2Volume=volumeSO.data.volume2;
+				api=API.instance;//初始api
+				api.main = this;
+				
+				if(api.config.volume != null)
+					vc1Volume=api.config.volume;
+				if(api.config.volume2 != null)
+					vc2Volume=api.config.volume2;
 				vc1.volume = vc1Volume;
 				vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
@@ -68,9 +69,6 @@
 				//					updateTime();
 				//				});
 				//				updateTime();
-
-				api=API.instance;//初始api
-				api.main = this;
 
 				initPlayer();//初始播放器
 				panelGroup.y=info.y + info.height - 3;
@@ -270,8 +268,7 @@
 					}
 					play();
 					autoPlayTimer.start();
-					var so:SharedObject=SharedObject.getLocal('yp');
-					var un:String = so.data.username;
+					var un:String = api.config.username;
 					un = un.replace('总部', '');
 					un = un.replace('：',':');
 					titleLabel = un.split(':')[0] + '播放器';
@@ -873,8 +870,8 @@
 					return
 				else
 					player.volume=vc1Volume / 100;
-				volumeSO.data.volume=vc1Volume;
-				volumeSO.flush();
+				api.config.volume=vc1Volume;
+				api.saveConfig();
 			}
 			
 			protected function vc2_changingHandler(event:ODataEvent):void
@@ -890,8 +887,8 @@
 							sp.volume=vc2Volume / 100;
 					}
 				}
-				volumeSO.data.volume2=vc2Volume;
-				volumeSO.flush();
+				api.config.volume2=vc2Volume;
+				api.saveConfig();
 			}
 			
 			protected function listPanel_startRecordHandler(event:Event):void

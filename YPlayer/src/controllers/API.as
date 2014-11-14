@@ -72,7 +72,7 @@ package controllers
 
 		public var contactInfo:String='客服电话1：010-51244395\n客服电话2：010-51244052\nQQ1：王萍 99651674\nQQ2：杨丹丹 1690762409\nQQ3：段颖 3779317';
 		private var nowOffset:Number=0;
-		private var config:Object; //本地获取的json文件信息
+		public var config:Object; //本地获取的json文件信息
 		private var autoUpadte:Boolean; //是否自动更新
 		public var serial_number:String;
 		private var day:Number;
@@ -84,8 +84,7 @@ package controllers
 
 		public function API()
 		{
-			var o:Object=FileManager.readFile('config.json', true, true);
-			o=JSON.parse(o + '');
+			var o:Object=getConfig();
 			isTest=o.test; //从配置文件获取是否测试版
 			local=o.local; //从配置文件获取是否本地版
 			autoUpadte=o.auto_update; //从配置文件获取是否自动更新
@@ -98,15 +97,10 @@ package controllers
 			if (config.insert_list)
 				enableFunctions.push('insert');
 
-			var so:SharedObject;
-			so=SharedObject.getLocal('sn');
-			if (so.data.sn)
-				config.sn=so.data.sn;
 			if (!config.sn)
 				config.sn=UIDUtil.createUID();
 			serial_number=config.sn;
 			version=config.version;
-			so=SharedObject.getLocal('yp');
 			if (config.id)
 				ServiceBase.id=config.id;
 			serviceDic=new Dictionary();
@@ -125,17 +119,13 @@ package controllers
 			else
 				ServiceBase.HOST=isTest ? 'http://t.yuefu.com/api' : 'http://m.yuefu.com/api';
 
-			if (config.username && config.password)
-			{
-				so.data.username=config.username;
-				so.data.password=config.password;
-				so.flush();
-			}
+//			if (config.username && config.password)
+//			{
+//				saveConfig();
+//			}
 
 			if (local)
 			{
-				so.data.username=o.username;
-				so.flush();
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
 				setDefaultLoaclDMS();
@@ -150,6 +140,23 @@ package controllers
 			refreshTimer=new Timer(1000); //定时从服务器发送请求获取最新歌单
 			refreshTimer.addEventListener(TimerEvent.TIMER, refreshHandler);
 		}
+
+		/**
+		 * 从config.json获取信息
+		 * @return
+		 *
+		 */
+		public function getConfig():Object
+		{
+			var o:Object=FileManager.readFile('config.json');
+			if (!o)
+				o=FileManager.readFile('config.json', true, true);
+			//			Log.Trace(o);
+			if (o is String)
+				o=JSON.parse(o + '');
+			return o;
+		}
+
 
 		/**
 		 * 设置默认本地定制插播
@@ -281,11 +288,8 @@ package controllers
 						fs.open(f, FileMode.WRITE);
 						fs.writeBytes(b);
 						fs.close();
-						var so:SharedObject=SharedObject.getLocal('version');
-						so.data.version=newVersion;
 						config.version=newVersion;
 						saveConfig();
-						so.flush();
 						if (version != newVersion) //如果当前版本号跟新获取到版本好不同，则提示更新成功
 						{
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
@@ -478,14 +482,14 @@ package controllers
 				return;
 			if (!ServiceBase.id)
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
+//				var so:SharedObject=SharedObject.getLocal('yp');
 				getSB('user/login').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 						ServiceBase.id=vo.results.id + '';
 					else
-						appendLog('LoginError:' + so.data.username + '-' + so.data.password + '-' + vo.errorResult);
-				}, {username: so.data.username, password: so.data.password});
+						appendLog('LoginError:' + config.username + '-' + config.password + '-' + vo.errorResult);
+				}, {username: config.username, password: config.password});
 			}
 		}
 
@@ -622,21 +626,23 @@ package controllers
 					callbck();
 				return;
 			}
-			var so:SharedObject=SharedObject.getLocal('log');
-			var logs:Array=so.data.logs;
+			var logs:Array=config.logs;
 			if (!logs)
 				logs=[];
 			if (o)
 			{
 				o.created_at=now.getTime();
 				logs.push(o);
-				so.data.logs=logs;
-				so.flush();
+				config.logs=logs;
+				saveConfig();
 			}
 			getSB('log/record').call(function(vo:ResultVO):void
 			{
 				if (vo.status)
-					so.clear();
+				{
+					config.logs=null;
+					saveConfig();
+				}
 				else
 					appendLog('RecordLogError:' + vo.errorResult);
 				if (callbck != null)
@@ -648,18 +654,18 @@ package controllers
 		{
 			if (local)
 				return;
-			var arr:Array=dmLogSO.data.plaied;
+			var arr:Array=config.plaied;
 			if (!arr)
 			{
 				arr=[];
-				dmLogSO.data.plaied=arr;
+				config.plaied=arr;
 			}
 			arr.push({id: ivo._id, plaied: now.toUTCString()});
-			dmLogSO.flush();
+			saveConfig();
 			getSB('dm/record').call(function(vo:ResultVO):void
 			{
 				if (vo.status)
-					dmLogSO.clear();
+					config.plaied=null;
 				else
 					appendLog('RecordDM Error:' + vo.errorResult);
 			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
@@ -667,7 +673,7 @@ package controllers
 
 		public function appendLog(log:String):void
 		{
-			Log.Trace(log);
+			Log.warn(log);
 			var path:String='log/' + DateUtil.getYMD(now, 0, '_') + '.log';
 			var file:File;
 			if (path.charAt(0) == '/')
@@ -1043,8 +1049,7 @@ package controllers
 			var clearedSize:Number=0;
 			var clearInfo:String='';
 			var o:Object;
-			var so:SharedObject=cachedSO;
-			var arr:Array=so.data.menus;
+			var arr:Array=config.cachedmenus;
 			var f:File;
 			if (menu && !menuDateValid(menu))
 			{
@@ -1095,8 +1100,8 @@ package controllers
 			}
 			if (!b)
 			{
-				so.data.menus=arr;
-				so.flush();
+				config.cachedmenus=arr;
+				saveConfig();
 				Log.Trace(clearedSize / 1024, clearInfo);
 				recordLog(new LogVO(LogVO.CLEAR_CACHE, Math.round(clearedSize / 1024) + '', clearInfo + ' ' + DateUtil.getYMD(now)));
 			}
@@ -1466,7 +1471,6 @@ package controllers
 				//单独缓存新的DM列表时，将之前的DM列表整合到一起
 				if (this.dmMenu && this.dmMenu.dm_list && !hasCached(dmMenu._id))
 				{
-					var arr:Array=this.dmMenu.dm_list;
 					for each (var ivo:InsertVO in this.dmMenu.dm_list)
 					{
 						dmMenu.dm_list.push(ivo);
@@ -1682,9 +1686,8 @@ package controllers
 				progress='';
 				if (e.data)
 				{
-					var so:SharedObject=updateLogSO;
-					so.data.data=e.data;
-					so.flush();
+					config.updatalog=e.data;
+					saveConfig();
 					uploadUpdateLog();
 				}
 //				else
@@ -1756,26 +1759,11 @@ package controllers
 			return menu;
 		}
 
-		private function get dmLogSO():SharedObject
-		{
-			return SharedObject.getLocal('dmLog');
-		}
-
-		private function get updateLogSO():SharedObject
-		{
-			return SharedObject.getLocal('updateLog');
-		}
-
-		private function get cachedSO():SharedObject
-		{
-			return SharedObject.getLocal('cached');
-		}
 
 		public function hasCached(id:String):Boolean
 		{
 			var b:Boolean;
-			var cached:SharedObject=cachedSO;
-			var arr:Array=cached.data.menus;
+			var arr:Array=config.cachedmenus;
 			if (arr)
 			{
 				for each (var cachedID:String in arr)
@@ -1794,26 +1782,24 @@ package controllers
 		{
 			if (local)
 				return;
-			var so:SharedObject=updateLogSO;
-			var cached:SharedObject=cachedSO;
-			var log:Object=so.data.data;
+			var log:Object=config.updatalog;
 			if (log)
 			{
 				log.version=version;
 				log.serial_number=serial_number;
-				if (!cached.data.menus)
-					cached.data.menus=[];
-				var menus:Array=cached.data.menus;
+				if (!config.cachedmenus)
+					config.cachedmenus=[];
+				var menus:Array=config.cachedmenus;
 				if (log.songMenu && menus.indexOf(log.songMenu) == -1)
 					menus.push(log.songMenu);
 				if (log.dmMenu && menus.indexOf(log.dmMenu) == -1)
 					menus.push(log.dmMenu);
-				cached.flush();
+				saveConfig();
 				getSB('/update/log').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
 					{
-						so.clear();
+						config.updatalog=null;
 //						checkMenuToUpdate();
 					}
 					else
@@ -1851,27 +1837,27 @@ package controllers
 
 		/**
 		 * 弹出来一个提示没有播放列表
+		 *
 		 */
 		private function noPlayList():void
 		{
 			initializing=false;
 			PAlert.show('您的播放歌单尚未准备完毕，请联系客服进行添加并保持网络连接', '初始化失败', null, function():void
 			{
-				online=true
+				online=true;
 				getMenuList();
 			}, PAlert.CONFIRM, '再试一次', '', true);
 		}
 
 		private function getYPData(key:String):Object
 		{
-			return SharedObject.getLocal('yp').data[key];
+			return config[key];
 		}
 
 		private function setYPData(key:String, value:Object):void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.data[key]=value;
-			so.flush();
+			config[key]=value;
+			saveConfig();
 		}
 
 
@@ -1909,8 +1895,7 @@ package controllers
 			}
 			if (enableFunctions.indexOf('record') != -1)
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				var records:Array=so.data.records;
+				var records:Array=config.records;
 				if (!records)
 				{
 					records=[]
@@ -1970,11 +1955,6 @@ package controllers
 		{
 			try
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				so.data.username=name;
-				so.data.password=pwd;
-				so.data.cacheDir=cacheDir;
-				so.data.id=id;
 				config.cacheDir=cacheDir;
 				config.id=id;
 				config.username=name;
@@ -2014,25 +1994,22 @@ package controllers
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-			var so:SharedObject=SharedObject.getLocal('yp'); //本地flash缓存获取
-			if (so.data.username)
+			var config:Object;
+			config=getConfig();
+			Log.info('getUserInfoing……………………');
+			if (config && config.username)
 			{
-				o.username=so.data.username;
-				o.password=so.data.password;
-				o.cacheDir=so.data.cacheDir;
-				o.id=so.data.id;
+				Log.info('LoginInfo exist');
+				o.username=config.username;
+				o.password=config.password;
+				o.cacheDir=config.cacheDir;
+				o.id=config.id;
+//				Log.info(config.username);
+				Log.info('Login---true---username:' + config.username + '----password:' + config.password);
 			}
 			else
 			{
-				config=FileManager.readFile('config.json', true, true); //本地json获取
-				config=JSON.parse(config + '');
-				if (config.username)
-				{
-					o.username=config.username;
-					o.password=config.password;
-					o.cacheDir=config.cacheDir;
-					o.id=config.id;
-				}
+				Log.info('Login---false');
 			}
 			return o;
 		}
@@ -2096,13 +2073,11 @@ package controllers
 						var sv:SelectCacheView=new SelectCacheView(); //缓存位置选择界面
 						PopupBoxManager.popup(sv, function():void
 						{
-							var so:SharedObject=SharedObject.getLocal('yp');
-							FileManager.savedDir=so.data.cacheDir;
+							FileManager.savedDir=config.cacheDir;
 							if (vo.results && vo.results.hasOwnProperty('id'))
 								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
 							else
 							{
-								config.cacheDir=so.data.cacheDir;
 								saveConfig();
 							}
 							if (broadcasts)
@@ -2313,14 +2288,9 @@ package controllers
 
 		public function clearInfo():void
 		{
-			var so:SharedObject=SharedObject.getLocal('yp');
-			so.clear();
-			cachedSO.clear();
-			updateLogSO.clear();
 			config.username='';
 			config.password='';
 			config.cacheDir='';
-			config.id='';
 			saveConfig();
 		}
 	}
