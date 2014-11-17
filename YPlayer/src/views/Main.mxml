@@ -617,7 +617,9 @@
 									f.deleteDirectoryAsync(true);
 									f.addEventListener(Event.COMPLETE, function(e:Event):void
 									{
-										PAlert.show('您的缓存已清空，请放心使用');
+										api.config.cachedmenus=[];
+										api.saveConfig();
+										PAlert.show('您的缓存已清空，请放心使用'); 
 										Log.info('缓存已清空');
 									})
 								}

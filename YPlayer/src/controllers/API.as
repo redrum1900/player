@@ -19,7 +19,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-	
+
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -37,16 +37,16 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-	
+
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-	
+
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-	
+
 	import views.ControllerLoginView;
 	import views.LoginView;
 	import views.Main;
@@ -2293,6 +2293,7 @@ package controllers
 			config.username='';
 			config.password='';
 			config.cacheDir='';
+			config.cachedmenus=[];
 			saveConfig();
 		}
 
@@ -2309,7 +2310,7 @@ package controllers
 			}
 		}
 
-		public function controllerLogin(username:String, password:String):void
+		public function controllerLogin(username:String, password:String, callback:Function=null):void
 		{
 			getSB('user/controller/login').call(function(vo:ResultVO):void
 			{
