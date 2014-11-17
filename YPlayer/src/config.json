@@ -6,6 +6,6 @@
 	"insert":false,
 	"insert_list":false,
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json",
-	"version":"1.7.4",
+	"version":"1.7.5",
 	"username":"本地版本：分部名称"
 }

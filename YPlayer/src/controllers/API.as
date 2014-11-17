@@ -110,9 +110,9 @@ package controllers
 //			trace(s,b);
 //			return
 
-//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 //			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
-			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 //			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;

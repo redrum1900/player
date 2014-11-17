@@ -252,7 +252,7 @@
 				if (loadingFile)
 					Log.info(autoLoading.size, loadingFile.size);
 				sp.stop();
-				if (sp.soundLength && ((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || !autoLoading))
+				if (sp.soundLength && (((autoLoading.duration && Math.abs(sp.soundLength / 1000 - autoLoading.duration) < 3) || (sp.soundLength / 1000 > autoLoading.duration)) || !autoLoading))
 				{
 					successLoaded();
 				}
