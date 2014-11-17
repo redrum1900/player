@@ -5,6 +5,7 @@ package controllers
 	import com.pamakids.events.ODataEvent;
 	import com.pamakids.manager.FileManager;
 	import com.pamakids.manager.LoadManager;
+	import com.pamakids.manager.PopupManager;
 	import com.pamakids.managers.PopupBoxManager;
 	import com.pamakids.models.ResultVO;
 	import com.pamakids.services.QNService;
@@ -18,7 +19,7 @@ package controllers
 	import com.plter.air.windows.utils.NativeCommand;
 	import com.plter.air.windows.utils.ShowCmdWindow;
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
-
+	
 	import flash.desktop.NativeApplication;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -36,16 +37,17 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
-
+	
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
-
+	
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-
+	
+	import views.ControllerLoginView;
 	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
@@ -2292,6 +2294,26 @@ package controllers
 			config.password='';
 			config.cacheDir='';
 			saveConfig();
+		}
+
+		public function controllerInit():void
+		{
+			if (config.username && config.password)
+			{
+				controllerLogin(config.username, config.password);
+			}
+			else
+			{
+				var l:ControllerLoginView=new ControllerLoginView();
+				PopupManager.popup(l);
+			}
+		}
+
+		public function controllerLogin(username:String, password:String):void
+		{
+			getSB('user/controller/login').call(function(vo:ResultVO):void
+			{
+			}, {username: username, password: password, controller_number: serial_number});
 		}
 	}
 }
