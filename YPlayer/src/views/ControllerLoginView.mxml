@@ -3,7 +3,7 @@
 					 xmlns:s="library://ns.adobe.com/flex/spark"
 					 xmlns:mx="library://ns.adobe.com/flex/mx"
 					 xmlns:components="com.pamakids.components.*"
-					 title="登录系统"
+					 title="登录远程控制"
 					 creationComplete="popupbox1_creationCompleteHandler(event)">
 
 	<fx:Script>
@@ -25,7 +25,7 @@
 					return;
 				}
 				loginBtn.enabled=false;
-				API.instance.login(username.text, password.text, function(vo:ResultVO):void
+				API.instance.controllerLogin(username.text, password.text, function(vo:ResultVO):void
 				{
 					if (vo.status)
 					{
@@ -50,12 +50,18 @@
 			{
 				api=API.instance;
 				skin["close"].visible=false;
-				var so:SharedObject=SharedObject.getLocal('yp');
-				if (so.data)
+				api.getConfig();
+				if (api.config.username && api.config.password)
 				{
-					username.text=so.data.username;
-					password.text=so.data.password;
+					username.text=api.config.username;
+					password.text=api.config.password;
 				}
+//				var so:SharedObject=SharedObject.getLocal('yp');
+//				if (so.data)
+//				{
+//					username.text=so.data.username;
+//					password.text=so.data.password;
+//				}
 			}
 		]]>
 	</fx:Script>

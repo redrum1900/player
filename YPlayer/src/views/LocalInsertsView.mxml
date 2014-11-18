@@ -13,6 +13,7 @@
 		<![CDATA[
 			import com.pamakids.components.PAlert;
 			import com.pamakids.manager.FileManager;
+			import com.pamakids.utils.CloneUtil;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
@@ -21,6 +22,8 @@
 			import controllers.API;
 
 			import events.ODataEvent;
+
+			import flashx.textLayout.elements.BreakElement;
 
 			import models.MenuVO;
 			private var api:API;
@@ -170,6 +173,7 @@
 				return arr;
 			}
 
+
 			protected function cancelMenu_clickHandler(event:MouseEvent):void
 			{
 				currentState='s1';
@@ -203,7 +207,7 @@
 					curentMenu=tempMenu;
 				}
 				api.updateLocalDMS(menus);
-				//				tempMenu.selected=true;
+//				tempMenu.selected=true;
 				insertedMenus=new ArrayCollection(menus);
 				menuList.selectedItem=tempMenu;
 				currentState='s1';

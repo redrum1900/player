@@ -3,7 +3,7 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 creationComplete="inited(event)"
-		 xmlns:layouts="com.youli.layouts.*"> 
+		 xmlns:layouts="com.youli.layouts.*">
 
 	<fx:Metadata>
 		[Event(name="startRecord", type="flash.events.Event")]
@@ -269,7 +269,6 @@
 						PopupBoxManager.popup(rbv, function():void
 						{
 							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
-							var so:SharedObject=SharedObject.getLocal('yp');
 //							var bros:Array=api.broadcasts;
 //							var arr:Array=[];
 //							for each (var o:Object in bros)
@@ -280,8 +279,8 @@
 //								}
 //							}
 							trace(vo.name, vo.url);
-							so.data.records=[vo];
-							so.flush();
+							api.config.records=[vo];
+							api.saveConfig();
 
 							buttonsGroup.removeAllElements();
 							if (btnDic)
@@ -392,7 +391,7 @@
 				{
 					ac.addItem({name: '插播列表', type: 2});
 				}
-				for each (var m:TimeVO in menu.list)//遍历歌单时段，生成时段按钮
+				for each (var m:TimeVO in menu.list) //遍历歌单时段，生成时段按钮
 				{
 					ac.addItem(m);
 				}

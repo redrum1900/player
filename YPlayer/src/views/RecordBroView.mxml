@@ -52,7 +52,6 @@
 			}
 
 			private var bros:Array;
-			private var so:SharedObject=SharedObject.getLocal('yp');
 
 			private var _vo:InsertVO;
 

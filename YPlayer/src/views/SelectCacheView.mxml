@@ -13,6 +13,8 @@
 
 			import mx.events.FlexEvent;
 
+			import controllers.API;
+
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
 				FileHelper.browse(File.desktopDirectory.nativePath, 2, function(f:File):void
@@ -40,8 +42,11 @@
 //				});				
 			}
 
+			private var api:API;
+
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
+				api=API.instance;
 				skin["close"].visible=false;
 			}
 
@@ -50,10 +55,9 @@
 
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
-				var so:SharedObject=SharedObject.getLocal('yp');
-				so.data.cacheDir=url;
+				api.config.cacheDir=url;
 				FileManager.savedDir=url;
-				so.flush();
+				api.saveConfig();
 				close();
 			}
 		]]>

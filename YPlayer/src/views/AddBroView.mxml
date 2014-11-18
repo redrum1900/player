@@ -21,7 +21,6 @@
 			}
 
 			private var bros:Array;
-			private var so:SharedObject=SharedObject.getLocal('yp');
 
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{

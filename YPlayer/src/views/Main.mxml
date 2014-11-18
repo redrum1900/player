@@ -48,18 +48,19 @@
 
 //			private var soundVisualizer:SoundVisualizer;
 
-			private var volumeSO:SharedObject;
 			
             /*
 			初始方法
 			*/
 			protected function inited(event:FlexEvent):void
 			{
-				volumeSO=SharedObject.getLocal('yp');
-				if (volumeSO.data.volume != null)
-					vc1Volume=volumeSO.data.volume;
-				if (volumeSO.data.volume2 != null)
-					vc2Volume=volumeSO.data.volume2;
+				api=API.instance;//初始api
+				api.main = this;
+				
+				if(api.config.volume != null)
+					vc1Volume=api.config.volume;
+				if(api.config.volume2 != null)
+					vc2Volume=api.config.volume2;
 				vc1.volume = vc1Volume;
 				vc2.volume = vc2Volume;
 				//				var t:Timer = new Timer(1000);
@@ -68,9 +69,6 @@
 				//					updateTime();
 				//				});
 				//				updateTime();
-
-				api=API.instance;//初始api
-				api.main = this;
 
 				initPlayer();//初始播放器
 				panelGroup.y=info.y + info.height - 3;
@@ -86,7 +84,7 @@
 
 				initMore();//初始化“更多”菜单
 
-				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
+				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);//为组件添加监听，子组件发布事件父组件接收数据
 
 				autoPlayTimer=new Timer(1000);//每隔1000毫秒检测当前是否有歌曲播放
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
@@ -121,6 +119,7 @@
 			
 			private function autoLogin():void
 			{
+				try{
 				if (api.local)//如果本地模式，则获取歌单
 				{
 					api.getMenuList();
@@ -148,6 +147,10 @@
 							autoLogin();
 						}, PAlert.CONFIRM, '再试一次', '', true);
 					}
+				}
+				}catch(error:Error)
+				{
+					Log.error('' + error);
 				}
 			}
 
@@ -265,8 +268,7 @@
 					}
 					play();
 					autoPlayTimer.start();
-					var so:SharedObject=SharedObject.getLocal('yp');
-					var un:String = so.data.username;
+					var un:String = api.config.username;
 					un = un.replace('总部', '');
 					un = un.replace('：',':');
 					titleLabel = un.split(':')[0] + '播放器';
@@ -303,6 +305,7 @@
 
 			private function play():void
 			{
+				try{
 				//当前正在播放或者没有歌的情况下返回
 				if (player1.playing || !api.songs || !api.songs.length)
 					return;
@@ -351,6 +354,7 @@
 						return;
 					}
 				}
+//				Log.info('Playing:'+player1.playing, 'Song1:'+(song1 ? true : false), 'PlayingDM:'+playingDM);
 				if (!has)
 				{
 					if (player1.playing)
@@ -361,11 +365,13 @@
 					if (nearestSong)
 					{
 						var value:Number=(nearestSong.playTime.getTime() - now.getTime()) / 1000;
-						if (value < 0)
+//						if (value < 0)
+						while(value < 0)
 						{
 							firstSong.playTime.date++;
 							value=(firstSong.playTime.getTime() - now.getTime()) / 1000;
 						}
+						var nearTime:String = DateUtil.formateTime(value);
 						time='当前时段无媒资可播放 ' + DateUtil.formateTime(value) + ' 后将播放 ' + nearestSong.name;
 					}
 				}
@@ -404,6 +410,25 @@
 							if (!player1.playing)
 								time='第一次播放 ' + vo.name + ' ，请稍候，加载进度 ' + Math.round(percent * 100) + '%';
 						});
+						Log.info('缓存歌曲');
+					}
+				}
+				Log.info('Loop:'+ api.isCurrentTimeLoop,'song1:' + (song1 ? song1.name:false),'song2:' + (song2 ? song2.name:false),'Playing:'+player1.playing,'PlayingDM:'+playingDM);
+				}catch(error:Error)
+				{
+					Log.error('' + error);
+				}
+			}
+			
+			public function getNearestSong():void
+			{
+				var now:Number = api.now.getTime();
+				for(var i:int ; i < api.songs.length ; i++)
+				{
+					if(now - api.songs[i].playTime.getTime() <0)
+					{
+						nearestSong = api.songs[i];
+						break;
 					}
 				}
 			}
@@ -423,7 +448,7 @@
 				
 			protected function randomPlay_changeHandler(event:Event):void
 			{
-//				Log.Trace(randomPlay.selected);
+				Log.info(randomPlay.selected?'点击开启随机播放':'点击关闭随机播放');
 				if (!song1)
 					play();
 			}
@@ -514,6 +539,10 @@
 //				});
 			}
 
+			/**
+			 * 播放定制广告
+			 * 
+			 */
 			protected function playBroHandler(event:ODataEvent):void
 			{
 				if (brodcasting)
@@ -525,6 +554,7 @@
 						brodcasting=true;
 						var vo:InsertVO=event.data as InsertVO;
 						insertBroOrDM(vo, true);
+						Log.info('播放插播广告');
 					}
 				}, PAlert.YESNO);
 			}
@@ -537,6 +567,7 @@
 			private var moreMenu:NativeMenu
 			private const CLOSE:String='CLOSE';
 			private const CONTACT_US:String='CONTACT_US';
+			private const COMMIT_REPORT:String='COMMIT_REPORT';
 			private const ABOUT_US:String='ABOUT_US';
 			private const CLEAR_CACHE:String='CLEAR_CACHE';
 			private const FEEDBACK:String='FEEDBACK';
@@ -547,6 +578,7 @@
 			{
 				moreMenu=new NativeMenu();
 				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
+				moreMenu.addItem(getNMI('提交使用报告', COMMIT_REPORT));
 //				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
 				if (api.isTest)
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
@@ -571,7 +603,7 @@
 				switch (event.target.data)
 				{
 					case ABOUT_SOFTWARE:
-						var s:String = '缓存路径：'+FileManager.savedDir+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
+						var s:String = '缓存路径：'+FileManager.savedDir+'\n日志路径：'+api.logFile+'\n软件版本：'+api.version+'\n序列号码：'+api.serial_number;
 						if(api.username)
 							s = '账户名称：'+api.username+'\n'+s;
 						PAlert.show(s, '关于更多');
@@ -581,6 +613,9 @@
 						break;
 					case FEEDBACK:
 					case CONTACT_US:
+					case COMMIT_REPORT:
+						api.uploadUseLog();
+						break;
 					case ABOUT_US:
 						PAlert.show(api.contactInfo);
 						break;
@@ -595,7 +630,10 @@
 									f.deleteDirectoryAsync(true);
 									f.addEventListener(Event.COMPLETE, function(e:Event):void
 									{
-										PAlert.show('您的缓存已清空，请放心使用');
+										api.config.cachedmenus=[];
+										api.saveConfig();
+										PAlert.show('您的缓存已清空，请放心使用'); 
+										Log.info('缓存已清空');
 									})
 								}
 							}
@@ -745,6 +783,7 @@
 			 */
 			protected function onTimer(event:TimerEvent):void
 			{
+				try{
 				var gotoPlayDM:Boolean;
 				if(!player1.playing && !playingDM){
 					var dms:Array=api.dmMenu ? api.dmMenu.dm_list : null;
@@ -793,6 +832,10 @@
 				}
 				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
+				}catch(error:Error)
+				{
+					Log.error('' + error);
+				}
 			}
 
 			protected function bro_clickHandler(event:MouseEvent):void
@@ -842,8 +885,8 @@
 					return
 				else
 					player.volume=vc1Volume / 100;
-				volumeSO.data.volume=vc1Volume;
-				volumeSO.flush();
+				api.config.volume=vc1Volume;
+				api.saveConfig();
 			}
 			
 			protected function vc2_changingHandler(event:ODataEvent):void
@@ -859,8 +902,8 @@
 							sp.volume=vc2Volume / 100;
 					}
 				}
-				volumeSO.data.volume2=vc2Volume;
-				volumeSO.flush();
+				api.config.volume2=vc2Volume;
+				api.saveConfig();
 			}
 			
 			protected function listPanel_startRecordHandler(event:Event):void
@@ -877,6 +920,8 @@
 							sp.volume=volume / 100;
 					}
 				}
+				
+				Log.info('录制广告');
 			}
 			
 			protected function listPanel_stopRecordHandler(event:Event):void
@@ -892,6 +937,7 @@
 							sp.volume=vc2Volume / 100;
 					}
 				}
+				Log.info('停止播放插播广告');
 			}
 			
 			private var broAlert:PAlert;
