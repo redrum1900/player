@@ -50,12 +50,18 @@
 			{
 				api=API.instance;
 				skin["close"].visible=false;
-				var so:SharedObject=SharedObject.getLocal('yp');
-				if (so.data)
+				api.getConfig();
+				if (api.config.username && api.config.password)
 				{
-					username.text=so.data.username;
-					password.text=so.data.password;
+					username.text=api.config.username;
+					password.text=api.config.password;
 				}
+//				var so:SharedObject=SharedObject.getLocal('yp');
+//				if (so.data)
+//				{
+//					username.text=so.data.username;
+//					password.text=so.data.password;
+//				}
 			}
 		]]>
 	</fx:Script>

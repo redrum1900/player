@@ -90,6 +90,7 @@ package controllers
 			isTest=o.test; //从配置文件获取是否测试版
 			local=o.local; //从配置文件获取是否本地版
 			autoUpadte=o.auto_update; //从配置文件获取是否自动更新
+			broadcasts=o.broadcasts;
 			showTrace=o.trace;
 //			showTrace=true;
 			config=o;
@@ -1566,6 +1567,7 @@ package controllers
 				Log.Trace('DMS:' + dms.length);
 				o.list=CloneUtil.convertArrayObjects(o.list, TimeVO);
 			}
+//			this.menu=o.list;
 			if (!onlyParse)
 			{
 				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
@@ -1587,6 +1589,7 @@ package controllers
 					dmChanged=true;
 					if (playingSong)
 						playingIndex=songs.indexOf(playingSong);
+					this.menu.list=o.list;
 					AA.say('UPDATE');
 					initializing=false;
 				}
@@ -1997,7 +2000,7 @@ package controllers
 		{
 			var o:Object={};
 			var config:Object;
-			config=getConfig();
+//			config=getConfig();
 			Log.info('getUserInfoing……………………');
 			if (config && config.username)
 			{
@@ -2297,24 +2300,38 @@ package controllers
 			saveConfig();
 		}
 
-		public function controllerInit():void
+		public function controllerInit(app:m):void
 		{
-			if (config.username && config.password)
-			{
-				controllerLogin(config.username, config.password);
-			}
-			else
-			{
-				var l:ControllerLoginView=new ControllerLoginView();
-				PopupManager.popup(l);
-			}
+			config=getConfig();
+			controllerLogin('red:q2', '994070');
+//			if (config.username && config.password)
+//			{
+//				controllerLogin(config.username, config.password);
+//			}
+//			else
+//			{
+//				var l:ControllerLoginView=new ControllerLoginView();
+//				PopupManager.popup(l);
+//			}
 		}
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
 		{
 			getSB('user/controller/login').call(function(vo:ResultVO):void
 			{
+
+				config.broadcasts=vo.results.broadcasts;
+				dispatchEvent(new Event('conbros'));
 			}, {username: username, password: password, controller_number: serial_number});
+		}
+
+		public function controllerPlatStatus(callback:Function=null):void
+		{
+			var s:String=''
+			getSB('command/status').call(function(vo:ResultVO):void
+			{
+//				s=vo.broStatus;
+			}, {status: s});
 		}
 	}
 }

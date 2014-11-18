@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%"
+		 height="100%"
+		 xmlns:layouts="com.youli.layouts.*"
+		 creationComplete="init(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.pamakids.components.PAlert;
+			import com.pamakids.events.ODataEvent;
+			import com.pamakids.managers.PopupBoxManager;
+
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+
+			import spark.components.Button;
+
+			import controllers.API;
+
+			import models.InsertVO;
+
+			import org.osmf.events.TimeEvent;
+
+			import skins.buttons.DangerButtonSkin;
+			import skins.buttons.PrimaryButtonSkin;
+			import skins.buttons.SuccesButtonSkin;
+			import skins.buttons.WarningButtonSkin;
+
+			public var api:API;
+			private var bros:Array;
+			private var i:int=0;
+			private var btnDic:Dictionary;
+			private var dic:Dictionary=new Dictionary();
+			private var createTime:int=1;
+
+			var timer:Timer;
+
+			protected function init(event:FlexEvent):void
+			{
+				api=API.instance;
+				api.addEventListener('conbros', function():void
+				{
+					i=0;
+					btnDic=new Dictionary();
+					bros=api.config.broadcasts;
+					buttonsGroup.removeAllElements();
+					createButtons();
+				});
+
+				timer=new Timer(1000);
+				timer.addEventListener(TimerEvent.TIMER, getPlayStatus);
+
+			}
+
+			public function getPlayStatus(e:TimeEvent)
+			{
+				api.controllerPlatStatus(function(vo:ResultEvent):void
+				{
+//					if (vo.broStatus == true)
+//						buttonsGroup.enabled=false;
+//					else
+//						buttonsGroup.enabled=true;
+				})
+			}
+
+			/**
+			 * 根据广播列表生成按钮
+			 */
+			private function createButtons():void
+			{
+				if (!bros)
+					return;
+				for (var i:int=0; i < bros.length; i++)
+				{
+					getButton(bros[i]);
+				}
+			}
+
+			/**
+			 * 生成广播按钮
+			 */
+			private function getButton(o:Object):Button
+			{
+				if (o.type == 0)
+				{
+					var b:Button;
+					b.label=o.name;
+					b.setStyle('skinClass', PrimaryButtonSkin);
+
+				}
+//				if (!tags)
+//				{
+//					b=new Button();
+//					dic[b]=o;
+//					b.label=o.name;
+//					newButton=true;
+//				}
+//				else
+//				{
+//					b=btnDic[tags];
+//					if (!b)
+//					{
+//						b=new Button();
+//						newButton=true;
+//						btnDic[tags]=b;
+//						dic[b]=[o];
+//					}
+//					else
+//					{
+//						dic[b].push(o);
+//					}
+//				}
+
+
+				b.addEventListener(MouseEvent.CLICK, broHandler);
+
+				buttonsGroup.addElement(b);
+				return b;
+			}
+
+			/**
+			 * 点击定制插播
+			 */
+			protected function broHandler(event:MouseEvent):void
+			{
+				var o:Object=dic[event.currentTarget];
+				if (o.url)
+					dispatchEvent(new ODataEvent(o));
+			}
+		]]>
+	</fx:Script>
+	<s:HGroup height="100%"
+			  width="100%">
+		<s:Group id="buttonsGroup">
+			<s:layout>
+				<layouts:FlowLayout id="fl"
+									horizontalGap="10"
+									verticalGap="10"/>
+			</s:layout>
+		</s:Group>
+
+	</s:HGroup>
+</s:Group>

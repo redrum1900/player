@@ -3,18 +3,24 @@
 					   xmlns:s="library://ns.adobe.com/flex/spark"
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   showStatusBar="false"
-					   creationComplete="windowedapplication1_creationCompleteHandler(event)">
+					   creationComplete="windowedapplication1_creationCompleteHandler(event)"
+					   xmlns:views="views.*">
 	<fx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
 
 			import controllers.API;
 
-			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			public function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
 				API.instance.controllerInit(this);
 			}
 		]]>
 	</fx:Script>
 
+	<views:BroadcastPanel id="broPanel"
+						  startRecord="listPanel_startRecordHandler(event)"
+						  stopRecord="listPanel_stopRecordHandler(event)"
+						  width="100%"
+						  height="100%"/>
 </s:WindowedApplication>
