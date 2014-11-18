@@ -13,7 +13,6 @@
 
 			public function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
-				API.instance.controllerInit(this);
 			}
 		]]>
 	</fx:Script>
