@@ -2300,7 +2300,7 @@ package controllers
 			saveConfig();
 		}
 
-		public function controllerInit(app:m):void
+		public function controllerInit():void
 		{
 			config=getConfig();
 			controllerLogin('red:q2', '994070');

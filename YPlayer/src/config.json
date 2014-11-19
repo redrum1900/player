@@ -1,7 +1,7 @@
 {
-	"host":"http://localhost:18080/",
+	"host":"http://192.168.99.162/",
 	"test":false,
-	"local":false,
+	"local":true,
 	"auto_update":true,
 	"debug":false,
 	"trace":false,
@@ -17,7 +17,7 @@
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
 	"update":"http://192.168.99.162/update.json",
-	"version":"1.7.2",
+	"version":"1.7.5",
 	"username":"",
 	"password":""
 }

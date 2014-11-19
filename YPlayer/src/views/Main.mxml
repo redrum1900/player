@@ -433,19 +433,6 @@
 				}
 			}
 
-			public function getNearestSong():void
-			{
-				var now:Number = api.now.getTime();
-				for(var i:int ; i < api.songs.length ; i++)
-				{
-					if(now - api.songs[i].playTime.getTime() <0)
-					{
-						nearestSong = api.songs[i];
-						break;	
-					}
-				}
-			}
-				
 			protected function randomPlay_changeHandler(event:Event):void
 			{
 				Log.info(randomPlay.selected?'点击开启随机播放':'点击关闭随机播放');
