@@ -11,7 +11,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
-			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.models.ResultVO;
 
 			import mx.events.FlexEvent;
 			import mx.rpc.events.ResultEvent;
@@ -30,40 +30,27 @@
 			import skins.buttons.WarningButtonSkin;
 
 			public var api:API;
-			private var bros:Array;
+			public var bros:Array;
 			private var i:int=0;
 			private var btnDic:Dictionary;
 			private var dic:Dictionary=new Dictionary();
 			private var createTime:int=1;
 
-			var timer:Timer;
+			private var timer:Timer;
 
 			protected function init(event:FlexEvent):void
 			{
 				api=API.instance;
-				api.addEventListener('conbros', function():void
-				{
-					i=0;
-					btnDic=new Dictionary();
-					bros=api.config.broadcasts;
-					buttonsGroup.removeAllElements();
-					createButtons();
-				});
-
+				i=0;
+				btnDic=new Dictionary();
+				buttonsGroup.removeAllElements();
+				createButtons();
 				timer=new Timer(1000);
-				timer.addEventListener(TimerEvent.TIMER, getPlayStatus);
-
+				timer.addEventListener(TimerEvent.TIMER, onTimer);
 			}
 
 			public function getPlayStatus(e:TimeEvent)
 			{
-				api.controllerPlatStatus(function(vo:ResultEvent):void
-				{
-//					if (vo.broStatus == true)
-//						buttonsGroup.enabled=false;
-//					else
-//						buttonsGroup.enabled=true;
-				})
 			}
 
 			/**
@@ -73,10 +60,8 @@
 			{
 				if (!bros)
 					return;
-				for (var i:int=0; i < bros.length; i++)
-				{
+				if (bros && i < bros.length)
 					getButton(bros[i]);
-				}
 			}
 
 			/**
@@ -84,42 +69,73 @@
 			 */
 			private function getButton(o:Object):Button
 			{
-				if (o.type == 0)
+				var b:Button;
+				var newButton:Boolean=false;
+				var tags:String=o.hasOwnProperty('tags') ? o.tags : '';
+				if (!tags)
 				{
-					var b:Button;
+					b=new Button();
+					dic[b]=o;
 					b.label=o.name;
-					b.setStyle('skinClass', PrimaryButtonSkin);
-
+					newButton=true;
 				}
-//				if (!tags)
-//				{
-//					b=new Button();
-//					dic[b]=o;
-//					b.label=o.name;
-//					newButton=true;
-//				}
-//				else
-//				{
-//					b=btnDic[tags];
-//					if (!b)
-//					{
-//						b=new Button();
-//						newButton=true;
-//						btnDic[tags]=b;
-//						dic[b]=[o];
-//					}
-//					else
-//					{
-//						dic[b].push(o);
-//					}
-//				}
+				else
+				{
+					b=btnDic[tags];
+					if (!b)
+					{
+						b=new Button();
+						newButton=true;
+						btnDic[tags]=b;
+						dic[b]=[o];
+					}
+					else
+					{
+						dic[b].push(o);
+					}
+				}
 
+				if (!tags || tags.indexOf('蓝色') != -1)
+					b.setStyle('skinClass', PrimaryButtonSkin);
+				else if (tags.indexOf('红色') != -1)
+					b.setStyle('skinClass', DangerButtonSkin);
+				else if (tags.indexOf('绿色') != -1)
+					b.setStyle('skinClass', SuccesButtonSkin);
+				else if (tags.indexOf('黄色') != -1)
+					b.setStyle('skinClass', WarningButtonSkin);
+				else
+					b.setStyle('skinClass', PrimaryButtonSkin);
+				if (tags)
+					b.label=tags.split(',')[0];
+
+				if (newButton)
+				{
+					buttonsGroup.addElement(b);
+					b.alpha=0;
+					b.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:FlexEvent):void
+					{
+						var dt:Number=createTime - 0.1;
+						if (dt > 0)
+							TweenLite.to(b, dt, {alpha: 1});
+						i++;
+						createButtons();
+						var v:Number=b.y + b.height;
+						if (scroller.height < v)
+							scroller.height=v < 200 ? b.y + b.height : 200;
+					});
+				}
+				else
+				{
+					i++;
+					createButtons();
+				}
 
 				b.addEventListener(MouseEvent.CLICK, broHandler);
 
-				buttonsGroup.addElement(b);
 				return b;
 			}
+
+			private var alert:PAlert;
 
 			/**
 			 * 点击定制插播
@@ -127,20 +143,63 @@
 			protected function broHandler(event:MouseEvent):void
 			{
 				var o:Object=dic[event.currentTarget];
-				if (o.url)
-					dispatchEvent(new ODataEvent(o));
+				PAlert.show('请问是否确认播放 ' + o.name, '提示', null, function(value:String):void
+				{
+					if (value == PAlert.YES)
+					{
+						o.action='bro';
+						api.sendCommand(JSON.stringify(o), function(vo:ResultVO):void
+						{
+							Log.info(JSON.stringify(vo));
+							if (!vo.status)
+							{
+								PAlert.show('命令发送失败');
+							}
+							else
+							{
+								alert=PAlert.show('命令发送成功，等待接收确认');
+								alert.disableClose=true;
+								timer.start();
+							}
+						});
+					}
+				}, PAlert.YESNO);
+			}
+
+			protected function onTimer(event:TimerEvent):void
+			{
+//				api.getCommand(function(vo:ResultVO):void
+//				{
+//					if (vo.status)
+//					{
+//						timer.stop();
+//						trace(vo);
+//					}
+//				});
 			}
 		]]>
 	</fx:Script>
-	<s:HGroup height="100%"
-			  width="100%">
-		<s:Group id="buttonsGroup">
-			<s:layout>
-				<layouts:FlowLayout id="fl"
-									horizontalGap="10"
-									verticalGap="10"/>
-			</s:layout>
-		</s:Group>
-
-	</s:HGroup>
+	<s:VGroup gap="0"
+			  width="100%"
+			  height="100%"
+			  paddingLeft="20"
+			  paddingRight="20"
+			  paddingTop="20"
+			  paddingBottom="10">
+		<s:Scroller id="scroller"
+					mouseDown="event.stopImmediatePropagation()"
+					width="100%"
+					maxHeight="200"
+					skinClass="skins.datagrid.list.ScrollSkin"
+					horizontalScrollPolicy="off"
+					verticalScrollPolicy="off">
+			<s:Group id="buttonsGroup">
+				<s:layout>
+					<layouts:FlowLayout id="fl"
+										horizontalGap="10"
+										verticalGap="10"/>
+				</s:layout>
+			</s:Group>
+		</s:Scroller>
+	</s:VGroup>
 </s:Group>

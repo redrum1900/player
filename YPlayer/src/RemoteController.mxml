@@ -13,13 +13,42 @@
 
 			public function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
+				API.instance.controllerInit(this);
 			}
 		]]>
 	</fx:Script>
 
-	<views:BroadcastPanel id="broPanel"
-						  startRecord="listPanel_startRecordHandler(event)"
-						  stopRecord="listPanel_stopRecordHandler(event)"
-						  width="100%"
-						  height="100%"/>
+	<fx:Style source="assets/font/font.css"/>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace views "views.*";
+		@namespace nativeApplicationUpdater "com.youli.nativeApplicationUpdater.*";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace components "com.pamakids.components.*";
+		global
+		{
+			fontFamily:"Microsoft YaHei";
+			focusThickness:0;
+			focusAlpha:0;
+		}
+		
+		components|NiceToolTip.errorTip
+		{
+			color: "#f8f8f8";
+			chromeColor: "0xe02010";
+			fontSize: 13;
+		}
+		
+		components|NiceToolTip
+		{
+			fontSize: 13;
+			color:"0x505050";
+			chromeColor:"0xe8e8e8";
+		}
+		
+		components|PopupBox{
+			skinClass:ClassReference("skins.popup.PopupBoxSkin")
+		}
+	</fx:Style>
+
 </s:WindowedApplication>

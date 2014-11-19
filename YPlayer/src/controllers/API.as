@@ -13,7 +13,6 @@ package controllers
 	import com.pamakids.utils.CloneUtil;
 	import com.pamakids.utils.DateUtil;
 	import com.pamakids.utils.NodeUtil;
-	import com.pamakids.utils.ObjectUtil;
 	import com.pamakids.utils.Singleton;
 	import com.pamakids.utils.URLUtil;
 	import com.plter.air.windows.utils.NativeCommand;
@@ -30,7 +29,6 @@ package controllers
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
-	import flash.net.SharedObject;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
@@ -38,8 +36,11 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
+	import mx.core.UIComponent;
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
+
+	import spark.components.SkinnableContainer;
 
 	import models.InsertVO;
 	import models.LogVO;
@@ -47,7 +48,7 @@ package controllers
 	import models.SongVO;
 	import models.TimeVO;
 
-	import views.ControllerLoginView;
+	import views.BroadcastPanel;
 	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
@@ -2300,8 +2301,14 @@ package controllers
 			saveConfig();
 		}
 
-		public function controllerInit(app:m):void
+		private var app:SkinnableContainer;
+		private var isController:Boolean;
+
+		public function controllerInit(app:SkinnableContainer):void
 		{
+			PAlert.PARENT=app;
+			PopupBoxManager.PARENT=app;
+			this.app=app;
 			config=getConfig();
 			controllerLogin('red:q2', '994070');
 //			if (config.username && config.password)
@@ -2317,12 +2324,51 @@ package controllers
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
 		{
+			config.username=username;
+			config.password=password;
+			saveConfig();
 			getSB('user/controller/login').call(function(vo:ResultVO):void
 			{
-
-				config.broadcasts=vo.results.broadcasts;
-				dispatchEvent(new Event('conbros'));
+				Log.info(JSON.stringify(vo.results));
+				if (vo.status)
+				{
+					ServiceBase.id=vo.results.id;
+					isController=vo.results.controller;
+					if (!isController)
+					{
+						PAlert.show('您没有控制权限，请联系我们为您开通:\n客服电话1：010-51244395\n客服电话2：010-51244052\n您的序列号为：' + serial_number.split('-')[0], '提示', null, function(value:String):void
+						{
+							controllerLogin(config.username, config.password);
+						}, PAlert.CONFIRM, '再试一次', '', true);
+					}
+					else
+					{
+						var bp:BroadcastPanel=new BroadcastPanel();
+						bp.bros=vo.results.broadcasts;
+						app.addElement(bp);
+					}
+				}
+				else
+				{
+					//提示登录失败，需要重试，点击重试按钮后，再次调用自动登录的方法
+				}
 			}, {username: username, password: password, controller_number: serial_number});
+		}
+
+		public function sendCommand(command:String, callback:Function):void
+		{
+			getSB('user/command').call(function(vo:ResultVO):void
+			{
+				callback(vo);
+			}, {command: command, controller_number: serial_number});
+		}
+
+		public function getCommand(callback:Function):void
+		{
+			getSB('user/command', 'GET').call(function(vo:ResultVO):void
+			{
+				callback(vo);
+			}, {controller_number: serial_number});
 		}
 
 		public function controllerPlatStatus(callback:Function=null):void
