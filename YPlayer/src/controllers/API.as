@@ -40,6 +40,7 @@ package controllers
 	import mx.formatters.DateFormatter;
 	import mx.utils.UIDUtil;
 
+	import spark.components.Alert;
 	import spark.components.SkinnableContainer;
 
 	import models.InsertVO;
@@ -48,7 +49,10 @@ package controllers
 	import models.SongVO;
 	import models.TimeVO;
 
+	import org.osmf.events.TimeEvent;
+
 	import views.BroadcastPanel;
+	import views.ControllerLoginView;
 	import views.LoginView;
 	import views.Main;
 	import views.MessageWindow;
@@ -82,6 +86,7 @@ package controllers
 
 		public var logPath:String='';
 		public var logFile:String='';
+		public var conStatus:Boolean=false; //当前是否在播放广播
 
 		private var noCacheDirInConfig:Boolean;
 
@@ -2310,16 +2315,16 @@ package controllers
 			PopupBoxManager.PARENT=app;
 			this.app=app;
 			config=getConfig();
-			controllerLogin('red:q2', '994070');
-//			if (config.username && config.password)
-//			{
-//				controllerLogin(config.username, config.password);
-//			}
-//			else
-//			{
-//				var l:ControllerLoginView=new ControllerLoginView();
-//				PopupManager.popup(l);
-//			}
+//			controllerLogin('red:q2', '994070');
+			if (config.username && config.password)
+			{
+				controllerLogin(config.username, config.password);
+			}
+			else
+			{
+				var l:ControllerLoginView=new ControllerLoginView();
+				PopupBoxManager.popup(l);
+			}
 		}
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
@@ -2355,6 +2360,12 @@ package controllers
 			}, {username: username, password: password, controller_number: serial_number});
 		}
 
+		/**
+		 * 发送广播命令
+		 * @param command
+		 * @param callback
+		 *
+		 */
 		public function sendCommand(command:String, callback:Function):void
 		{
 			getSB('user/command').call(function(vo:ResultVO):void
@@ -2363,21 +2374,51 @@ package controllers
 			}, {command: command, controller_number: serial_number});
 		}
 
+		/**
+		 * 获取播放广播命令
+		 * @param callback
+		 *
+		 */
 		public function getCommand(callback:Function):void
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				callback(vo);
+				if (vo.results.length != 0)
+					callback(JSON.parse(vo.results as String));
 			}, {controller_number: serial_number});
 		}
 
-		public function controllerPlatStatus(callback:Function=null):void
+		/**
+		 * 发送广播状态
+		 * @param b
+		 * @param callback
+		 *
+		 */
+		public function sendStatus(b:Boolean, callback:Function=null):void
 		{
-			var s:String=''
 			getSB('command/status').call(function(vo:ResultVO):void
 			{
-//				s=vo.broStatus;
-			}, {status: s});
+				if (vo && callback)
+					callback();
+			}, {status: b});
+		}
+
+		/**
+		 * 获取广播状态
+		 * @param callback
+		 *
+		 */
+		public function getStatus(callback:Function=null):void
+		{
+			var s:String=''
+			getSB('command/status', 'GET').call(function(vo:ResultVO):void
+			{
+				if (vo)
+				{
+					var str:String=vo.results as String;
+					callback(str == 'true' ? true : false);
+				}
+			});
 		}
 	}
 }

@@ -16,10 +16,12 @@
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.managers.PopupBoxManager;
+			import com.pamakids.models.ResultVO;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
 
 			import spark.components.Button;
 			import spark.events.IndexChangeEvent;
@@ -29,7 +31,10 @@
 
 			import models.InsertVO;
 			import models.LogVO;
+			import models.SongVO;
 			import models.TimeVO;
+
+			import org.osmf.events.TimeEvent;
 
 			import skins.buttons.DangerButtonSkin;
 			import skins.buttons.PrimaryButtonSkin;
@@ -39,12 +44,15 @@
 			[Bindable]
 			private var label:String;
 
+			public var getTimer:Timer;
+
 			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
 				api.addEventListener('PLAY', function():void
 				{
 					update();
+					getTimer.start();
 				});
 				AA.listen('UPDATE', function():void
 				{
@@ -59,6 +67,29 @@
 					btnDic=new Dictionary();
 					createButtons();
 				});
+
+				getTimer=new Timer(2000);
+				getTimer.addEventListener(TimerEvent.TIMER, action);
+			}
+
+			/**
+			 * 获取远程控制命令事件，获取播放广播的信息，并播放
+			 *
+			 */
+			public function action(e:TimerEvent):void
+			{
+				api.getCommand(function(vo:Object):void
+				{
+					if (vo)
+					{
+						api.sendStatus(true, function():void
+						{
+							getTimer.stop();
+						});
+						dispatchEvent(new ODataEvent(vo, "odata2"));
+					}
+				});
+
 			}
 
 			public function to(index:int):void

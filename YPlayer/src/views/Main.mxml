@@ -23,6 +23,7 @@
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.services.ServiceBase;
+			import com.pamakids.utils.CloneUtil;
 			import com.pamakids.utils.DateUtil;
 			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
@@ -85,6 +86,7 @@
 				initMore();//初始化“更多”菜单
 
 				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);//为组件添加监听，子组件发布事件父组件接收数据
+				listPanel.addEventListener(ODataEvent.ODATA2,conplayBroHandler);
 
 				autoPlayTimer=new Timer(1000);//每隔1000毫秒检测当前是否有歌曲播放
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
@@ -242,6 +244,15 @@
 			{
 				play();
 			}
+			
+			private function broStatus(e:Event):void
+			{
+				api.sendStatus(false,function():void
+				{
+					listPanel.getTimer.start();
+				}
+				);
+			}
 
 			private var song1:SongVO;//当前歌曲
 			private var song2:SongVO;//下一曲
@@ -259,6 +270,7 @@
 				player1.volume=vc1Volume / 100;
 				player1.addEventListener("playing", playingHandler);
 				player1.addEventListener("playComplete", player1PlayedHandler);
+				player2.addEventListener("playComplete",broStatus);
 				API.instance.addEventListener('PLAY', function(e:Event):void
 				{
 					if (!player1.playing)
@@ -546,6 +558,24 @@
 				}, PAlert.YESNO);
 			}
 
+			/**
+			 * 远程控制播放定制广告
+			 * 
+			 */
+			protected function conplayBroHandler(event:ODataEvent):void
+			{
+				if (brodcasting)
+					return;
+				else
+				{
+					brodcasting=true;
+					var vo:InsertVO=CloneUtil.convertObject(event.data, InsertVO);
+					vo.url = 'http://yfcdn.qiniudn.com/'+vo.url;
+					insertBroOrDM(vo, true);
+					Log.info('远程控制播放插播广告');
+				}
+			}
+			
 			protected function more_clickHandler(event:MouseEvent):void
 			{
 				moreMenu.display(this.stage, event.stageX, event.stageY);
@@ -1021,6 +1051,11 @@
 									api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 									player2.stop();
 									broPlayed();
+									api.sendStatus(false,function():void
+									{
+										listPanel.getTimer.start();
+									}
+									);
 								}
 								broAlert = null;
 							},PAlert.YESNO);
@@ -1029,6 +1064,11 @@
 						}
 					}, PAlert.YESNO, '立即停止','继续播放');
 				}, 800);
+				
+				api.sendStatus(true, function():void
+				{
+					listPanel.getTimer.stop();
+				});
 			}
 			
 			[Bindable]

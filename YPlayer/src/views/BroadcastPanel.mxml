@@ -11,6 +11,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.PopupManager;
 			import com.pamakids.models.ResultVO;
 
 			import mx.events.FlexEvent;
@@ -35,8 +36,9 @@
 			private var btnDic:Dictionary;
 			private var dic:Dictionary=new Dictionary();
 			private var createTime:int=1;
+			private var conStatus:Boolean=false;
 
-			private var timer:Timer;
+			public var conTimer:Timer;
 
 			protected function init(event:FlexEvent):void
 			{
@@ -45,8 +47,10 @@
 				btnDic=new Dictionary();
 				buttonsGroup.removeAllElements();
 				createButtons();
-				timer=new Timer(1000);
-				timer.addEventListener(TimerEvent.TIMER, onTimer);
+
+				conTimer=new Timer(1000);
+				conTimer.addEventListener(TimerEvent.TIMER, conAction);
+				conTimer.start();
 			}
 
 			public function getPlayStatus(e:TimeEvent)
@@ -159,23 +163,48 @@
 							{
 								alert=PAlert.show('命令发送成功，等待接收确认');
 								alert.disableClose=true;
-								timer.start();
 							}
 						});
 					}
 				}, PAlert.YESNO);
 			}
 
-			protected function onTimer(event:TimerEvent):void
+
+			/**
+			* 定时从服务器获取广播播放状态
+			*
+			*/
+			public function conAction(e:TimerEvent):void
 			{
-//				api.getCommand(function(vo:ResultVO):void
-//				{
-//					if (vo.status)
-//					{
-//						timer.stop();
-//						trace(vo);
-//					}
-//				});
+				api.getStatus(function(b:Boolean):void
+				{
+					if (b)
+					{
+						buttonsGroup.enabled=false;
+						if (alert && alert.text == '命令发送成功，等待接收确认')
+						{
+							PopupManager.removePopup(alert);
+							alert=PAlert.show('正在播放广播');
+							alert.disableClose=false;
+						}
+						else if (!alert || alert.text == '')
+						{
+							alert=PAlert.show('正在播放广播');
+							alert.disableClose=false;
+						}
+					}
+					else
+					{
+						buttonsGroup.enabled=true;
+						if (alert && alert.text == '正在播放广播')
+						{
+							alert.text='';
+							if (PopupManager.hasPopup)
+								PopupManager.removePopup(alert);
+						}
+					}
+
+				});
 			}
 		]]>
 	</fx:Script>
@@ -199,6 +228,7 @@
 										horizontalGap="10"
 										verticalGap="10"/>
 				</s:layout>
+
 			</s:Group>
 		</s:Scroller>
 	</s:VGroup>
