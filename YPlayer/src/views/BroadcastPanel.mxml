@@ -183,7 +183,8 @@
 						buttonsGroup.enabled=false;
 						if (alert && alert.text == '命令发送成功，等待接收确认')
 						{
-							PopupManager.removePopup(alert);
+							if (alert.isPopUp)
+								PopupManager.removePopup(alert);
 							alert=PAlert.show('正在播放广播');
 							alert.disableClose=false;
 						}
@@ -199,7 +200,7 @@
 						if (alert && alert.text == '正在播放广播')
 						{
 							alert.text='';
-							if (PopupManager.hasPopup)
+							if (alert.isPopUp)
 								PopupManager.removePopup(alert);
 						}
 					}
