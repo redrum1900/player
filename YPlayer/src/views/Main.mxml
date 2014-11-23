@@ -981,7 +981,9 @@
 //				}
 //				var s:String = arr.join('\n');
 //				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+				
 				var mp:manualPanel = new manualPanel();
+				mp.width = mp.setWidth();
 				PopupBoxManager.popup(mp);
 			}
 			
@@ -1080,7 +1082,7 @@
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.PrimaryButtonSkin"
 					  click="button4_clickHandler(event)"
-					  label="项目列表"/>
+					  label="播放列表"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.WarningButtonSkin"
 					  click="button1_clickHandler(event)"

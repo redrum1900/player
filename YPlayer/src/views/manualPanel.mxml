@@ -13,6 +13,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.pamakids.components.PAlert;
+			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.PopupManager;
 			import com.pamakids.managers.PopupBoxManager;
@@ -22,6 +23,8 @@
 			import spark.components.Button;
 
 			import controllers.API;
+
+			import models.InsertVO;
 
 			import skins.buttons.PrimaryButtonSkin;
 			import skins.buttons.WarningButtonSkin;
@@ -33,9 +36,18 @@
 			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
+				if (!api.config.manual)
+				{
+					Log.info('配置文件不在');
+					api.config.manual=true;
+					api.saveConfig();
+				}
+				else
+					Log.info('手动控制状态：' + api.config.manual);
 				menuArr=new Array();
 				// TODO Auto-generated method stub
 				buttonGroup.removeAllElements();
+				buttonGroup.addElement(ps);
 
 				this.menus=FileManager.readFile('menus.yp') as Array;
 				var arr:Array=[];
@@ -47,7 +59,7 @@
 						var b:Button=new Button();
 						b.label=menu.name;
 						b.id=i + '';
-						b.width=buttonGroup.width * 0.8;
+						b.width=buttonGroup.width * 0.9;
 						b.setStyle('skinClass', PrimaryButtonSkin);
 						b.addEventListener(MouseEvent.CLICK, selectMenu);
 						menuArr.push(menu);
@@ -57,47 +69,47 @@
 				}
 			}
 
-//			public function intButton():void
-//			{
-//				var menus:Array=FileManager.readFile('menus.yp') as Array;
-//				var arr:Array=[];
-//				var i:int=0;
-//				buttonGroup.removeAllElements();
-//				for each (var menu:Object in menus)
-//				{
-//					if (menu.type == 1 && api.hasCached(menu._id))
-//					{
-//						var b:Button=new Button();
-//						b.label=menu.name;
-//						b.id=i + '';
-//						b.width=buttonGroup.width * 0.8;
-//						b.setStyle('skinClass', PrimaryButtonSkin);
-//						b.addEventListener(MouseEvent.CLICK, selectMenu);
-//						menuArr.push(menu);
-//						buttonGroup.addElement(b);
-//						i++;
-//					}
-//				}
-//			}
+			/**
+			 * 自适应宽度
+			 *
+			 */
+			public function setWidth():int
+			{
+				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				var w:int=200;
+				for each (var menu:Object in menus)
+				{
+					if (menu.type == 1 && API.instance.hasCached(menu._id))
+					{
 
-
+						w=400;
+						if (menu.name.length * 12 > w)
+							w=menu.name.length * 12;
+					}
+				}
+				return w;
+			}
 
 			public function selectMenu(e:MouseEvent):void
 			{
-				if (api.config.manual)
+//				if (api.config.manual)
+//				{
+				var menu:Object=menuArr[Number((e.target as Button).id)];
+				PAlert.show('是否将当前播放列表切换为' + menu.name, '提示', null, function(value:String):void
 				{
-					//				var b:Button=e.target as Button;
-					var menu:Object=menuArr[Number((e.target as Button).id)];
-					//				b.setStyle('skinClass', WarningButtonSkin);
-					api.config.manual_menu=menu;
-					api.saveConfig();
-					api.initMenu();
-					PopupManager.removePopup(this);
-				}
-				else
-				{
-					PAlert.show('未开启手动模式');
-				}
+					if (value == PAlert.YES)
+					{
+						api.config.manual_menu=menu;
+						api.saveConfig();
+						api.initMenu();
+					}
+				}, PAlert.YESNO, '确定', '取消');
+				PopupManager.removePopup(this);
+//				}
+//				else
+//				{
+//					PAlert.show('未开启手动模式');
+//				}
 			}
 
 			protected function popupbox1_closeHandler(event:Event):void
@@ -113,5 +125,9 @@
 			  paddingLeft="10"
 			  paddingRight="10"
 			  paddingTop="10"
-			  id="buttonGroup"/>
+			  horizontalAlign="center"
+			  id="buttonGroup">
+		<s:Label id="ps"
+				 text="点击后手动切换播放列表"/>
+	</s:VGroup>
 </components:PopupBox>
