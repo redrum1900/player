@@ -15,6 +15,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.FileManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.utils.DateUtil;
@@ -80,11 +81,40 @@
 			{
 				api.getCommand(function(vo:Object):void
 				{
-					if (vo)
+					if (vo == 'showMenu')
 					{
-						api.sendStatus(true, function():void
+						var menus:Array=FileManager.readFile('menus.yp') as Array;
+						var arr:Array=[];
+						for each (var menu:Object in menus)
 						{
-							getTimer.stop();
+							if (api.hasCached(menu._id))
+								arr.push(menu.name + ' 【已缓存】');
+							else
+								arr.push(menu.name);
+						}
+						api.sendStatus(JSON.stringify(arr), function():void
+						{
+						});
+					}
+					else if (vo == 'playInfo')
+					{
+						api.sendStatus(API.instance.playingSong.name, function():void
+						{
+						});
+					}
+					else if (vo == 'stop')
+					{
+						api.sendStatus('false', function():void
+						{
+//							getTimer.stop();
+						});
+						dispatchEvent(new ODataEvent(vo, "odata2"));
+					}
+					else if (vo)
+					{
+						api.sendStatus(JSON.stringify(vo), function():void
+						{
+//							getTimer.stop();
 						});
 						dispatchEvent(new ODataEvent(vo, "odata2"));
 					}

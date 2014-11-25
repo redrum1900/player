@@ -2383,7 +2383,13 @@ package controllers
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo.results.length != 0)
+				if (vo && vo.results == 'showMenu')
+					callback(vo.results as String);
+				else if (vo && vo.results == 'stop')
+					callback(vo.results as String);
+				else if (vo && vo.results == 'playInfo')
+					callback(vo.results as String);
+				else if (vo && vo.results.length != 0 && vo.results != '网络连接失败，请稍后再试')
 					callback(JSON.parse(vo.results as String));
 			}, {controller_number: serial_number});
 		}
@@ -2394,7 +2400,7 @@ package controllers
 		 * @param callback
 		 *
 		 */
-		public function sendStatus(b:Boolean, callback:Function=null):void
+		public function sendStatus(b:String, callback:Function=null):void
 		{
 			getSB('command/status').call(function(vo:ResultVO):void
 			{
@@ -2416,7 +2422,7 @@ package controllers
 				if (vo)
 				{
 					var str:String=vo.results as String;
-					callback(str == 'true' ? true : false);
+					callback(str);
 				}
 			});
 		}

@@ -3,7 +3,7 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 color="0xffffff"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="100%"
+		 width="100%"  
 		 height="100%"
 		 creationComplete="inited(event)"
 		 xmlns:views="views.*"
@@ -20,6 +20,7 @@
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.FileManager;
 			import com.pamakids.manager.LoadManager;
+			import com.pamakids.manager.PopupManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.services.ServiceBase;
@@ -49,7 +50,7 @@
 
 //			private var soundVisualizer:SoundVisualizer;
 
-			
+			private var ivo:InsertVO;
             /*
 			初始方法
 			*/
@@ -247,7 +248,7 @@
 			
 			private function broStatus(e:Event):void
 			{
-				api.sendStatus(false,function():void
+				api.sendStatus('false',function():void
 				{
 					listPanel.getTimer.start();
 				}
@@ -564,9 +565,12 @@
 			 */
 			protected function conplayBroHandler(event:ODataEvent):void
 			{
-				if (brodcasting)
+				if (brodcasting && event.data != 'stop')
 					return;
-				else
+                else if(event.data == 'stop')
+				{
+					stopInsertVO();
+				}else
 				{
 					brodcasting=true;
 					var vo:InsertVO=CloneUtil.convertObject(event.data, InsertVO);
@@ -1051,7 +1055,7 @@
 									api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 									player2.stop();
 									broPlayed();
-									api.sendStatus(false,function():void
+									api.sendStatus('false',function():void
 									{
 										listPanel.getTimer.start();
 									}
@@ -1065,12 +1069,24 @@
 					}, PAlert.YESNO, '立即停止','继续播放');
 				}, 800);
 				
-				api.sendStatus(true, function():void
+				api.sendStatus(JSON.stringify(ivo), function():void
 				{
-					listPanel.getTimer.stop();
+//					listPanel.getTimer.stop();
 				});
 			}
-			
+
+			public function stopInsertVO():void
+			{
+//				api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
+				player2.stop();
+				broPlayed();
+				api.sendStatus('false',function():void
+				{
+//					listPanel.getTimer.start();
+				});
+				PopUpManager.removePopUp(broAlert);
+			}
+
 			[Bindable]
 			private var titleLabel:String;
 			
