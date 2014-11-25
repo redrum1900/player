@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%"
+		 height="100%"
+		 xmlns:layouts="com.youli.layouts.*"
+		 creationComplete="init(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.pamakids.components.PAlert;
+			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.PopupManager;
+			import com.pamakids.models.ResultVO;
+			import com.pamakids.utils.DateUtil;
+
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+
+			import spark.components.Button;
+
+			import controllers.API;
+
+			import models.InsertVO;
+
+			import org.osmf.events.TimeEvent;
+
+			import skins.buttons.DangerButtonSkin;
+			import skins.buttons.PrimaryButtonSkin;
+			import skins.buttons.SuccesButtonSkin;
+			import skins.buttons.WarningButtonSkin;
+
+			public var api:API;
+			public var bros:Array;
+			private var i:int=0;
+			private var btnDic:Dictionary;
+			private var dic:Dictionary=new Dictionary();
+			private var createTime:int=1;
+			private var conStatus:Boolean=false;
+
+			public var conTimer:Timer;
+
+			public var sb:Boolean=false;
+			public var pb:Boolean=false;
+
+			protected function init(event:FlexEvent):void
+			{
+				api=API.instance;
+				i=0;
+				btnDic=new Dictionary();
+				buttonsGroup.removeAllElements();
+				createButtons();
+
+				conTimer=new Timer(1000);
+				conTimer.addEventListener(TimerEvent.TIMER, conAction);
+				conTimer.start();
+			}
+
+			public function getPlayStatus(e:TimeEvent)
+			{
+			}
+
+			/**
+			 * 根据广播列表生成按钮
+			 */
+			private function createButtons():void
+			{
+				if (!bros)
+					return;
+				if (bros && i < bros.length)
+					getButton(bros[i]);
+			}
+
+			/**
+			 * 生成广播按钮
+			 */
+			private function getButton(o:Object):Button
+			{
+				var b:Button;
+				var newButton:Boolean=false;
+				var tags:String=o.hasOwnProperty('tags') ? o.tags : '';
+				if (!tags)
+				{
+					b=new Button();
+					dic[b]=o;
+					b.label=o.name;
+					newButton=true;
+				}
+				else
+				{
+					b=btnDic[tags];
+					if (!b)
+					{
+						b=new Button();
+						newButton=true;
+						btnDic[tags]=b;
+						dic[b]=[o];
+					}
+					else
+					{
+						dic[b].push(o);
+					}
+				}
+
+				if (!tags || tags.indexOf('蓝色') != -1)
+					b.setStyle('skinClass', PrimaryButtonSkin);
+				else if (tags.indexOf('红色') != -1)
+					b.setStyle('skinClass', DangerButtonSkin);
+				else if (tags.indexOf('绿色') != -1)
+					b.setStyle('skinClass', SuccesButtonSkin);
+				else if (tags.indexOf('黄色') != -1)
+					b.setStyle('skinClass', WarningButtonSkin);
+				else
+					b.setStyle('skinClass', PrimaryButtonSkin);
+				if (tags)
+					b.label=tags.split(',')[0];
+
+				if (newButton)
+				{
+					buttonsGroup.addElement(b);
+					b.alpha=0;
+					b.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:FlexEvent):void
+					{
+						var dt:Number=createTime - 0.1;
+						if (dt > 0)
+							TweenLite.to(b, dt, {alpha: 1});
+						i++;
+						createButtons();
+						var v:Number=b.y + b.height;
+						if (scroller.height < v)
+							scroller.height=v < 200 ? b.y + b.height : 200;
+					});
+				}
+				else
+				{
+					i++;
+					createButtons();
+				}
+
+				b.addEventListener(MouseEvent.CLICK, broHandler);
+
+				return b;
+			}
+
+			private var alert:PAlert;
+
+			private var playingBro:Object;
+
+			/**
+			 * 点击定制插播
+			 */
+			protected function broHandler(event:MouseEvent):void
+			{
+				var o:Object=dic[event.currentTarget];
+				this.playingBro=o;
+
+				PAlert.show('请问是否确认播放 ' + o.name, '提示', null, function(value:String):void
+				{
+					if (value == PAlert.YES)
+					{
+						api.sendCommand(JSON.stringify(o), function(vo:ResultVO):void
+						{
+							Log.info(JSON.stringify(vo));
+							if (!vo.status)
+							{
+								PAlert.show('命令发送失败');
+							}
+							else
+							{
+								alert=PAlert.show('命令发送成功，等待接收确认');
+								alert.disableClose=true;
+							}
+						});
+					}
+				}, PAlert.YESNO);
+			}
+
+
+			/**
+			* 定时从服务器获取广播播放状态
+			*
+			*/
+			public function conAction(e:TimerEvent):void
+			{
+				api.getStatus(function(str:String):void
+				{
+					if (str != 'false' && sb)
+					{
+						sb=false;
+						var arr:Array=JSON.parse(str) as Array;
+						var s:String=arr.join('\n');
+						PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+					}
+					else if (str != 'false' && pb)
+					{
+						pb=false;
+						PAlert.show('正在播放' + str, '提示', null, null, PAlert.CONFIRM);
+					}
+					else if (str && str.length > 200)
+					{
+						var vo:Object=JSON.parse(str);
+						buttonsGroup.enabled=false;
+						if (alert && alert.text == '命令发送成功，等待接收确认')
+						{
+							if (alert.isPopUp)
+								PopupManager.removePopup(alert);
+							alert.disableClose=true;
+							setTimer(vo.duration);
+							this.res=vo.duration as int;
+							alert=PAlert.show('正在播放' + playingBro.name, '提示', null, function():void
+							{
+								api.sendCommand('stop', function():void
+								{
+									alert=null;
+									playingBro=null;
+									reTimer.stop();
+								});
+							}, PAlert.CONFIRM, '立即停止', '', true);
+						}
+						else if (!alert || alert.text == '')
+						{
+							setTimer(vo.duration);
+							this.res=vo.duration;
+							alert=PAlert.show('正在播放' + vo.name, '提示', null, function():void
+							{
+								api.sendCommand('stop', function():void
+								{
+									alert=null;
+									playingBro=null;
+									reTimer.stop();
+								});
+							}, PAlert.CONFIRM, '立即停止', '', true);
+							alert.disableClose=false;
+						}
+					}
+					else if (str == 'false')
+					{
+						buttonsGroup.enabled=true;
+						if (alert)
+						{
+							alert.text='';
+							if (alert.isPopUp)
+								PopupManager.removePopup(alert);
+						}
+					}
+
+				});
+			}
+
+			var reTimer:Timer=new Timer(1000);
+			var res:int;
+
+			public function setTimer(s:int):void //duration
+			{
+				if (!reTimer.running)
+				{
+					this.res=s - 1;
+					reTimer=new Timer(1000, s);
+					reTimer.addEventListener(TimerEvent.TIMER, reAction);
+					reTimer.start();
+				}
+			}
+
+			public function reAction(e:TimerEvent):void
+			{
+				if (playingBro)
+				{
+					alert.text='正在播放' + playingBro.name + '   ' + DateUtil.formateTime(this.res) + '后停止播放';
+					this.res-=1;
+				}
+				else
+					reTimer.stop();
+			}
+
+			protected function showMenu(event:MouseEvent):void
+			{
+				sb=true;
+				api.sendCommand("showMenu", function():void
+				{
+
+				});
+			}
+
+			protected function getInfo(event:MouseEvent):void
+			{
+				api.sendCommand("playInfo", function():void
+				{
+					pb=true;
+
+				});
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup gap="0"
+			  width="100%"
+			  height="100%"
+			  paddingLeft="20"
+			  paddingRight="20"
+			  paddingTop="20"
+			  paddingBottom="10">
+		<s:Scroller id="scroller"
+					mouseDown="event.stopImmediatePropagation()"
+					width="100%"
+					maxHeight="200"
+					skinClass="skins.datagrid.list.ScrollSkin"
+					horizontalScrollPolicy="off"
+					verticalScrollPolicy="off">
+			<s:HGroup width="100%"
+					  height="100%">
+
+
+				<s:Group id="buttonsGroup"
+						 width="70%"
+						 height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+
+				</s:Group>
+				<s:Group id="funGroup"
+						 width="30%"
+						 height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<s:Button id="getMenus"
+							  label="项目列表"
+							  skinClass="{PrimaryButtonSkin}"
+							  click="showMenu(event)"/>
+					<s:Button id="getPlayInfo"
+							  label="播放状态"
+							  skinClass="{PrimaryButtonSkin}"
+							  click="getInfo(event)"/>
+				</s:Group>
+			</s:HGroup>
+		</s:Scroller>
+	</s:VGroup>
+</s:Group>

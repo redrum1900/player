@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="登录远程控制"
+					 creationComplete="popupbox1_creationCompleteHandler(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.models.ResultVO;
+			import com.pamakids.services.ServiceBase;
+
+			import mx.events.FlexEvent;
+
+			import controllers.API;
+			private var api:API;
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if (username.text.indexOf(':') == -1 && username.text.indexOf('：') == -1)
+				{
+					PAlert.show('抱歉，账户格式不对，需要按 “总部：分部” 的格式输入完整');
+					return;
+				}
+				loginBtn.enabled=false;
+				API.instance.controllerLogin(username.text, password.text, function(vo:ResultVO):void
+				{
+					if (vo.status)
+					{
+						ServiceBase.id=vo.results.id + '';
+						api.config.username=username.text;
+						api.config.password=password.text;
+						api.config.id=ServiceBase.id;
+						Log.info('Frist Login---true---username:' + username.text + '----password:' + password.text);
+						api.saveConfig();
+						Log.info('LoginInfo save');
+						close();
+					}
+					else
+					{
+						PAlert.show("登陆出错，请再试一次\n" + vo.errorResult);
+					}
+					loginBtn.enabled=true;
+				});
+			}
+
+			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				api=API.instance;
+				skin["close"].visible=false;
+				api.getConfig();
+				if (api.config.username && api.config.password)
+				{
+					username.text=api.config.username;
+					password.text=api.config.password;
+				}
+//				var so:SharedObject=SharedObject.getLocal('yp');
+//				if (so.data)
+//				{
+//					username.text=so.data.username;
+//					password.text=so.data.password;
+//				}
+			}
+		]]>
+	</fx:Script>
+
+	<components:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  paddingLeft="40"
+						  paddingRight="40"
+						  paddingBottom="20"
+						  paddingTop="30"
+						  gap="10"/>
+	</components:layout>
+
+	<s:TextInput id="username"
+				 prompt="账户（总部:分部）"
+				 skinClass="skins.textinput.LoginTextInputSkin"/>
+	<s:TextInput id="password"
+				 prompt="密码（6位数字）"
+				 skinClass="skins.textinput.LoginTextInputSkin"/>
+	<s:Spacer height="10"/>
+	<s:Button label="登录"
+			  id="loginBtn"
+			  skinClass="skins.buttons.LoginButtonSkin"
+			  click="button1_clickHandler(event)"/>
+</components:PopupBox>

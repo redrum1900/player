@@ -40,6 +40,7 @@ package controllers
 	import mx.utils.UIDUtil;
 
 	import spark.components.Application;
+	import spark.components.SkinnableContainer;
 
 	import models.InsertVO;
 	import models.LogVO;
@@ -49,10 +50,12 @@ package controllers
 
 	import org.zengrong.ane.ANEToolkit;
 
+	import views.BroadcastPanel;
+	import views.ControllerLoginView;
 	import views.Main;
 	import views.PrepareView;
 
-//	import views.windows.PrepareWindow;
+	//	import views.windows.PrepareWindow;
 
 	public class API extends Singleton
 	{
@@ -102,18 +105,18 @@ package controllers
 
 		public function API()
 		{
-//			var dir:Object=ANEToolkit.storage.getInternal().cacheDir; //filesDir
-//			var f:File=new File(dir + '');
-//			retriveDir(f);
-//			var s:String = ;
-//			var b:ByteArray = ANEToolkit.storage.readFile(dir+'/config.json');
-//			trace(s,b);
-//			return
+			//			var dir:Object=ANEToolkit.storage.getInternal().cacheDir; //filesDir
+			//			var f:File=new File(dir + '');
+			//			retriveDir(f);
+			//			var s:String = ;
+			//			var b:ByteArray = ANEToolkit.storage.readFile(dir+'/config.json');
+			//			trace(s,b);
+			//			return
 
 			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
-//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-//			var cd:String='/mnt/extsd/yuefu/cache/';
+			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
+			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			//			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
 			var o:Object=getConfig();
@@ -122,56 +125,56 @@ package controllers
 			local=o.local;
 			autoUpadte=o.auto_update;
 			showTrace=o.trace;
-//			showTrace=true;
+			//			showTrace=true;
 			config=o;
 
-//			TweenLite.delayedCall(10, function():void
-//			{
-//				Log.Trace('called', o.username);
-//				try
-//				{
-//					var dir:Object=ANEToolkit.storage.getInternal().cacheDir;
-//					var f:File=new File(dir + '/app');
-//					f=f.getDirectoryListing()[0];
-//					appRoot=f.nativePath + '/assets';
-//					Log.Trace('AppRoot:' + appRoot);
-//					config.version='1.7.3';
-//					saveConfig();
-//					var bt:ByteArray=ANEToolkit.storage.readFile(appRoot + '/config.json');
-//					Log.Trace('bt:' + bt.toString());
-//					o=FileManager.readFile('config.json', true, true);
-//					Log.Trace('Version:' + o.version);
-//				}
-//				catch (error:Error)
-//				{
-//					Log.Trace(error);
-//				}
-//			});
+			//			TweenLite.delayedCall(10, function():void
+			//			{
+			//				Log.Trace('called', o.username);
+			//				try
+			//				{
+			//					var dir:Object=ANEToolkit.storage.getInternal().cacheDir;
+			//					var f:File=new File(dir + '/app');
+			//					f=f.getDirectoryListing()[0];
+			//					appRoot=f.nativePath + '/assets';
+			//					Log.Trace('AppRoot:' + appRoot);
+			//					config.version='1.7.3';
+			//					saveConfig();
+			//					var bt:ByteArray=ANEToolkit.storage.readFile(appRoot + '/config.json');
+			//					Log.Trace('bt:' + bt.toString());
+			//					o=FileManager.readFile('config.json', true, true);
+			//					Log.Trace('Version:' + o.version);
+			//				}
+			//				catch (error:Error)
+			//				{
+			//					Log.Trace(error);
+			//				}
+			//			});
 
-//			var so:SharedObject;
-//			so=SharedObject.getLocal('sn');
-//			if (!so.data.sn)
-//			{
-//				so.data.sn=UIDUtil.createUID();
-//				so.flush();
-//			}
-//			else if (config.sn)
-//			{
-//				so.data.sn=config.sn;
-//			}
+			//			var so:SharedObject;
+			//			so=SharedObject.getLocal('sn');
+			//			if (!so.data.sn)
+			//			{
+			//				so.data.sn=UIDUtil.createUID();
+			//				so.flush();
+			//			}
+			//			else if (config.sn)
+			//			{
+			//				so.data.sn=config.sn;
+			//			}
 			if (!config.sn)
 				config.sn=UIDUtil.createUID();
-//			config.sn=so.data.sn;
+			//			config.sn=so.data.sn;
 			serial_number=config.sn;
-//			so=SharedObject.getLocal('version');
-//			so.data.version=o.version;
-//			so.flush();
+			//			so=SharedObject.getLocal('version');
+			//			so.data.version=o.version;
+			//			so.flush();
 			version=config.version;
 			if (o.id)
 				ServiceBase.id=config.id;
-//			config.username='LaChapelle:shop2';
-//			config.password="244471";
-//			saveConfig();
+			//			config.username='LaChapelle:shop2';
+			//			config.password="244471";
+			//			saveConfig();
 			config.cacheDir=cd;
 			serviceDic=new Dictionary();
 			QNService.HOST='http://yfcdn.qiniudn.com/';
@@ -187,9 +190,9 @@ package controllers
 
 			if (Capabilities.isDebugger)
 			{
-//				ServiceBase.HOST='http://localhost:18080/api';
-//				cachedSO.clear();
-//				cachedSO.flush();
+				//				ServiceBase.HOST='http://localhost:18080/api';
+				//				cachedSO.clear();
+				//				cachedSO.flush();
 			}
 
 			if (local)
@@ -320,16 +323,16 @@ package controllers
 
 		private function startAtLogin():void
 		{
-//			if (Capabilities.os.indexOf('Windows') == -1 || Capabilities.isDebugger)
-//				return;
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			if (!so.data.settedStartAtLogin)
-//			{
-//				var rg:RegCommand=new RegCommand();
-//				rg.addAutoRunWithName('YFPlayer', File.applicationDirectory.resolvePath("乐播.exe").nativePath);
-//				so.data.settedStartAtLogin=true;
-//				so.flush();
-//			}
+			//			if (Capabilities.os.indexOf('Windows') == -1 || Capabilities.isDebugger)
+			//				return;
+			//			var so:SharedObject=SharedObject.getLocal('yp');
+			//			if (!so.data.settedStartAtLogin)
+			//			{
+			//				var rg:RegCommand=new RegCommand();
+			//				rg.addAutoRunWithName('YFPlayer', File.applicationDirectory.resolvePath("乐播.exe").nativePath);
+			//				so.data.settedStartAtLogin=true;
+			//				so.flush();
+			//			}
 		}
 
 		private function get formatedNow():String
@@ -438,15 +441,15 @@ package controllers
 		{
 			if (local)
 				return;
-//			if (refreshTimer.currentCount % 3 == 0)
-//			{
-//				getSB('volume', 'GET').call(function(vo:ResultVO):void
-//				{
-//					if (vo.status)
-//					{
-//					}
-//				});
-//			}
+			//			if (refreshTimer.currentCount % 3 == 0)
+			//			{
+			//				getSB('volume', 'GET').call(function(vo:ResultVO):void
+			//				{
+			//					if (vo.status)
+			//					{
+			//					}
+			//				});
+			//			}
 			if (refreshTimer.currentCount % 60 == 0)
 			{
 				refreshData();
@@ -474,7 +477,7 @@ package controllers
 				return;
 			if (!ServiceBase.id)
 			{
-//				var so:SharedObject=SharedObject.getLocal('yp');
+				//				var so:SharedObject=SharedObject.getLocal('yp');
 				getSB('user/login').call(function(vo:ResultVO):void
 				{
 					if (vo.status)
@@ -597,7 +600,7 @@ package controllers
 					callbck();
 				return;
 			}
-//			var so:SharedObject=SharedObject.getLocal('log');
+			//			var so:SharedObject=SharedObject.getLocal('log');
 			var logs:Array=config.logs;
 			if (!logs)
 				logs=[];
@@ -643,25 +646,25 @@ package controllers
 			}, {dms: JSON.stringify(arr), version: version, serial_number: serial_number});
 		}
 
-//		public function appendPlayLog(log:String):void
-//		{
-//			Log.Trace(log);
-//			var path:String='log/play.log';
-//			var file:File;
-//			var fs:FileStream=new FileStream();
-//			createDirectory(path);
-//			file=File.applicationStorageDirectory.resolvePath(path);
-//			try
-//			{
-//				fs.open(file, FileMode.APPEND);
-//				fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + log + '\n');
-//				fs.close();
-//			}
-//			catch (error:Error)
-//			{
-//				Log.Trace('save file error', error);
-//			}
-//		}
+		//		public function appendPlayLog(log:String):void
+		//		{
+		//			Log.Trace(log);
+		//			var path:String='log/play.log';
+		//			var file:File;
+		//			var fs:FileStream=new FileStream();
+		//			createDirectory(path);
+		//			file=File.applicationStorageDirectory.resolvePath(path);
+		//			try
+		//			{
+		//				fs.open(file, FileMode.APPEND);
+		//				fs.writeUTFBytes(DateUtil.getDateString(0, 0, true) + log + '\n');
+		//				fs.close();
+		//			}
+		//			catch (error:Error)
+		//			{
+		//				Log.Trace('save file error', error);
+		//			}
+		//		}
 
 		public function appendLog(log:String):void
 		{
@@ -1002,7 +1005,7 @@ package controllers
 			var f:File;
 			var clearInfo:String='';
 			var o:Object;
-//			var so:SharedObject=cachedSO;
+			//			var so:SharedObject=cachedSO;
 			var arr:Array=config.cachedmenus;
 			if (menu && !menuDateValid(menu))
 			{
@@ -1290,60 +1293,60 @@ package controllers
 		public var dmMenu:Object;
 		public var updateForRecord:Boolean;
 
-//		private function getLocalInsertedMenu():MenuVO
-//		{
-//			var mvo:MenuVO;
-//			var arr:Array=getLocalDMS();
-//			var latest:Number;
-//			for each (var vo:MenuVO in arr)
-//			{
-//				trace(DateUtil.getYMD(vo.begin_date));
-//				trace(DateUtil.getYMD(vo.end_date));
-//				trace(DateUtil.getYMD(now));
-//				if (menuValid(vo))
-//				{
-//					if (!mvo && vo.dm_list && vo.dm_list.length)
-//						mvo=vo;
-//					else if (vo.dm_list && vo.dm_list.length)
-//						mvo.dm_list=mvo.dm_list.concat(vo.dm_list);
-//				}
-//			}
-//			return mvo;
-//		}
-//
-//		public function checkLocalInsert(locals:Array, others:Array):Boolean
-//		{
-//			var dms:Array=others
-//			if (dms)
-//			{
-//				for each (var o:Object in dms)
-//				{
-//					var d1:Date;
-//					if (o.playTime is Date)
-//						d1=DateUtil.clone(o.playTime);
-//					else
-//						d1=DateUtil.getDateByHHMMSS(o.playTime);
-//					var v1:Number=d1.getTime();
-//					d1.seconds+=o.duration;
-//					var v2:Number=d1.getTime();
-//					for each (var o2:Object in locals)
-//					{
-//						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
-//						var v3:Number=d.getTime();
-//						d.seconds+=o2.dm.duration;
-//						var v4:Number=d.getTime();
-//						if ((v3 >= v1 && v3 <= v2) || (v4 >= v1 && v4 <= v2))
-//						{
-//							d1.seconds-=o.duration;
-//							var op:String=d1.getHours() + ':' + d1.getMinutes();
-//							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的 ' + o.name + ' 时间冲突，请调整您的播放时间');
-//							return false;
-//						}
-//					}
-//				}
-//			}
-//			return true;
-//		}
+		//		private function getLocalInsertedMenu():MenuVO
+		//		{
+		//			var mvo:MenuVO;
+		//			var arr:Array=getLocalDMS();
+		//			var latest:Number;
+		//			for each (var vo:MenuVO in arr)
+		//			{
+		//				trace(DateUtil.getYMD(vo.begin_date));
+		//				trace(DateUtil.getYMD(vo.end_date));
+		//				trace(DateUtil.getYMD(now));
+		//				if (menuValid(vo))
+		//				{
+		//					if (!mvo && vo.dm_list && vo.dm_list.length)
+		//						mvo=vo;
+		//					else if (vo.dm_list && vo.dm_list.length)
+		//						mvo.dm_list=mvo.dm_list.concat(vo.dm_list);
+		//				}
+		//			}
+		//			return mvo;
+		//		}
+		//
+		//		public function checkLocalInsert(locals:Array, others:Array):Boolean
+		//		{
+		//			var dms:Array=others
+		//			if (dms)
+		//			{
+		//				for each (var o:Object in dms)
+		//				{
+		//					var d1:Date;
+		//					if (o.playTime is Date)
+		//						d1=DateUtil.clone(o.playTime);
+		//					else
+		//						d1=DateUtil.getDateByHHMMSS(o.playTime);
+		//					var v1:Number=d1.getTime();
+		//					d1.seconds+=o.duration;
+		//					var v2:Number=d1.getTime();
+		//					for each (var o2:Object in locals)
+		//					{
+		//						var d:Date=DateUtil.getDateByHHMMSS(o2.playTime);
+		//						var v3:Number=d.getTime();
+		//						d.seconds+=o2.dm.duration;
+		//						var v4:Number=d.getTime();
+		//						if ((v3 >= v1 && v3 <= v2) || (v4 >= v1 && v4 <= v2))
+		//						{
+		//							d1.seconds-=o.duration;
+		//							var op:String=d1.getHours() + ':' + d1.getMinutes();
+		//							PAlert.show(o2.playTime + ' 插播的 ' + o2.dm.name + ' 同 ' + op + ' 插播的 ' + o.name + ' 时间冲突，请调整您的播放时间');
+		//							return false;
+		//						}
+		//					}
+		//				}
+		//			}
+		//			return true;
+		//		}
 
 		public function parseMenu(songMenu:Object, dmMenu:Object, onlyParse:Boolean=false):Object
 		{
@@ -1622,15 +1625,15 @@ package controllers
 				progress='';
 				if (e.data)
 				{
-//					var so:SharedObject=updateLogSO;
+					//					var so:SharedObject=updateLogSO;
 					config.updatalog=e.data;
 					saveConfig();
 					uploadUpdateLog();
 				}
-//				else
-//				{
-//					checkMenuToUpdate();
-//				}
+				//				else
+				//				{
+				//					checkMenuToUpdate();
+				//				}
 				if (!playingSong || dmChanged)
 				{
 					initBroadcasts();
@@ -1688,7 +1691,7 @@ package controllers
 		public function hasCached(id:String):Boolean
 		{
 			var b:Boolean;
-//			var cached:SharedObject=cachedSO;
+			//			var cached:SharedObject=cachedSO;
 			var arr:Array=config.cachedmenus;
 			if (arr)
 			{
@@ -1708,8 +1711,8 @@ package controllers
 		{
 			if (local || (Capabilities.isDebugger && !isTest))
 				return;
-//			var so:SharedObject=updateLogSO;
-//			var cached:SharedObject=cachedSO;
+			//			var so:SharedObject=updateLogSO;
+			//			var cached:SharedObject=cachedSO;
 			var log:Object=config.updatalog;
 			if (log)
 			{
@@ -1728,7 +1731,7 @@ package controllers
 					if (vo.status)
 					{
 						config.updatalog=null;
-//						checkMenuToUpdate();
+							//						checkMenuToUpdate();
 					}
 					else
 					{
@@ -1740,28 +1743,28 @@ package controllers
 			}
 		}
 
-//		private function checkMenuToUpdate():void
-//		{
-//			var menus:Array=FileManager.readFile('menus.yp') as Array;
-//			var cached:Array=cachedSO.data.menus;
-//			for each (var m:Object in menus)
-//			{
-//				if (cached.indexOf(m._id) == -1)
-//				{
-//					if (m.type == 1)
-//					{
-//						parseMenu(m, null);
-//					}
-//					else
-//					{
-//						parseMenu(null, m);
-//					}
-//					break;
-//				}
-//			}
-//		}
+		//		private function checkMenuToUpdate():void
+		//		{
+		//			var menus:Array=FileManager.readFile('menus.yp') as Array;
+		//			var cached:Array=cachedSO.data.menus;
+		//			for each (var m:Object in menus)
+		//			{
+		//				if (cached.indexOf(m._id) == -1)
+		//				{
+		//					if (m.type == 1)
+		//					{
+		//						parseMenu(m, null);
+		//					}
+		//					else
+		//					{
+		//						parseMenu(null, m);
+		//					}
+		//					break;
+		//				}
+		//			}
+		//		}
 
-//		public var dms:Array;
+		//		public var dms:Array;
 
 		private function noPlayList():void
 		{
@@ -1780,9 +1783,9 @@ package controllers
 
 		private function setYPData(key:String, value:Object):void
 		{
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			so.data[key]=value;
-//			so.flush();
+			//			var so:SharedObject=SharedObject.getLocal('yp');
+			//			so.data[key]=value;
+			//			so.flush();
 			config[key]=value;
 			saveConfig();
 		}
@@ -1821,28 +1824,28 @@ package controllers
 				}
 				else
 				{
-//					var f:File;
-//					if (needInsert() && records[0].url)
-//					{
-//						f=new File(FileManager.savedDir + records[0].url);
-//						if (f.exists)
-//							insertBro=records[0];
-//					}
-//					else if (Capabilities.isDebugger && records[0].url)
-//					{
-//						f=new File(FileManager.savedDir + records[0].url);
-//						if (f.exists)
-//							insertBro=records[0];
-//					}
-//					else
-//						insertBro=null;
+					//					var f:File;
+					//					if (needInsert() && records[0].url)
+					//					{
+					//						f=new File(FileManager.savedDir + records[0].url);
+					//						if (f.exists)
+					//							insertBro=records[0];
+					//					}
+					//					else if (Capabilities.isDebugger && records[0].url)
+					//					{
+					//						f=new File(FileManager.savedDir + records[0].url);
+					//						if (f.exists)
+					//							insertBro=records[0];
+					//					}
+					//					else
+					//						insertBro=null;
 				}
 				bs=bs.concat(records);
 			}
-//			if (enabledInsert())
-//			{
-//				bs.push({name: '定制插播', type: 2});
-//			}
+			//			if (enabledInsert())
+			//			{
+			//				bs.push({name: '定制插播', type: 2});
+			//			}
 			broadcasts=CloneUtil.convertArrayObjects(bs, InsertVO);
 			var arr:Array=[];
 			if (broadcasts)
@@ -1873,11 +1876,11 @@ package controllers
 		{
 			try
 			{
-//				var so:SharedObject=SharedObject.getLocal('yp');
-//				so.data.username=name;
-//				so.data.password=pwd;
-//				so.data.cacheDir=cacheDir;
-//				so.data.id=id;
+				//				var so:SharedObject=SharedObject.getLocal('yp');
+				//				so.data.username=name;
+				//				so.data.password=pwd;
+				//				so.data.cacheDir=cacheDir;
+				//				so.data.id=id;
 				config.cacheDir=cacheDir;
 				config.id=id;
 				config.username=name;
@@ -1893,10 +1896,10 @@ package controllers
 		public function getUserInfo():Object
 		{
 			var o:Object={};
-//			var config:Object;
-//			config=FileManager.readFile('config.json');
-//			if (config is String)
-//				config=JSON.parse(config + '');
+			//			var config:Object;
+			//			config=FileManager.readFile('config.json');
+			//			if (config is String)
+			//				config=JSON.parse(config + '');
 			Log.info('getUserInfoing……………………');
 			if (config && config.username)
 			{
@@ -1911,7 +1914,7 @@ package controllers
 			{
 				Log.info('Login---false');
 			}
-//			}
+			//			}
 			return o;
 		}
 
@@ -1939,30 +1942,30 @@ package controllers
 					test();
 				}
 
-//				if (!cd || !exists)
-//				{
-//					if (vo.status || noCacheDirInConfig)
-//					{
-//						var sv:SelectCacheView=new SelectCacheView();
-//						PopupBoxManager.popup(sv, function():void
-//						{
-//							var so:SharedObject=SharedObject.getLocal('yp');
-//							FileManager.savedDir=so.data.cacheDir;
-//							if (vo.results && vo.results.hasOwnProperty('id'))
-//								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
-//							else
-//							{
-//								config.cacheDir=so.data.cacheDir;
-//								saveConfig();
-//							}
-//							if (broadcasts)
-//								FileManager.saveFile('bros.yp', broadcasts);
-//							getMenuList();
-//						});
-//					}
-//				}
+				//				if (!cd || !exists)
+				//				{
+				//					if (vo.status || noCacheDirInConfig)
+				//					{
+				//						var sv:SelectCacheView=new SelectCacheView();
+				//						PopupBoxManager.popup(sv, function():void
+				//						{
+				//							var so:SharedObject=SharedObject.getLocal('yp');
+				//							FileManager.savedDir=so.data.cacheDir;
+				//							if (vo.results && vo.results.hasOwnProperty('id'))
+				//								saveUserInfo(username, password, FileManager.savedDir, vo.results.id);
+				//							else
+				//							{
+				//								config.cacheDir=so.data.cacheDir;
+				//								saveConfig();
+				//							}
+				//							if (broadcasts)
+				//								FileManager.saveFile('bros.yp', broadcasts);
+				//							getMenuList();
+				//						});
+				//					}
+				//				}
 
-//				var cached:SharedObject=cachedSO;
+				//				var cached:SharedObject=cachedSO;
 				var arr:Array=config.cachedmenus;
 
 				if (!vo.status && arr)
@@ -1979,9 +1982,9 @@ package controllers
 
 		private function test():void
 		{
-//			var vo:InsertVO=new InsertVO();
-//			vo._id='5399c4dd03aba48d3896c498';
-//			recordDM(vo);
+			//			var vo:InsertVO=new InsertVO();
+			//			vo._id='5399c4dd03aba48d3896c498';
+			//			recordDM(vo);
 		}
 
 		private function checkLog():void
@@ -2021,28 +2024,28 @@ package controllers
 		private var updateFileSize:Number;
 		private var checkingUpdate:Boolean;
 		public var scale:Number;
-//		private var appRoot:String;
+		//		private var appRoot:String;
 
 
 		[Bindable]
 		public var progress:String='系统初始化';
 
-//		public function isNewVersion(newVersion:String):Boolean
-//		{
-//			var arr:Array=version.split('.');
-//			var v1:int;
-//			var v2:int;
-//			for each (var s:String in arr)
-//			{
-//				v1+=parseInt(s);
-//			}
-//			arr = newVersion.split('.');
-//			for each (var s:String in arr)
-//			{
-//				v2+=parseInt(s);
-//			}
-//			return v2 > v1;
-//		}
+		//		public function isNewVersion(newVersion:String):Boolean
+		//		{
+		//			var arr:Array=version.split('.');
+		//			var v1:int;
+		//			var v2:int;
+		//			for each (var s:String in arr)
+		//			{
+		//				v1+=parseInt(s);
+		//			}
+		//			arr = newVersion.split('.');
+		//			for each (var s:String in arr)
+		//			{
+		//				v2+=parseInt(s);
+		//			}
+		//			return v2 > v1;
+		//		}
 
 		private function get readyToUpdate():Boolean
 		{
@@ -2106,7 +2109,7 @@ package controllers
 					Log.Trace('New Version:' + o.version);
 					newVersion=o.version;
 					recordLog(new LogVO(LogVO.AUTO_UPDATE_BEGIN, o.version, '从' + version + '自动更新版本到' + o.version));
-//					if (!Capabilities.isDebugger)
+					//					if (!Capabilities.isDebugger)
 					downloadUpdate();
 				}
 				else
@@ -2124,15 +2127,136 @@ package controllers
 
 		public function clearInfo():void
 		{
-//			var so:SharedObject=SharedObject.getLocal('yp');
-//			so.clear();
-//			cachedSO.clear();
-//			updateLogSO.clear();
+			//			var so:SharedObject=SharedObject.getLocal('yp');
+			//			so.clear();
+			//			cachedSO.clear();
+			//			updateLogSO.clear();
 			config.username='';
 			config.password='';
 			config.cacheDir='';
 			config.id='';
 			saveConfig();
+		}
+
+		private var app:SkinnableContainer;
+		private var isController:Boolean;
+
+		public function controllerInit(app:SkinnableContainer):void
+		{
+			PAlert.PARENT=app;
+			PopupBoxManager.PARENT=app;
+			this.app=app;
+			config=getConfig();
+			//			controllerLogin('red:q2', '994070');
+			if (config.username && config.password)
+			{
+				controllerLogin(config.username, config.password);
+			}
+			else
+			{
+				var l:ControllerLoginView=new ControllerLoginView();
+				PopupBoxManager.popup(l);
+			}
+		}
+
+		public function controllerLogin(username:String, password:String, callback:Function=null):void
+		{
+			config.username=username;
+			config.password=password;
+			saveConfig();
+			getSB('user/controller/login').call(function(vo:ResultVO):void
+			{
+				Log.info(JSON.stringify(vo.results));
+				if (vo.status)
+				{
+					ServiceBase.id=vo.results.id;
+					isController=vo.results.controller;
+					if (!isController)
+					{
+						PAlert.show('您没有控制权限，请联系我们为您开通:\n客服电话1：010-51244395\n客服电话2：010-51244052\n您的序列号为：' + serial_number.split('-')[0], '提示', null, function(value:String):void
+						{
+							controllerLogin(config.username, config.password);
+						}, PAlert.CONFIRM, '再试一次', '', true);
+					}
+					else
+					{
+						var bp:BroadcastPanel=new BroadcastPanel();
+						bp.bros=vo.results.broadcasts;
+						app.addElement(bp);
+					}
+				}
+				else
+				{
+					//提示登录失败，需要重试，点击重试按钮后，再次调用自动登录的方法
+				}
+			}, {username: username, password: password, controller_number: serial_number});
+		}
+
+		/**
+		 * 发送广播命令
+		 * @param command
+		 * @param callback
+		 *
+		 */
+		public function sendCommand(command:String, callback:Function):void
+		{
+			getSB('user/command').call(function(vo:ResultVO):void
+			{
+				callback(vo);
+			}, {command: command, controller_number: serial_number});
+		}
+
+		/**
+		 * 获取播放广播命令
+		 * @param callback
+		 *
+		 */
+		public function getCommand(callback:Function):void
+		{
+			getSB('user/command', 'GET').call(function(vo:ResultVO):void
+			{
+				if (vo && vo.results == 'showMenu')
+					callback(vo.results as String);
+				else if (vo && vo.results == 'stop')
+					callback(vo.results as String);
+				else if (vo && vo.results == 'playInfo')
+					callback(vo.results as String);
+				else if (vo && vo.results.length != 0 && vo.results != '网络连接失败，请稍后再试')
+					callback(JSON.parse(vo.results as String));
+			}, {controller_number: serial_number});
+		}
+
+		/**
+		 * 发送广播状态
+		 * @param b
+		 * @param callback
+		 *
+		 */
+		public function sendStatus(b:String, callback:Function=null):void
+		{
+			getSB('command/status').call(function(vo:ResultVO):void
+			{
+				if (vo && callback)
+					callback();
+			}, {status: b});
+		}
+
+		/**
+		 * 获取广播状态
+		 * @param callback
+		 *
+		 */
+		public function getStatus(callback:Function=null):void
+		{
+			var s:String=''
+			getSB('command/status', 'GET').call(function(vo:ResultVO):void
+			{
+				if (vo)
+				{
+					var str:String=vo.results as String;
+					callback(str);
+				}
+			});
 		}
 	}
 }
