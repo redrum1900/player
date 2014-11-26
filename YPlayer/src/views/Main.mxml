@@ -8,7 +8,7 @@
 		 creationComplete="inited(event)"
 		 xmlns:views="views.*"
 		 xmlns:components="views.components.*">
-
+	
 	<fx:Script source="MainSource.as"/>
 	
 	<fx:Script>
@@ -23,6 +23,7 @@
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.services.ServiceBase;
+			import com.pamakids.utils.CloneUtil;
 			import com.pamakids.utils.DateUtil;
 			import com.pamakids.utils.URLUtil;
 			import com.youli.messengers.PreloaderMessenger;
@@ -39,16 +40,16 @@
 			import models.InsertVO;
 			import models.LogVO;
 			import models.SongVO;
-
+			
 			private var player1:SoundPlayer;
-
-//			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
-
+			
+			//			private static const SOUND_FILE:String = "http://yuefumedia.qiniudn.com/1.mp3";
+			
 			private var player:SoundPlayer;
-
-//			private var soundVisualizer:SoundVisualizer;
-
-//			private var volumeSO:SharedObject;
+			
+			//			private var soundVisualizer:SoundVisualizer;
+			
+			//			private var volumeSO:SharedObject;
 			
 			protected function inited(event:FlexEvent):void
 			{
@@ -60,23 +61,24 @@
 				if(api.config.volume2 != null)
 					vc2Volume=api.config.volume2;
 				vc1.volume = vc1Volume;
-
+				
 				initPlayer();
 				panelGroup.y=info.y + info.height - 3;
 				panelGroup.height=height-panelGroup.y+info.height;
 				panelGroup.x=2;
 				panelGroup.width=width - 4;
 				panelGroup.height*=1.5;
-
+				
 				PreloaderMessenger.listen(PreloaderMessenger.SHOW_APP, function():void
 				{
 					TweenLite.delayedCall(0.5, autoLogin);
 				});
-
+				
 				initMore();
-
+				
 				listPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
-
+				listPanel.addEventListener(ODataEvent.ODATA2,conplayBroHandler);
+				
 				autoPlayTimer=new Timer(1000);
 				autoPlayTimer.addEventListener(TimerEvent.TIMER, onTimer);
 				
@@ -104,9 +106,9 @@
 					}
 				});
 			}
-
+			
 			private var autoPlayTimer:Timer;
-
+			
 			private function autoLogin():void
 			{
 				if (api.local)
@@ -138,31 +140,31 @@
 					}
 				}
 			}
-
+			
 			private function getPlayer():SoundPlayer
 			{
 				var p:SoundPlayer=new SoundPlayer(1000);
 				p.autoPlay=true;
 				return p;
 			}
-
+			
 			private function updateTime():void
 			{
 				var n:Date=api.now;
 				time=n.getHours() + ' : ' + n.getMinutes() + ' : ' + n.getSeconds();
 			}
-
+			
 			[Bindable]
-			public var time:String;
-
+			public static var time:String;
+			
 			private var brodcasting:Boolean;
 			private var playingDM:Boolean;
-
+			
 			private var preMics:Array;
-//			private var preVolume:Number=volume;
+			//			private var preVolume:Number=volume;
 			private var micChanged:int;
 			private var plaiedDM:Object;
-
+			
 			protected function playingHandler(event:DataEvent):void
 			{
 				if (brodcasting || playingDM)
@@ -222,18 +224,35 @@
 				else
 					time+=' ' + DateUtil.formateTime(value) + ' 后将将结束今天的播放'
 			}
-
+			
 			protected function player1PlayedHandler(event:Event):void
 			{
 				play();
 			}
-
+			
+			private function broStatus(e:Event):void
+			{
+				conStop();
+			}
+			
+			public function conStop():void
+			{
+				var ro:Object = new Object();
+				ro.command = 1;
+				ro.status = 2;
+				//				ro.data = API.instance.playingBro;
+				
+				api.sendStatus(JSON.stringify(ro),function():void
+				{
+				});
+			}
+			
 			private var song1:SongVO;
 			private var song2:SongVO;
-
+			
 			private var player2:SoundPlayer;
 			private var playerDic:Dictionary=new Dictionary();
-
+			
 			private function initPlayer():void
 			{
 				player1=getPlayer();
@@ -242,6 +261,7 @@
 				player1.volume=vc1Volume / 100;
 				player1.addEventListener("playing", playingHandler);
 				player1.addEventListener("playComplete", player1PlayedHandler);
+				player2.addEventListener("playComplete",broStatus);
 				API.instance.addEventListener('PLAY', function(e:Event):void
 				{
 					if (!player1.playing)
@@ -257,7 +277,7 @@
 					titleLabel = un.split(':')[0] + '播放器';
 				});
 			}
-
+			
 			private function getPlayer2():SoundPlayer
 			{
 				var p:SoundPlayer=new SoundPlayer(1000);
@@ -267,7 +287,7 @@
 				p.autoPlay=true;
 				return p;
 			}
-
+			
 			private var playingIndex:int;
 			private var pv:PrepareView;
 			private var nearestSong:SongVO;
@@ -286,7 +306,7 @@
 					b = true;
 				return b;
 			}
-
+			
 			private function play():void
 			{
 				if (player1.playing || !api.songs || !api.songs.length)
@@ -356,8 +376,8 @@
 				}
 				else
 				{
-//					if (autoPlayTimer.running)
-//						autoPlayTimer.stop();
+					//					if (autoPlayTimer.running)
+					//						autoPlayTimer.stop();
 					vo=song1;
 					api.playingSong=vo;
 					api.playingIndex=api.songs.indexOf(song1);
@@ -390,100 +410,100 @@
 					}
 				}
 			}
-
+			
 			protected function randomPlay_changeHandler(event:Event):void
 			{
-//				Log.Trace(randomPlay.selected);
+				//				Log.Trace(randomPlay.selected);
 				if (!song1)
 					play();
 			}
-
-//			protected function songList_changeHandler(event:Event):void
-//			{
-//				var wait:Number = 0;
-//				if(panel && panel != songPanel){
-//					hide(panel);
-//					wait = 0.5;
-//				}
-//				TweenLite.delayedCall(wait, function():void{
-//					if(!songPanel){
-//						songPanel = new ListPanel();
-//						songPanel.width = panelGroup.width;
-//						songPanel.height = panelGroup.height;
-//						panelGroup.addElement(songPanel);
-//						panelButton[songPanel] = songList;
-//					}
-//
-//					songList.selected ? show(songPanel) : hide(songPanel);
-//				});
-//			}
-
-//			private var panel:Group;
-//			private var broPanel:BroPanel;
-//			private var panelButton:Dictionary = new Dictionary();
-//
-//			protected function broList_changeHandler(event:Event):void
-//			{
-//				var wait:Number = 0;
-//				if(panel && panel != broPanel){
-//					hide(panel);
-//					wait = 0.5;
-//				}
-//				TweenLite.delayedCall(wait, function():void{
-//					if(!broPanel)
-//					{
-//						broPanel = new BroPanel();
-//						broPanel.width = panelGroup.width;
-//						broPanel.height = panelGroup.height;
-//						broPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
-//						panelGroup.addElement(broPanel);
-//						panelButton[broPanel] = broList;
-//					}
-//
-//					broList.selected ? show(broPanel) : hide(broPanel);
-//				});
-//			}
-
+			
+			//			protected function songList_changeHandler(event:Event):void
+			//			{
+			//				var wait:Number = 0;
+			//				if(panel && panel != songPanel){
+			//					hide(panel);
+			//					wait = 0.5;
+			//				}
+			//				TweenLite.delayedCall(wait, function():void{
+			//					if(!songPanel){
+			//						songPanel = new ListPanel();
+			//						songPanel.width = panelGroup.width;
+			//						songPanel.height = panelGroup.height;
+			//						panelGroup.addElement(songPanel);
+			//						panelButton[songPanel] = songList;
+			//					}
+			//
+			//					songList.selected ? show(songPanel) : hide(songPanel);
+			//				});
+			//			}
+			
+			//			private var panel:Group;
+			//			private var broPanel:BroPanel;
+			//			private var panelButton:Dictionary = new Dictionary();
+			//
+			//			protected function broList_changeHandler(event:Event):void
+			//			{
+			//				var wait:Number = 0;
+			//				if(panel && panel != broPanel){
+			//					hide(panel);
+			//					wait = 0.5;
+			//				}
+			//				TweenLite.delayedCall(wait, function():void{
+			//					if(!broPanel)
+			//					{
+			//						broPanel = new BroPanel();
+			//						broPanel.width = panelGroup.width;
+			//						broPanel.height = panelGroup.height;
+			//						broPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
+			//						panelGroup.addElement(broPanel);
+			//						panelButton[broPanel] = broList;
+			//					}
+			//
+			//					broList.selected ? show(broPanel) : hide(broPanel);
+			//				});
+			//			}
+			
 			private function show(p:Group):void
 			{
 				p.x=panelGroup.width;
 				TweenLite.to(p, 0.5, {x: 0, ease: Cubic.easeOut});
-//				soundVisualizer.graphics.clear()
-//				panel=p;
+				//				soundVisualizer.graphics.clear()
+				//				panel=p;
 			}
-
+			
 			private function hide(p:Group):void
 			{
-//				panelButton[p].selected=false;
+				//				panelButton[p].selected=false;
 				TweenLite.to(p, 0.5, {x: panelGroup.width, ease: Cubic.easeOut});
-//				panel=null;
+				//				panel=null;
 			}
-
+			
 			private var menuListPanel:MenuListPanel;
 			private var api:API;
-
+			
 			protected function insertSong_changeHandler(event:Event):void
 			{
 				var wait:Number=0;
-//				if(panel && panel != insertPanel){
-//					hide(panel);
-//					wait = 0.5;
-//				}
-//				TweenLite.delayedCall(wait, function():void{
-//					if(!insertPanel)
-//					{
-//						insertPanel = new InsertPanel();
-//						insertPanel.width = panelGroup.width;
-//						insertPanel.height = panelGroup.height;
-//						insertPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
-//						panelGroup.addElement(insertPanel);
-//						panelButton[insertPanel] = insertSong;
-//					}
-//
-//					insertSong.selected ? show(insertPanel) : hide(insertPanel);
-//				});
+				//				if(panel && panel != insertPanel){
+				//					hide(panel);
+				//					wait = 0.5;
+				//				}
+				//				TweenLite.delayedCall(wait, function():void{
+				//					if(!insertPanel)
+				//					{
+				//						insertPanel = new InsertPanel();
+				//						insertPanel.width = panelGroup.width;
+				//						insertPanel.height = panelGroup.height;
+				//						insertPanel.addEventListener(ODataEvent.ODATA, playBroHandler);
+				//						panelGroup.addElement(insertPanel);
+				//						panelButton[insertPanel] = insertSong;
+				//					}
+				//
+				//					insertSong.selected ? show(insertPanel) : hide(insertPanel);
+				//				});
 			}
-
+			
 			protected function playBroHandler(event:ODataEvent):void
 			{
 				if (brodcasting)
@@ -498,12 +518,33 @@
 					}
 				}, PAlert.YESNO);
 			}
-
+			
+			/**
+			 * 远程控制播放定制广告
+			 * 
+			 */
+			protected function conplayBroHandler(event:ODataEvent):void
+			{
+				if (brodcasting && event.data != 'stop')
+					return;
+				else if(event.data == 'stop')
+				{
+					stopInsertVO();
+				}else
+				{
+					brodcasting=true;
+					var vo:InsertVO=CloneUtil.convertObject(event.data, InsertVO);
+					vo.url = 'http://yfcdn.qiniudn.com/'+vo.url;
+					insertBroOrDM(vo, true);
+					Log.info('远程控制播放插播广告');
+				}
+			}
+			
 			protected function more_clickHandler(event:MouseEvent):void
 			{
 				moreMenu.display(this.stage, event.stageX, event.stageY);
 			}
-
+			
 			private var moreMenu:NativeMenu
 			private const CLOSE:String='CLOSE';
 			private const CONTACT_US:String='CONTACT_US';
@@ -512,22 +553,22 @@
 			private const FEEDBACK:String='FEEDBACK';
 			private const REMOTE_ACCOUNT:String='REMOTE_ACCOUNT';
 			private const ABOUT_SOFTWARE:String = 'ABOUT_SOFTWARE';
-
+			
 			private function initMore():void
 			{
 				moreMenu=new NativeMenu();
 				moreMenu.addItem(getNMI('联系我们', CONTACT_US));
-//				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
+				//				moreMenu.addItem(getNMI('意见反馈', FEEDBACK));
 				if (api.isTest)
 					moreMenu.addItem(getNMI('清空缓存文件', CLEAR_CACHE));
 				if(!api.local)
 					moreMenu.addItem(getNMI('注销账户并退出', REMOTE_ACCOUNT));
 				moreMenu.addItem(getNMI('关于更多', ABOUT_SOFTWARE));
-//				moreMenu.addItem(getNMI('','', true));
-//				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
-//				moreMenu.addItem(getNMI('关闭程序', CLOSE));
+				//				moreMenu.addItem(getNMI('','', true));
+				//				moreMenu.addItem(getNMI('关于我们', ABOUT_US));
+				//				moreMenu.addItem(getNMI('关闭程序', CLOSE));
 			}
-
+			
 			private function getNMI(label:String, data:Object, isSeparator:Boolean=false):NativeMenuItem
 			{
 				var i:NativeMenuItem=new NativeMenuItem(label, isSeparator);
@@ -535,7 +576,7 @@
 				i.addEventListener(Event.SELECT, selectedHandler);
 				return i;
 			}
-
+			
 			protected function selectedHandler(event:Event):void
 			{
 				switch (event.target.data)
@@ -583,7 +624,7 @@
 						break;
 				}
 			}
-
+			
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
 				PAlert.show('退出后将停止公播', '退出播放', null, function(value:String):void
@@ -592,49 +633,49 @@
 						NativeApplication.nativeApplication.exit();
 				}, PAlert.YESNO);
 			}
-
+			
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
 				NativeApplication.nativeApplication.activeWindow.minimize()
 			}
-
+			
 			private var updating:Boolean;
-
+			
 			protected function button3_clickHandler(event:MouseEvent):void
 			{
-//				if(updateButton. label == '重启应用')
-//				{
-//					api.reboot();
-//					return;
-//				}
-//				if (this.updating)
-//					return;
-//				updateButton.label='下载更新';
-//				updating=true;
-//				api.downloadUpdate(function(percent:Number):void{
-//					if(!percent){
-//						updateButton.label='下载更新';
-//					}else{
-//						percent=Math.round(percent * 100);
-//						updateButton.label='进度' + percent + '%';
-//						if(percent == 100){
-//							updateButton.label = '重启应用';
-//							updating = false;
-//						}
-//					}
-//				});
-//				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
-//				{
-//					var percent:Number=e.bytesLoaded / e.bytesTotal;
-//					percent=Math.round(percent * 100);
-//					updateButton.label='进度' + percent + '%';
-//				});
-//				api.updater.downloadUpdate();
+				//				if(updateButton. label == '重启应用')
+				//				{
+				//					api.reboot();
+				//					return;
+				//				}
+				//				if (this.updating)
+				//					return;
+				//				updateButton.label='下载更新';
+				//				updating=true;
+				//				api.downloadUpdate(function(percent:Number):void{
+				//					if(!percent){
+				//						updateButton.label='下载更新';
+				//					}else{
+				//						percent=Math.round(percent * 100);
+				//						updateButton.label='进度' + percent + '%';
+				//						if(percent == 100){
+				//							updateButton.label = '重启应用';
+				//							updating = false;
+				//						}
+				//					}
+				//				});
+				//				api.updater.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void
+				//				{
+				//					var percent:Number=e.bytesLoaded / e.bytesTotal;
+				//					percent=Math.round(percent * 100);
+				//					updateButton.label='进度' + percent + '%';
+				//				});
+				//				api.updater.downloadUpdate();
 			}
-
+			
 			private var dmPlayers:Dictionary=new Dictionary();
 			private var broDic:Dictionary=new Dictionary();
-
+			
 			private function insertBroOrDM(data:InsertVO, isBro:Boolean=false):void
 			{
 				var ivo:InsertVO=data;
@@ -643,7 +684,7 @@
 					url = new File(FileManager.savedDir + URLUtil.getCachePath(ivo.url)).url
 				else
 					url = ivo.url;
-//				var url:String=data.url.indexOf('recorded') == -1 ? new File(naiveURL).url : 
+				//				var url:String=data.url.indexOf('recorded') == -1 ? new File(naiveURL).url : 
 				broDic[url]=ivo;
 				time=data.playTime && data.playTime.valueOf() ? '开始插播广播海报：' : '开始广播：';
 				time+=ivo.name;
@@ -706,7 +747,7 @@
 					}
 				}, 800)
 			}
-
+			
 			protected function onTimer(event:TimerEvent):void
 			{
 				var gotoPlayDM:Boolean;
@@ -760,7 +801,7 @@
 				if (!player1.playing && !song1 && !gotoPlayDM && !playingDM)
 					play();
 			}
-
+			
 			protected function bro_clickHandler(event:MouseEvent):void
 			{
 				var av:AddBroView=new AddBroView();
@@ -769,9 +810,9 @@
 					api.initBroadcasts();
 				});
 			}
-
+			
 			private var player2Time:String;
-
+			
 			protected function player2PlayingHandler(event:DataEvent):void
 			{
 				var sp:SoundPlayer=event.target as SoundPlayer;
@@ -781,7 +822,7 @@
 				var tt:int=Math.ceil(sp.soundLength / 1000);
 				time=player2Time + ' ' + DateUtil.formateTime(tt - pt) + ' 后结束'
 			}
-
+			
 			protected function menuList_changeHandler(event:Event):void
 			{
 				if (!menuListPanel)
@@ -800,7 +841,7 @@
 			
 			private var vc1Volume:Number=100.0;
 			private var vc2Volume:Number=100.0;
-
+			
 			protected function vc1_changingHandler(event:ODataEvent):void
 			{
 				vc1Volume=event.data as Number;
@@ -961,6 +1002,16 @@
 				}, 800);
 			}
 			
+			public function stopInsertVO():void
+			{
+				//				api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
+				player2.stop();
+				broPlayed();
+				
+				//				conStop();
+				PopUpManager.removePopUp(broAlert);
+			}
+			
 			[Bindable]
 			private var titleLabel:String;
 			
@@ -971,16 +1022,16 @@
 			
 			protected function button4_clickHandler(event:MouseEvent):void
 			{
-//				var menus:Array=FileManager.readFile('menus.yp') as Array;
-//				var arr:Array=[];
-//				for each (var menu:Object in menus)
-//				{
-//					if (api.hasCached(menu._id))
-//						menu.name+=' 【已缓存】'
-//					arr.push(menu.name);
-//				}
-//				var s:String = arr.join('\n');
-//				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+				//				var menus:Array=FileManager.readFile('menus.yp') as Array;
+				//				var arr:Array=[];
+				//				for each (var menu:Object in menus)
+				//				{
+				//					if (api.hasCached(menu._id))
+				//						menu.name+=' 【已缓存】'
+				//					arr.push(menu.name);
+				//				}
+				//				var s:String = arr.join('\n');
+				//				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
 				
 				var mp:manualPanel = new manualPanel();
 				mp.width = mp.setWidth();
@@ -989,7 +1040,7 @@
 			
 		]]>
 	</fx:Script>
-
+	
 	<s:BitmapImage id="background"
 				   source="@Embed('/assets/panelBG.jpg')"
 				   width="100%"
@@ -1003,7 +1054,7 @@
 						 width="100%"
 						 height="100%"/>
 	</s:Group>
-
+	
 	<s:Group height="57"
 			 width="100%">
 		<s:Group id="topinfo" height="45"
@@ -1089,7 +1140,7 @@
 					  label="退出"/>
 		</s:HGroup>
 	</s:Group>
-
-
-
+	
+	
+	
 </s:Group>

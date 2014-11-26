@@ -81,6 +81,8 @@ package controllers
 
 		private var noCacheDirInConfig:Boolean;
 
+		public var playingBro:Object=new Object();
+
 		/**
 		 * 遍历文件夹
 		 */
@@ -113,8 +115,8 @@ package controllers
 			//			trace(s,b);
 			//			return
 
-//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
 			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String='/mnt/extsd/yuefu/cache/';
@@ -500,7 +502,7 @@ package controllers
 				if (playingSong && menu)
 					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
 				else
-					pn=main.time;
+					pn=Main.time;
 			}
 			else
 			{
@@ -2148,16 +2150,16 @@ package controllers
 			PopupBoxManager.PARENT=app;
 			this.app=app;
 			config=getConfig();
-			controllerLogin('red:q1', '679036');
-//			if (config.username && config.password)
-//			{
-//				controllerLogin(config.username, config.password);
-//			}
-//			else
-//			{
-//				var l:ControllerLoginView=new ControllerLoginView();
-//				PopupBoxManager.popup(l);
-//			}
+			//			controllerLogin('red:q2', '994070');
+			if (config.username && config.password)
+			{
+				controllerLogin(config.username, config.password);
+			}
+			else
+			{
+				var l:ControllerLoginView=new ControllerLoginView();
+				PopupBoxManager.popup(l);
+			}
 		}
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
@@ -2216,14 +2218,10 @@ package controllers
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo && vo.results == 'showMenu')
+				if (vo && vo.results != '')
+				{
 					callback(vo.results as String);
-				else if (vo && vo.results == 'stop')
-					callback(vo.results as String);
-				else if (vo && vo.results == 'playInfo')
-					callback(vo.results as String);
-				else if (vo && vo.results.length != 0 && vo.results != '网络连接失败，请稍后再试')
-					callback(JSON.parse(vo.results as String));
+				}
 			}, {controller_number: serial_number});
 		}
 
@@ -2253,11 +2251,6 @@ package controllers
 			getSB('command/status', 'GET').call(function(vo:ResultVO):void
 			{
 				callback(vo);
-//				if (vo)
-//				{
-//					var str:String=vo.results as String;
-//					callback(str);
-//				}
 			});
 		}
 	}

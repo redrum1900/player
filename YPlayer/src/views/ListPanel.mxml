@@ -15,6 +15,7 @@
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
 			import com.pamakids.events.ODataEvent;
+			import com.pamakids.manager.FileManager;
 			import com.pamakids.managers.PopupBoxManager;
 			import com.pamakids.utils.DateUtil;
 
@@ -39,12 +40,15 @@
 			[Bindable]
 			private var label:String;
 
+			public var getTimer:Timer;
+
 			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
 				api.addEventListener('PLAY', function():void
 				{
 					update();
+					getTimer.start();
 				});
 				AA.listen('UPDATE', function():void
 				{
@@ -58,6 +62,74 @@
 					buttonsGroup.removeAllElements();
 					btnDic=new Dictionary();
 					createButtons();
+				});
+
+				getTimer=new Timer(2000);
+				getTimer.addEventListener(TimerEvent.TIMER, action);
+			}
+
+			/**
+			 * 获取远程控制命令事件，获取播放广播的信息，并播放
+			 *
+			 */
+			public function action(e:TimerEvent):void
+			{
+				api.getCommand(function(vo:String):void
+				{
+					if (vo == 'stop')
+					{
+						Log.info('stop');
+						var ro:Object=new Object();
+						ro.command=1;
+						ro.status=2;
+						Log.info('status=2');
+						api.sendStatus(JSON.stringify(ro), function():void
+						{
+						});
+						dispatchEvent(new ODataEvent(vo, "odata2"));
+					}
+					else if (vo == 'showMenu')
+					{
+						var menus:Array=FileManager.readFile('menus.yp') as Array;
+						var arr:Array=[];
+						for each (var menu:Object in menus)
+						{
+							if (api.hasCached(menu._id))
+								arr.push(menu.name + ' 【已缓存】');
+							else
+								arr.push(menu.name);
+						}
+						var ro:Object=new Object();
+						ro.command=2;
+						ro.status=3;
+						ro.data=arr;
+						api.sendStatus(JSON.stringify(ro), function():void
+						{
+						});
+					}
+					else if (vo == 'playInfo')
+					{
+						var ro:Object=new Object();
+						ro.command=3;
+						ro.status=4;
+						ro.data=Main.time;
+						api.sendStatus(JSON.stringify(ro), function():void
+						{
+						});
+					}
+					else
+					{
+						var o:Object=JSON.parse(vo);
+						var ro:Object=new Object();
+						ro.command=1;
+						ro.status=1;
+						ro.data=o;
+						API.instance.playingBro=vo;
+						api.sendStatus(JSON.stringify(ro), function():void
+						{
+						});
+						dispatchEvent(new ODataEvent(o, "odata2"));
+					}
 				});
 			}
 
@@ -180,10 +252,10 @@
 					return;
 				if (bros && i < bros.length)
 					getButton(bros[i]);
-//				else
-//				{
-//					to(API.instance.playingIndex);
-//				}
+				//				else
+				//				{
+				//					to(API.instance.playingIndex);
+				//				}
 			}
 
 			private var createTime:int=1;
@@ -247,16 +319,16 @@
 						PopupBoxManager.popup(rbv, function():void
 						{
 							api.recordLog(new LogVO(LogVO.NORMAL, 'record'));
-//							var so:SharedObject=SharedObject.getLocal('yp');
-//							var bros:Array=api.broadcasts;
-//							var arr:Array=[];
-//							for each (var o:Object in bros)
-//							{
-//								if (o.type == 1)
-//								{
-//									arr.push(o);
-//								}
-//							}
+							//							var so:SharedObject=SharedObject.getLocal('yp');
+							//							var bros:Array=api.broadcasts;
+							//							var arr:Array=[];
+							//							for each (var o:Object in bros)
+							//							{
+							//								if (o.type == 1)
+							//								{
+							//									arr.push(o);
+							//								}
+							//							}
 							trace(vo.name, vo.url);
 							api.config.records=[vo];
 							api.saveConfig();
@@ -283,37 +355,37 @@
 			private var loaded:int;
 			private var api:API;
 
-//			private function autoload():void
-//			{
-//				return
-//				var isArr:Boolean=bros is Array;
-//				if (!bros)
-//					return;
-//				if (loaded != bros.length)
-//				{
-//					var vo:Object=bros[loaded];
-//					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
-//					var f:File=new File(path);
-//					if (f.exists)
-//					{
-//						loaded++;
-//						if (loaded != bros.length)
-//							autoload();
-//					}
-//					else
-//					{
-//						LoadManager.instance.load(vo.url, function():void
-//						{
-//							loaded++;
-//							autoload();
-//						}, URLUtil.getCachePath(vo.url));
-//					}
-//				}
-//				else
-//				{
-//					trace('all bro loaded', loaded);
-//				}
-//			}
+			//			private function autoload():void
+			//			{
+			//				return
+			//				var isArr:Boolean=bros is Array;
+			//				if (!bros)
+			//					return;
+			//				if (loaded != bros.length)
+			//				{
+			//					var vo:Object=bros[loaded];
+			//					var path:String=FileManager.savedDir + URLUtil.getCachePath(vo.url);
+			//					var f:File=new File(path);
+			//					if (f.exists)
+			//					{
+			//						loaded++;
+			//						if (loaded != bros.length)
+			//							autoload();
+			//					}
+			//					else
+			//					{
+			//						LoadManager.instance.load(vo.url, function():void
+			//						{
+			//							loaded++;
+			//							autoload();
+			//						}, URLUtil.getCachePath(vo.url));
+			//					}
+			//				}
+			//				else
+			//				{
+			//					trace('all bro loaded', loaded);
+			//				}
+			//			}
 
 			protected function bb_changeHandler(event:IndexChangeEvent):void
 			{
