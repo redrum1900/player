@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   applicationDPI="160"
+			   creationComplete="application1_creationCompleteHandler(event)"
+			   addedToStage="application1_addedToStageHandler(event)"
+			   xmlns:views="views.*">
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.managers.PopupBoxManager;
+			import com.youli.messengers.PreloaderMessenger;
+
+			import mx.events.FlexEvent;
+			import mx.managers.ToolTipManager;
+
+			import controllers.API;
+
+			import org.zengrong.ane.ANEToolkit;
+			[Bindable]
+			private var showT:Boolean;
+
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{
+				NativeApplication.nativeApplication.systemIdleMode=SystemIdleMode.KEEP_AWAKE;
+				ToolTipManager.showDelay=0;
+//				PAlert.PARENT=this.c
+//				PopupBoxManager.PARENT=this.
+				API.instance.controllerInit(this);
+			}
+
+			public function getAndroidSize(width:Number=700, height:Number=507):Array
+			{
+				var w:int=stage.fullScreenWidth;
+				var h:int=stage.fullScreenHeight;
+
+				var scale:Number=0;
+				var offsetX:Number=0
+				var offsetY:Number=0;
+				if (h / height > w / width)
+				{
+					scale=w / width;
+					offsetY=(h - height * scale) / 2;
+				}
+				else
+				{
+					scale=h / height;
+					offsetX=(w - width * scale) / 2;
+				}
+				var arr:Array=[scale, offsetX, offsetY];
+				return arr;
+			}
+
+			protected function application1_addedToStageHandler(event:Event):void
+			{
+//				var arr:Array=getAndroidSize();
+//				if (ANEToolkit.systemInfo)
+//				{
+//					var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
+//					var dpi:Number=o.densityDPI;
+//					API.instance.scale=arr[0] / (dpi / 160);
+//					c.scaleX=c.scaleY=API.instance.scale;
+//					API.instance.initUncaughtErrorListener(loaderInfo);
+//				}
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Style source="assets/font/font.css"/>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace views "views.*";
+		@namespace nativeApplicationUpdater "com.youli.nativeApplicationUpdater.*";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace components "com.pamakids.components.*";
+		global
+		{
+			fontFamily:"Microsoft YaHei";
+			focusThickness:0;
+			focusAlpha:0;
+		}
+		
+		components|NiceToolTip.errorTip
+		{
+			color: "#f8f8f8";
+			chromeColor: "0xe02010";
+			fontSize: 13;
+		}
+		
+		components|NiceToolTip
+		{
+			fontSize: 13;
+			color:"0x505050";
+			chromeColor:"0xe8e8e8";
+		}
+		
+		components|PopupBox{
+			skinClass:ClassReference("skins.popup.PopupBoxSkin")
+		}
+	</fx:Style>
+
+	<s:Group id="c"
+			 width="100%"
+			 height="100%">
+	</s:Group>
+
+
+</s:Application>

@@ -113,7 +113,8 @@ package controllers
 			//			trace(s,b);
 			//			return
 
-			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
 			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String='/mnt/extsd/yuefu/cache/';
@@ -2138,25 +2139,25 @@ package controllers
 			saveConfig();
 		}
 
-		private var app:SkinnableContainer;
+		private var app:Object;
 		private var isController:Boolean;
 
-		public function controllerInit(app:SkinnableContainer):void
+		public function controllerInit(app:Object):void
 		{
 			PAlert.PARENT=app;
 			PopupBoxManager.PARENT=app;
 			this.app=app;
 			config=getConfig();
-			//			controllerLogin('red:q2', '994070');
-			if (config.username && config.password)
-			{
-				controllerLogin(config.username, config.password);
-			}
-			else
-			{
-				var l:ControllerLoginView=new ControllerLoginView();
-				PopupBoxManager.popup(l);
-			}
+			controllerLogin('red:q1', '679036');
+//			if (config.username && config.password)
+//			{
+//				controllerLogin(config.username, config.password);
+//			}
+//			else
+//			{
+//				var l:ControllerLoginView=new ControllerLoginView();
+//				PopupBoxManager.popup(l);
+//			}
 		}
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
@@ -2251,11 +2252,12 @@ package controllers
 			var s:String=''
 			getSB('command/status', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo)
-				{
-					var str:String=vo.results as String;
-					callback(str);
-				}
+				callback(vo);
+//				if (vo)
+//				{
+//					var str:String=vo.results as String;
+//					callback(str);
+//				}
 			});
 		}
 	}
