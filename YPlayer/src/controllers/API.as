@@ -2416,11 +2416,7 @@ package controllers
 			var s:String=''
 			getSB('command/status', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo)
-				{
-					var str:String=vo.results as String;
-					callback(str);
-				}
+				callback(vo);
 			});
 		}
 	}

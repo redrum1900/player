@@ -83,14 +83,15 @@
 				{
 					if (vo == 'stop')
 					{
+						Log.info('stop');
 						var ro:Object=new Object();
 						ro.command=1;
 						ro.status=2;
-						ro.data=API.instance.playingBro;
+						Log.info('status=2');
 						api.sendStatus(JSON.stringify(ro), function():void
 						{
 						});
-						dispatchEvent(new ODataEvent(API.instance.playingBro, "odata2"));
+						dispatchEvent(new ODataEvent(vo, "odata2"));
 					}
 					else if (vo == 'showMenu')
 					{

@@ -256,7 +256,7 @@
 				var ro:Object = new Object();
 				ro.command = 1;
 				ro.status = 2;
-				ro.data = API.instance.playingBro;
+//				ro.data = API.instance.playingBro;
 				
 				api.sendStatus(JSON.stringify(ro),function():void
 				{
@@ -1063,7 +1063,6 @@
 									api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 									player2.stop();
 									broPlayed();
-									conStop();
 								}
 								broAlert = null;
 							},PAlert.YESNO);
@@ -1085,7 +1084,7 @@
 				player2.stop();
 				broPlayed();
 				
-				conStop();
+//				conStop();
 				PopUpManager.removePopUp(broAlert);
 			}
 
