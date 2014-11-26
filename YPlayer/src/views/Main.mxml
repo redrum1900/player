@@ -171,7 +171,7 @@
 			}
 
 			[Bindable]
-			public var time:String;
+			public static var time:String;
 
 			private var brodcasting:Boolean;
 			private var playingDM:Boolean;
@@ -248,11 +248,19 @@
 			
 			private function broStatus(e:Event):void
 			{
-				api.sendStatus('false',function():void
+				conStop();
+			}
+			
+			public function conStop():void
+			{
+				var ro:Object = new Object();
+				ro.command = 1;
+				ro.status = 2;
+				ro.data = API.instance.playingBro;
+				
+				api.sendStatus(JSON.stringify(ro),function():void
 				{
-					listPanel.getTimer.start();
-				}
-				);
+				});
 			}
 
 			private var song1:SongVO;//当前歌曲
@@ -1055,11 +1063,7 @@
 									api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 									player2.stop();
 									broPlayed();
-									api.sendStatus('false',function():void
-									{
-										listPanel.getTimer.start();
-									}
-									);
+									conStop();
 								}
 								broAlert = null;
 							},PAlert.YESNO);
@@ -1069,10 +1073,10 @@
 					}, PAlert.YESNO, '立即停止','继续播放');
 				}, 800);
 				
-				api.sendStatus(JSON.stringify(ivo), function():void
-				{
-//					listPanel.getTimer.stop();
-				});
+//				api.sendStatus(JSON.stringify(ivo), function():void
+//				{
+////					listPanel.getTimer.stop();
+//				});
 			}
 
 			public function stopInsertVO():void
@@ -1080,10 +1084,8 @@
 //				api.recordLog(new LogVO(LogVO.NORMAL,'stopBro',ivo.name));
 				player2.stop();
 				broPlayed();
-				api.sendStatus('false',function():void
-				{
-//					listPanel.getTimer.start();
-				});
+				
+				conStop();
 				PopUpManager.removePopUp(broAlert);
 			}
 

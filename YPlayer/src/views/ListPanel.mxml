@@ -79,9 +79,20 @@
 			 */
 			public function action(e:TimerEvent):void
 			{
-				api.getCommand(function(vo:Object):void
+				api.getCommand(function(vo:String):void
 				{
-					if (vo == 'showMenu')
+					if (vo == 'stop')
+					{
+						var ro:Object=new Object();
+						ro.command=1;
+						ro.status=2;
+						ro.data=API.instance.playingBro;
+						api.sendStatus(JSON.stringify(ro), function():void
+						{
+						});
+						dispatchEvent(new ODataEvent(API.instance.playingBro, "odata2"));
+					}
+					else if (vo == 'showMenu')
 					{
 						var menus:Array=FileManager.readFile('menus.yp') as Array;
 						var arr:Array=[];
@@ -92,34 +103,38 @@
 							else
 								arr.push(menu.name);
 						}
-						api.sendStatus(JSON.stringify(arr), function():void
+						var ro:Object=new Object();
+						ro.command=2;
+						ro.status=3;
+						ro.data=arr;
+						api.sendStatus(JSON.stringify(ro), function():void
 						{
 						});
 					}
 					else if (vo == 'playInfo')
 					{
-						api.sendStatus(API.instance.playingSong.name, function():void
+						var ro:Object=new Object();
+						ro.command=3;
+						ro.status=4;
+						ro.data=Main.time;
+						api.sendStatus(JSON.stringify(ro), function():void
 						{
 						});
 					}
-					else if (vo == 'stop')
+					else
 					{
-						api.sendStatus('false', function():void
+						var o:Object=JSON.parse(vo);
+						var ro:Object=new Object();
+						ro.command=1;
+						ro.status=1;
+						ro.data=o.data;
+						API.instance.playingBro=vo;
+						api.sendStatus(JSON.stringify(ro), function():void
 						{
-//							getTimer.stop();
 						});
-						dispatchEvent(new ODataEvent(vo, "odata2"));
-					}
-					else if (vo)
-					{
-						api.sendStatus(JSON.stringify(vo), function():void
-						{
-//							getTimer.stop();
-						});
-						dispatchEvent(new ODataEvent(vo, "odata2"));
+						dispatchEvent(new ODataEvent(o, "odata2"));
 					}
 				});
-
 			}
 
 			public function to(index:int):void

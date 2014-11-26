@@ -87,6 +87,7 @@ package controllers
 		public var logPath:String='';
 		public var logFile:String='';
 		public var conStatus:Boolean=false; //当前是否在播放广播
+		public var playingBro:Object=new Object();
 
 		private var noCacheDirInConfig:Boolean;
 
@@ -516,7 +517,7 @@ package controllers
 				if (playingSong && menu) //如果当前正在播放歌曲，则显示播放歌曲和来自歌单，否则显示当前时间
 					pn='正在播放歌曲：' + playingSong.name + ' 来自歌单：' + menu.name;
 				else
-					pn=main.time;
+					pn=Main.time;
 			}
 			else
 			{
@@ -2383,14 +2384,10 @@ package controllers
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo && vo.results == 'showMenu')
+				if (vo && vo.results != '')
+				{
 					callback(vo.results as String);
-				else if (vo && vo.results == 'stop')
-					callback(vo.results as String);
-				else if (vo && vo.results == 'playInfo')
-					callback(vo.results as String);
-				else if (vo && vo.results.length != 0 && vo.results != '网络连接失败，请稍后再试')
-					callback(JSON.parse(vo.results as String));
+				}
 			}, {controller_number: serial_number});
 		}
 
