@@ -127,7 +127,7 @@
 						var ro:Object=new Object();
 						ro.command=1;
 						ro.status=1;
-						ro.data=o.data;
+						ro.data=o;
 						API.instance.playingBro=vo;
 						api.sendStatus(JSON.stringify(ro), function():void
 						{
