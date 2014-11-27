@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
-					 xmlns:s="library://ns.adobe.com/flex/spark"
-					 xmlns:mx="library://ns.adobe.com/flex/mx"
-					 xmlns:components="com.pamakids.components.*"
-					 title="登录远程控制"
-					 creationComplete="popupbox1_creationCompleteHandler(event)">
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:components="com.pamakids.components.*"
+		  horizontalAlign="center"
+		  paddingLeft="40"
+		  paddingRight="40"
+		  paddingBottom="20"
+		  paddingTop="30"
+		  gap="10"
+		  creationComplete="popupbox1_creationCompleteHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
@@ -13,6 +18,7 @@
 			import com.pamakids.services.ServiceBase;
 
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 
 			import controllers.API;
 			private var api:API;
@@ -21,7 +27,7 @@
 			{
 				if (username.text.indexOf(':') == -1 && username.text.indexOf('：') == -1)
 				{
-					PAlert.show('抱歉，账户格式不对，需要按 “总部：分部” 的格式输入完整');
+					PAlert.show('用户名不对', '提示', null, null, PAlert.CONFIRM, '知道了');
 					return;
 				}
 				loginBtn.enabled=false;
@@ -49,7 +55,7 @@
 			protected function popupbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				api=API.instance;
-				skin["close"].visible=false;
+//				skin["close"].visible=false;
 				api.getConfig();
 				if (api.config.username && api.config.password)
 				{
@@ -63,27 +69,25 @@
 //					password.text=so.data.password;
 //				}
 			}
+
+			private function close():void
+			{
+				PopUpManager.removePopUp(this);
+			}
 		]]>
 	</fx:Script>
 
-	<components:layout>
-		<s:VerticalLayout horizontalAlign="center"
-						  paddingLeft="40"
-						  paddingRight="40"
-						  paddingBottom="20"
-						  paddingTop="30"
-						  gap="10"/>
-	</components:layout>
-
 	<s:TextInput id="username"
-				 prompt="账户（总部:分部）"
-				 skinClass="skins.textinput.LoginTextInputSkin"/>
+				 width="100%"
+				 prompt="用户名"
+				 skinClass="spark.skins.mobile.TextInputSkin"/>
 	<s:TextInput id="password"
-				 prompt="密码（6位数字）"
-				 skinClass="skins.textinput.LoginTextInputSkin"/>
+				 width="100%"
+				 prompt="密码"
+				 skinClass="spark.skins.mobile.TextInputSkin"/>
 	<s:Spacer height="10"/>
 	<s:Button label="登录"
 			  id="loginBtn"
 			  skinClass="skins.buttons.LoginButtonSkin"
 			  click="button1_clickHandler(event)"/>
-</components:PopupBox>
+</s:VGroup>

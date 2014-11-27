@@ -10,12 +10,14 @@
 		<![CDATA[
 			import com.greensock.TweenLite;
 			import com.pamakids.components.PAlert;
+			import com.pamakids.components.PopupBox;
 			import com.pamakids.events.ODataEvent;
 			import com.pamakids.manager.PopupManager;
 			import com.pamakids.models.ResultVO;
 			import com.pamakids.utils.DateUtil;
 
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 
 			import spark.components.Button;
@@ -170,12 +172,20 @@
 			{
 				api.getStatus(function(vo:ResultVO):void
 				{
-					if (vo.status && vo.results != '')
+					if (vo.status)
 					{
-						var status:Object=JSON.parse(vo.results as String);
-						if (!status.hasOwnProperty('command'))
+						try
 						{
-							Log.error(vo.results);
+							var status:Object=vo.results ? JSON.parse(vo.results as String) : {};
+							if (!status.hasOwnProperty('command'))
+							{
+								Log.error(vo.results);
+								return;
+							}
+						}
+						catch (error:Error)
+						{
+							Log.error(error);
 							return;
 						}
 
@@ -213,6 +223,12 @@
 							}
 						}
 					}
+					else
+					{
+						clearAlert();
+						PAlert.show('命令发送失败，请稍候再试', '提示', null, null, PAlert.CONFIRM);
+						conTimer.stop();
+					}
 				});
 			}
 
@@ -236,6 +252,7 @@
 				if (alert && playingBro)
 				{
 					alert.text='正在播放' + playingBro.name + '   ' + DateUtil.formateTime(this.res) + '后停止播放';
+					PopUpManager.centerPopUp(alert);
 					this.res-=1;
 				}
 				else
