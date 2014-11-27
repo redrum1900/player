@@ -16,7 +16,6 @@
 
 			import controllers.API;
 
-			import org.zengrong.ane.ANEToolkit;
 			[Bindable]
 			private var showT:Boolean;
 
@@ -76,14 +75,14 @@
 			protected function application1_addedToStageHandler(event:Event):void
 			{
 				var arr:Array=getAndroidSize();
-				if (ANEToolkit.systemInfo)
-				{
-					var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
-					var dpi:Number=o.densityDPI;
-					API.instance.scale=arr[0] / (dpi / 160);
-					c.scaleX=c.scaleY=API.instance.scale;
-					API.instance.initUncaughtErrorListener(loaderInfo);
-				}
+//				if (ANEToolkit.systemInfo)
+//				{
+//					var o:Object=ANEToolkit.systemInfo.getDisplayMetricsInfo();
+//					var dpi:Number=o.densityDPI;
+//					API.instance.scale=arr[0] / (dpi / 160);
+//					c.scaleX=c.scaleY=API.instance.scale;
+//					API.instance.initUncaughtErrorListener(loaderInfo);
+//				}
 			}
 		]]>
 	</fx:Script>

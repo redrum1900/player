@@ -27,7 +27,6 @@ package controllers
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
-	import flash.net.SharedObject;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
@@ -35,20 +34,13 @@ package controllers
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 
-	import mx.formatters.DateFormatter;
-	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
-
-	import spark.components.Application;
-	import spark.components.SkinnableContainer;
 
 	import models.InsertVO;
 	import models.LogVO;
 	import models.MenuVO;
 	import models.SongVO;
 	import models.TimeVO;
-
-	import org.zengrong.ane.ANEToolkit;
 
 	import views.BroadcastPanel;
 	import views.ControllerLoginView;
@@ -280,7 +272,8 @@ package controllers
 					try
 					{
 						var confi:String=FileManager.savedDir + '/' + config.apk;
-						var bb:Boolean=ANEToolkit.storage.writeFile(confi, b);
+//						var bb:Boolean=ANEToolkit.storage.writeFile(confi, b);
+						var bb:Boolean;
 						Log.info('SaveUpdateFileConfig:' + bb);
 						var f:File=new File(confi);
 						version=config.version;
@@ -291,7 +284,7 @@ package controllers
 							recordLog(new LogVO(LogVO.AUTO_UPDATE_END, newVersion, '版本自动更新成功'));
 							PAlert.show(newVersion + ' 版本软件发布修复了一些问题，请点击确认进行安装', '版本更新', null, function():void
 							{
-								ANEToolkit.intent.installAPK(confi);
+//								ANEToolkit.intent.installAPK(confi);
 							}, PAlert.CONFIRM);
 						}
 						version=newVersion
@@ -362,7 +355,7 @@ package controllers
 			recordLog(logvo, function():void
 			{
 				appendLog('软件重启');
-				ANEToolkit.restart.rebootApp();
+//				ANEToolkit.restart.rebootApp();
 				NativeApplication.nativeApplication.exit();
 			});
 		}

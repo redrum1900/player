@@ -12,7 +12,8 @@
 		<fullScreen>false</fullScreen>
 		<visible>true</visible>
 		<softKeyboardBehavior>none</softKeyboardBehavior>
-	</initialWindow>
+	<autoOrients>false</autoOrients>
+    </initialWindow>
 
 	<icon>
 		<image16x16>assets/icon/16.png</image16x16>
@@ -66,7 +67,5 @@
 		]]>
 		</manifestAdditions>
 	</android>
-	<extensions>
-		<extensionID>org.zengrong.ane.ANEToolkit</extensionID>
-	</extensions>
+	
 </application>
