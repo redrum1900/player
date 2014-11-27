@@ -370,7 +370,7 @@
 		<s:Scroller id="scroller"
 					mouseDown="event.stopImmediatePropagation()"
 					width="100%"
-					maxHeight="200"
+					height="100%"
 					skinClass="skins.datagrid.list.ScrollSkin"
 					horizontalScrollPolicy="off"
 					verticalScrollPolicy="off">
