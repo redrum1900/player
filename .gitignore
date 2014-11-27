@@ -37,3 +37,6 @@ AndroidPlayer/AndroidPlayer.apk
 AndroidPlayer/bin-debug/
 AndroidPlayer/1.5.8.apk
 AndroidPlayer/.actionScriptProperties
+AndroidPlayer/Controller.ipa
+AndroidPlayer/Controller.apk
+.DS_Store

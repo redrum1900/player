@@ -1,5 +1,5 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"apk":"AndroidPlayer.apk",
 	"trace":false,

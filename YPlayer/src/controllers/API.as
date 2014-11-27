@@ -115,10 +115,10 @@ package controllers
 			//			trace(s,b);
 			//			return
 
-//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
-			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
@@ -2167,6 +2167,8 @@ package controllers
 
 		public function controllerLogin(username:String, password:String, callback:Function=null):void
 		{
+			username=username.replace(' ', '');
+			username=username.replace('：', ':');
 			config.username=username;
 			config.password=password;
 			saveConfig();
