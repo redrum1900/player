@@ -115,10 +115,10 @@ package controllers
 			//			trace(s,b);
 			//			return
 
-			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
-			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String='/mnt/extsd/yuefu/cache/';
 			Log.logPath=cd + 'play.log';
 			FileManager.savedDir=cd;
@@ -2148,6 +2148,7 @@ package controllers
 		{
 			PAlert.PARENT=app;
 			PopupBoxManager.PARENT=app;
+			PAlert.maxWidth=app.width;
 			this.app=app;
 			config=getConfig();
 			//			controllerLogin('red:q2', '994070');
@@ -2158,6 +2159,8 @@ package controllers
 			else
 			{
 				var l:ControllerLoginView=new ControllerLoginView();
+				l.width=app.width;
+				l.height=app.height;
 				PopupBoxManager.popup(l);
 			}
 		}
@@ -2172,6 +2175,8 @@ package controllers
 				Log.info(JSON.stringify(vo.results));
 				if (vo.status)
 				{
+					if (callback)
+						callback(vo);
 					ServiceBase.id=vo.results.id;
 					isController=vo.results.controller;
 					if (!isController)
@@ -2190,7 +2195,17 @@ package controllers
 				}
 				else
 				{
-					//提示登录失败，需要重试，点击重试按钮后，再次调用自动登录的方法
+					if (callback)
+					{
+						callback(vo);
+					}
+					else
+					{
+						var l:ControllerLoginView=new ControllerLoginView();
+						l.width=app.width;
+						l.height=app.height;
+						PopupBoxManager.popup(l);
+					}
 				}
 			}, {username: username, password: password, controller_number: serial_number});
 		}
