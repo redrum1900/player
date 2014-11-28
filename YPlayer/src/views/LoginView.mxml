@@ -33,6 +33,7 @@
 						api.config.username=username.text;
 						api.config.password=password.text;
 						api.config.id=ServiceBase.id;
+						api.config.remotable=vo.results.remotable;
 						Log.info('Frist Login---true---username:' + username.text + '----password:' + password.text);
 						api.saveConfig();
 						Log.info('LoginInfo save');

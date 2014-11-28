@@ -53,7 +53,8 @@
 				api.addEventListener('PLAY', function():void
 				{
 					update();
-					getTimer.start();
+					if (api.config.remotable)
+						getTimer.start();
 				});
 				AA.listen('UPDATE', function():void
 				{

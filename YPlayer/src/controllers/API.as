@@ -2061,6 +2061,7 @@ package controllers
 					broadcasts=vo.results.broadcasts;
 					update_time=vo.results.update_time;
 					ServiceBase.id=vo.results.id + '';
+					config.remotable=vo.results.remotable;
 					if (cd && exists)
 					{
 						saveUserInfo(username, password, cd, vo.results.id);
@@ -2384,7 +2385,7 @@ package controllers
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo && vo.results != '')
+				if (vo && vo.status && vo.results != '')
 				{
 					callback(vo.results as String);
 				}
