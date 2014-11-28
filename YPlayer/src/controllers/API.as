@@ -1938,6 +1938,8 @@ package controllers
 					broadcasts=vo.results.broadcasts;
 					update_time=vo.results.update_time;
 					ServiceBase.id=vo.results.id + '';
+					config.remotable=vo.results.remotable;
+					saveConfig();
 					saveUserInfo(username, password, config.cacheDir, vo.results.id);
 					FileManager.saveFile('bros.yp', broadcasts);
 					getMenuList();
@@ -2235,7 +2237,7 @@ package controllers
 		{
 			getSB('user/command', 'GET').call(function(vo:ResultVO):void
 			{
-				if (vo && vo.results != '')
+				if (vo && vo.status && vo.results != '')
 				{
 					callback(vo.results as String);
 				}

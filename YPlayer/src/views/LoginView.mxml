@@ -30,6 +30,7 @@
 						api.config.username=username.text;
 						api.config.password=password.text;
 						api.config.id=ServiceBase.id;
+						api.config.remotable=vo.results.remotable;
 //						so.data.broadcasts = vo.results.broadcasts;
 						Log.info('Frist Login---true---username:' + username.text + '----password:' + password.text);
 						api.saveConfig();
