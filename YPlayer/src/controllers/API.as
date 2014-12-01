@@ -18,6 +18,7 @@ package controllers
 	import com.youli.nativeApplicationUpdater.NativeApplicationUpdater;
 
 	import flash.desktop.NativeApplication;
+	import flash.errors.IOError;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
@@ -115,14 +116,28 @@ package controllers
 			//			trace(s,b);
 			//			return
 
-			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			//			var cd:String=Capabilities.isDebugger ? File.applicationDirectory.nativePath + '/' : '/mnt/extsd/yuefu/cache/';
 //			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
-			//			var cd:String='/mnt/extsd/yuefu/cache/';
-			Log.logPath=cd + 'play.log';
+
+			var cd:String='/mnt/extsd/yuefu/cache/';
+			try
+			{
+				var fs:Object=new FileStream();
+				var file:File=new File(cd + 'config.json');
+				fs.open(file, FileMode.WRITE);
+				fs.close();
+			}
+			catch (e:Error)
+			{
+				cd=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+			}
+
+//			if (Capabilities.isDebugger)
+//				cd=File.applicationDirectory.nativePath + '/';
 			FileManager.savedDir=cd;
 			var o:Object=getConfig();
+			Log.logPath=cd + 'play.log';
 			isTest=o.test;
 			Log.isTest=isTest;
 			local=o.local;
@@ -228,6 +243,7 @@ package controllers
 			//			Log.Trace(o);
 			if (o is String)
 				o=JSON.parse(o + '');
+
 			return o;
 		}
 
@@ -2095,7 +2111,7 @@ package controllers
 
 		public function checkUpdate():void
 		{
-			return;
+//			return;
 			Log.Trace('UpdateInfo:', local, checkingUpdate);
 			if (local || checkingUpdate)
 				return;
