@@ -121,6 +121,8 @@ package controllers
 //			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 
 			var cd:String='/mnt/extsd/yuefu/cache/';
+//			if (Capabilities.isDebugger)
+//				cd=File.applicationDirectory.nativePath + '/';
 			try
 			{
 				var fs:Object=new FileStream();
@@ -133,8 +135,6 @@ package controllers
 				cd=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 			}
 
-//			if (Capabilities.isDebugger)
-//				cd=File.applicationDirectory.nativePath + '/';
 			FileManager.savedDir=cd;
 			var o:Object=getConfig();
 			Log.logPath=cd + 'play.log';
@@ -576,6 +576,8 @@ package controllers
 						reboot(false);
 					if (vo.results.update)
 						checkUpdate();
+					if (vo.results.log)
+						uploadUseLog();
 					Log.info('DayChanged:' + daychanged + ' BrosChanged:' + brosChanged + ' MenuChanged:' + menuChanged);
 				}
 				else if (!vo.status)
@@ -2145,6 +2147,23 @@ package controllers
 				}
 			});
 		}
+
+		/**
+		 *上传用户使用日志
+		 *
+		 */
+		public function uploadUseLog():void
+		{
+			Log.Trace('uploadLog');
+			var file:File=new File(FileManager.savedDir + 'play.log');
+			var upName:String=ServiceBase.id + '-' + DateUtil.getHMS(now) + '-' + file.name;
+			QNService.instance.upload(file, function(r:Object):void
+			{
+				Log.info('上传日志成功：' + file.name);
+			}, {key: upName});
+		}
+
+
 
 		public function clearInfo():void
 		{
