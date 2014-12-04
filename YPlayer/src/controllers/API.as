@@ -260,6 +260,7 @@ package controllers
 			var s:SoundPlayer=new SoundPlayer();
 			s.autoPlay=true;
 			s.repeat=true;
+			s.muted=true;
 			s.url='assets/silence.mp3';
 		}
 
