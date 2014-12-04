@@ -37,11 +37,7 @@
 			{
 				api=API.instance;
 				if (!api.config.manual)
-				{
 					Log.info('配置文件不在');
-					api.config.manual=true;
-					api.saveConfig();
-				}
 				else
 					Log.info('手动控制状态：' + api.config.manual);
 				menuArr=new Array();
@@ -92,24 +88,24 @@
 
 			public function selectMenu(e:MouseEvent):void
 			{
-//				if (api.config.manual)
-//				{
-				var menu:Object=menuArr[Number((e.target as Button).id)];
-				PAlert.show('是否将当前播放列表切换为' + menu.name, '提示', null, function(value:String):void
+				if (api.config.manual)
 				{
-					if (value == PAlert.YES)
+					var menu:Object=menuArr[Number((e.target as Button).id)];
+					PAlert.show('是否将当前播放列表切换为' + menu.name, '提示', null, function(value:String):void
 					{
-						api.config.manual_menu=menu;
-						api.saveConfig();
-						api.initMenu();
-					}
-				}, PAlert.YESNO, '确定', '取消');
-				PopupManager.removePopup(this);
-//				}
-//				else
-//				{
-//					PAlert.show('未开启手动模式');
-//				}
+						if (value == PAlert.YES)
+						{
+							api.config.manual_menu=menu;
+							api.saveConfig();
+							api.initMenu();
+						}
+					}, PAlert.YESNO, '确定', '取消');
+					PopupManager.removePopup(this);
+				}
+				else
+				{
+					PAlert.show('未开启手动模式');
+				}
 			}
 
 			protected function popupbox1_closeHandler(event:Event):void

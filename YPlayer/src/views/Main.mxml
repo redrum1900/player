@@ -47,6 +47,12 @@
 			
 			private var player:SoundPlayer;
 			
+			[Embed(source="/assets/Play.png")]
+			private var playImage:Class;
+						
+			[Embed(source="/assets/Pause.png")]
+			private var pauseImage:Class;
+			
 			//			private var soundVisualizer:SoundVisualizer;
 			
 			//			private var volumeSO:SharedObject;
@@ -223,6 +229,7 @@
 					time+=' ' + DateUtil.formateTime(value) + ' 后将播放：' + song2.name;
 				else
 					time+=' ' + DateUtil.formateTime(value) + ' 后将将结束今天的播放'
+				changePlayButton(player1.playing);
 			}
 			
 			protected function player1PlayedHandler(event:Event):void
@@ -309,6 +316,7 @@
 			
 			private function play():void
 			{
+				changePlayButton(player1.playing);
 				if (player1.playing || !api.songs || !api.songs.length)
 					return;
 				if(song1 && song2 && !randomPlay.selected && !api.isCurrentTimeLoop && !validSongTime(song2))
@@ -1038,6 +1046,60 @@
 				PopupBoxManager.popup(mp);
 			}
 			
+			protected function playAction(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var b:Image = event.currentTarget as Image;
+				if(b.name == 'pause' && player1.playing)
+				{
+					player1.pause();
+					
+				}else if(b.name == 'play' && player1.paused)
+				{
+					player1.play();
+				}else if(b.name == 'rewind')
+				{
+					player1.pause();
+					var index = api.songs.indexOf(song1);
+					if(index == 0)
+					{
+						song1 = api.songs[api.songs.length-2];
+						song2 = api.songs[api.songs.length-1];
+					}else if(index == 1)
+					{
+						song1 = api.songs[api.songs.length-1];
+						song2 = api.songs[0];
+					}else
+					{
+						song1 = api.songs[index - 2];
+						song2 = api.songs[index - 1];
+					}
+					play();
+					
+					
+				}else if(b.name == 'forward')
+				{
+					player1.pause();
+					play();
+				}
+				changePlayButton(player1.playing);
+			}
+			
+			public function changePlayButton(b:Boolean):void
+			{
+				if(b)
+				{
+					playButton.name = 'pause';
+					playButton.source = pauseImage;
+					playButton.toolTip='停止';
+				}else
+				{
+					playButton.name = 'play';
+					playButton.source = playImage;
+					playButton.toolTip='播放';
+				}
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1128,7 +1190,28 @@
 										 label="背景音调节"/>
 			<components:VolumeController id="vc2"
 										 changing="vc2_changingHandler(event)"
-										 label="其它音调节"/>
+										 label="其它音调节"
+										 width="0"
+										 visible="false"/>
+			<s:Image buttonMode="true"
+					 toolTip="上一首"
+					 id="rewindButton"
+					 name="rewind"
+					 source="@Embed('/assets/rewind.png')"
+					 click="playAction(event)"/>
+			<s:Image buttonMode="true"
+					 id="playButton"
+					 name="play"
+					 toolTip="播放"
+					 source="{playImage}"
+					 click="playAction(event)"/>
+			<s:Image buttonMode="true"
+					 toolTip="下一首"
+					 id="forwardButton"
+					 name="forward"
+					 source="@Embed('/assets/forward.png')"
+					 click="playAction(event)"/>
+
 			<s:Spacer width="100%"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.PrimaryButtonSkin"

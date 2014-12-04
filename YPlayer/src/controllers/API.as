@@ -121,18 +121,21 @@ package controllers
 //			var cd:String=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
 
 			var cd:String='/mnt/extsd/yuefu/cache/';
-//			if (Capabilities.isDebugger)
-//				cd=File.applicationDirectory.nativePath + '/';
-			try
+			if (Capabilities.isDebugger)
+				cd=File.applicationDirectory.nativePath + '/';
+			else
 			{
-				var fs:Object=new FileStream();
-				var file:File=new File(cd + 'config.json');
-				fs.open(file, FileMode.WRITE);
-				fs.close();
-			}
-			catch (e:Error)
-			{
-				cd=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+				try
+				{
+					var fs:Object=new FileStream();
+					var file:File=new File(cd + 'config.json');
+					fs.open(file, FileMode.WRITE);
+					fs.close();
+				}
+				catch (e:Error)
+				{
+					cd=ANEToolkit.storage.getExternalFilesDir('cache') + '/';
+				}
 			}
 
 			FileManager.savedDir=cd;
