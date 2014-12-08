@@ -62,6 +62,17 @@
 				api=API.instance;
 				api.main = this;
 				
+				//判断是否可以切换歌曲，config中control
+				if(api.config.control != null && api.config.control == 'true')
+				{
+					vc2.width = 0;
+					vc2.visible = false;
+				}else
+				{
+					controlGroup.width = 0;
+					controlGroup.visible = false;
+				}
+				
 				if(api.config.volume != null)
 					vc1Volume=api.config.volume;
 				if(api.config.volume2 != null)
@@ -1191,27 +1202,29 @@
 			<components:VolumeController id="vc2"
 										 changing="vc2_changingHandler(event)"
 										 label="其它音调节"
-										 width="0"
-										 visible="false"/>
-			<s:Image buttonMode="true"
-					 toolTip="上一首"
-					 id="rewindButton"
-					 name="rewind"
-					 source="@Embed('/assets/rewind.png')"
-					 click="playAction(event)"/>
-			<s:Image buttonMode="true"
-					 id="playButton"
-					 name="play"
-					 toolTip="播放"
-					 source="{playImage}"
-					 click="playAction(event)"/>
-			<s:Image buttonMode="true"
-					 toolTip="下一首"
-					 id="forwardButton"
-					 name="forward"
-					 source="@Embed('/assets/forward.png')"
-					 click="playAction(event)"/>
-
+										 />
+			<s:HGroup id="controlGroup"
+					  width="100%"
+					  verticalAlign="middle">
+				<s:Image buttonMode="true"
+						 toolTip="上一首"
+						 id="rewindButton"
+						 name="rewind"
+						 source="@Embed('/assets/rewind.png')"
+						 click="playAction(event)"/>
+				<s:Image buttonMode="true"
+						 id="playButton"
+						 name="play"
+						 toolTip="播放"
+						 source="{playImage}"
+						 click="playAction(event)"/>
+				<s:Image buttonMode="true"
+						 toolTip="下一首"
+						 id="forwardButton"
+						 name="forward"
+						 source="@Embed('/assets/forward.png')"
+						 click="playAction(event)"/>
+			</s:HGroup>
 			<s:Spacer width="100%"/>
 			<s:Button fontSize="14"
 					  skinClass="skins.buttons.PrimaryButtonSkin"

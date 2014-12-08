@@ -5,10 +5,11 @@
 	"trace":false,
 	"insert":false,
 	"insert_list":false,
-	"remotable":false,
-	"manual":true,
+	"remotable":true,
+	"manual":false,
 	"manual_menu":"",
+	"control":"false",
 	"update":"http://yfcdn.qiniudn.com/file/android_update.json",
-	"version":"1.7.8",
+	"version":"1.7.9",
 	"username":"本地版本：分部名称"
 }

@@ -36,7 +36,7 @@
 			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
-				if (!api.config.manual)
+				if (api.config.manual == null)
 					Log.info('配置文件不在');
 				else
 					Log.info('手动控制状态：' + api.config.manual);
