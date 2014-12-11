@@ -2000,7 +2000,7 @@ package controllers
 		{
 			var o:Object={};
 			var config:Object;
-//			config=getConfig();
+			config=getConfig();
 			Log.info('getUserInfoing……………………');
 			if (config && config.username)
 			{
