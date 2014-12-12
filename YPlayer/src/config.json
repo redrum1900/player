@@ -1,5 +1,5 @@
 {
-	"test":true,
+	"test":false,
 	"local":false,
 	"auto_update":true,
 	"debug":false,
@@ -13,7 +13,7 @@
 		"interval":30,
 		"record_limit":180
 	},
-	"insert_list":false,
+	"insert_list":true,
 	"exe":"乐播.exe",
 	"swf":"Player.swf",
 	"update":"http://yfcdn.qiniudn.com/file/update.json",

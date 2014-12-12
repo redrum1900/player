@@ -138,7 +138,6 @@ package controllers
 			{
 				online=false;
 				FileManager.savedDir=File.applicationDirectory.resolvePath('local').nativePath + '/';
-				setDefaultLoaclDMS();
 			}
 			else
 			{
@@ -2100,7 +2099,6 @@ package controllers
 					}
 				}
 
-				setDefaultLoaclDMS();
 				onLogin=true;
 
 				if (!vo.status)

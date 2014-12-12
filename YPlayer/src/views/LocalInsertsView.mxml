@@ -52,6 +52,7 @@
 			protected function inited(event:FlexEvent):void
 			{
 				api=API.instance;
+				api.setDefaultLoaclDMS();
 				menus=api.getLocalDMS();
 				curentMenu=menus[0];
 				curentMenu.selected=true;
@@ -101,13 +102,14 @@
 					if (v == PAlert.YES)
 					{
 						menus.splice(menus.indexOf(curentMenu), 1);
+						deleteDate(checkDeleteDate());
 						if (!menus || menus.length == 0)
 							menus=[api.setLocalDMS()];
-						deleteDate(checkDeleteDate());
 						curentMenu=menus[0];
 						insertedMenus=new ArrayCollection(menus);
 						menuList.selectedItem=curentMenu;
-						api.updateLocalDMS(menus);
+//						api.updateLocalDMS(menus);
+						refresh()
 					}
 				}, PAlert.YESNO);
 			}
@@ -163,10 +165,13 @@
 				{
 					for (var i:int=0; i < menus.length; i++)
 					{
-						for (var j:int=0; j < menus[i].dm_list.length; j++)
+						if (menus[i].dm_list != null)
 						{
-							if (o.dm.name == menus[i].dm_list[j].dm.name)
-								arr.splice(arr.indexOf(o.dm.name), 1);
+							for (var j:int=0; j < menus[i].dm_list.length; j++)
+							{
+								if (o.dm.name == menus[i].dm_list[j].dm.name)
+									arr.splice(arr.indexOf(o.dm.name), 1);
+							}
 						}
 					}
 				}
