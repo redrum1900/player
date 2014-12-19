@@ -971,16 +971,18 @@
 			
 			protected function button4_clickHandler(event:MouseEvent):void
 			{
-				var menus:Array=FileManager.readFile('menus.yp') as Array;
-				var arr:Array=[];
-				for each (var menu:Object in menus)
-				{
-					if (api.hasCached(menu._id))
-						menu.name+=' 【已缓存】'
-					arr.push(menu.name);
-				}
-				var s:String = arr.join('\n');
-				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+//				var menus:Array=FileManager.readFile('menus.yp') as Array;
+//				var arr:Array=[];
+//				for each (var menu:Object in menus)
+//				{
+//					if (api.hasCached(menu._id))
+//						menu.name+=' 【已缓存】'
+//					arr.push(menu.name);
+//				}
+//				var s:String = arr.join('\n');
+//				PAlert.show(s, '项目列表', null, null, PAlert.CONFIRM);
+				var mp:manualPanel = new manualPanel();
+				PopupBoxManager.popup(mp);
 			}
 			
 		]]>

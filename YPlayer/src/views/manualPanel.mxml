@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:PopupBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:components="com.pamakids.components.*"
+					 title="缓存列表"
+					 width="200"
+					 height="300"
+					 close="popupbox1_closeHandler(event)"
+					 creationComplete="inited(event)"
+					 xmlns:components1="views.components.*">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pamakids.components.PAlert;
+			import com.pamakids.manager.FileManager;
+			import com.pamakids.manager.PopupManager;
+			import com.pamakids.managers.PopupBoxManager;
+
+			import mx.events.FlexEvent;
+
+			import spark.components.Button;
+
+			import controllers.API;
+
+			import skins.buttons.PrimaryButtonSkin;
+			import skins.buttons.WarningButtonSkin;
+
+			var api:API;
+			private var menuArr:Array;
+			private var menus:Array;
+
+			protected function inited(event:FlexEvent):void
+			{
+				api=API.instance;
+				menuArr=new Array();
+				// TODO Auto-generated method stub
+				buttonGroup.removeAllElements();
+
+				this.menus=FileManager.readFile('menus.yp') as Array;
+				var arr:Array=[];
+				var i:int=0;
+				for each (var menu:Object in menus)
+				{
+					if (menu.type == 1 && api.hasCached(menu._id))
+					{
+						var b:Button=new Button();
+						b.label=menu.name;
+						b.id=i + '';
+						b.width=buttonGroup.width * 0.8;
+						b.setStyle('skinClass', PrimaryButtonSkin);
+						b.addEventListener(MouseEvent.CLICK, selectMenu);
+						menuArr.push(menu);
+						buttonGroup.addElement(b);
+						i++;
+					}
+				}
+			}
+
+//			public function intButton():void
+//			{
+//				var menus:Array=FileManager.readFile('menus.yp') as Array;
+//				var arr:Array=[];
+//				var i:int=0;
+//				buttonGroup.removeAllElements();
+//				for each (var menu:Object in menus)
+//				{
+//					if (menu.type == 1 && api.hasCached(menu._id))
+//					{
+//						var b:Button=new Button();
+//						b.label=menu.name;
+//						b.id=i + '';
+//						b.width=buttonGroup.width * 0.8;
+//						b.setStyle('skinClass', PrimaryButtonSkin);
+//						b.addEventListener(MouseEvent.CLICK, selectMenu);
+//						menuArr.push(menu);
+//						buttonGroup.addElement(b);
+//						i++;
+//					}
+//				}
+//			}
+
+
+
+			public function selectMenu(e:MouseEvent):void
+			{
+				if (api.config.manual)
+				{
+					//				var b:Button=e.target as Button;
+					var menu:Object=menuArr[Number((e.target as Button).id)];
+					//				b.setStyle('skinClass', WarningButtonSkin);
+					api.config.manual_menu=menu;
+					api.saveConfig();
+					api.initMenu();
+					PopupManager.removePopup(this);
+				}
+				else
+				{
+					PAlert.show('未开启手动模式');
+				}
+			}
+
+			protected function popupbox1_closeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				PopupManager.removePopup(this);
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup height="100%"
+			  width="100%"
+			  paddingBottom="10"
+			  paddingLeft="10"
+			  paddingRight="10"
+			  paddingTop="10"
+			  id="buttonGroup"/>
+</components:PopupBox>

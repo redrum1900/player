@@ -996,7 +996,7 @@ package controllers
 		private function checkPlayingValid():Boolean
 		{
 			var b:Boolean=true;
-			if (!gotServerTime)
+			if (!gotServerTime || config.manual)
 				return b;
 			var clearedSize:Number=0;
 			var f:File;
@@ -1088,12 +1088,52 @@ package controllers
 			return menu;
 		}
 
+		public function getManualList():Array
+		{
+			var menu:Array=new Array();
+			var menus:Array=getMenus() as Array;
+			var b:Boolean=true;
+			if (config.manual)
+			{
+				if (!config.manual_menu)
+				{
+					for each (var vo:Object in menus)
+					{
+						if (vo.type != 1)
+						{
+							menu.push(vo);
+						}
+						else if (vo.type == 1 && b)
+						{
+							menu.push(vo);
+							config.manual_menu=vo;
+							b=false;
+						}
+					}
+				}
+				else
+				{
+					for each (var vo:Object in menus)
+					{
+						if (vo.type != 1)
+						{
+							menu.push(vo);
+						}
+					}
+					menu.push(config.manual_menu);
+				}
+			}
+			else
+				menu=menus;
+			return menu;
+		}
+
 		public function initMenu():void
 		{
 			if (initializing)
 				return;
 			initializing=true;
-			var menus:Array=getMenus() as Array;
+			var menus:Array=getManualList();
 			if (menus && menus.length)
 			{
 				var i:int;
@@ -1117,6 +1157,8 @@ package controllers
 								listMenu=o;
 						}
 					}
+					if (config.manual)
+						listMenu=o;
 				}
 				for (i=0; i < menus.length; i++)
 				{
@@ -1144,7 +1186,7 @@ package controllers
 					o=listMenu;
 				}
 
-				if (n.getTime() <= o.end_date.getTime())
+				if (n.getTime() <= o.end_date.getTime() || config.manual)
 				{
 					var songMenu:Object;
 					var dmMenuO:Object;
@@ -1458,7 +1500,15 @@ package controllers
 			}
 			if (!onlyParse)
 			{
-				if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
+				if (config.manual)
+				{
+					this.menu=CloneUtil.convertObject(o, MenuVO);
+					this.dmMenu=dmMenu;
+					this.songs=songs;
+					AA.say('UPDATE');
+					initializing=false;
+				}
+				else if (!playingSong && o && dateValidate(o.begin_date, o.end_date))
 				{
 					if (!this.menu || this.menu._id == o._id)
 					{
@@ -1480,6 +1530,7 @@ package controllers
 					AA.say('UPDATE');
 					initializing=false;
 				}
+
 				if (updateForRecord)
 				{
 					this.songs=songs;
